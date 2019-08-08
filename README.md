@@ -11,6 +11,7 @@ To create a bids-app gear, follow these steps.
 ## Create GitHub Project
 
 1. On https://github.com/flywheel-apps, hit the "new" button. 
+
 Create new repository with owner "flywheel-apps" and give it a lower-case-with-dashes name like "bids-freesurfer".  
 Give it a description like, "Gear that runs freesurfer on BIDS-curated data".  
 Keep it private for now, not that nobody should see it, but there's no need for a lot of intrusive questions about it before it is even released for the first time.  
