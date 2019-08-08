@@ -3,7 +3,7 @@ FROM python:3 as base
 
 MAINTAINER Flywheel <support@flywheel.io>
 
-RUN apt-get update && apt-get install -y zip npm
+RUN apt-get update && apt-get install -y zip npm tree
 
 RUN npm install -g bids-validator
 

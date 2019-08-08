@@ -9,10 +9,8 @@ import subprocess as sp
 from utils.G import *
 
 def zip_html():
-    """ Construct one index.html to rule them all so viewer can see them
-        MRIQC outputs reports on subjects grouped by type of scan (T1,T2,dwi,func)
-        They are html files in the output/ directory that link to each other.
-        Each group .html file has a .tsv file that lists the individual subjects.
+    """ Construct one index.html to rule them all 
+        It will link to all .html files found in the output/ directory.
     """
 
     LOG.info(' Creating index.html')
@@ -23,38 +21,21 @@ def zip_html():
             '<html>\n' + \
             '  <head>\n' + \
             '    <meta http-equiv="content-type" content="text/html; charset=UTF-8">\n' + \
-            '    <title>MRIQC Output</title>\n' + \
+            f'    <title>{COMMAND} Output</title>\n' + \
             '  </head>\n' + \
             '  <body>\n' + \
-            '    <b>MRIQC Output</b><br>\n' + \
+            f'    <b>{COMMAND} Output</b><br>\n' + \
             '    <br>\n' + \
             '    <tt>\n'
 
     # get a list of all "group" html files
-    groups = glob.glob('group_*.html')
+    html_files = glob.glob('*.html')
 
     lines = []
-    for group in groups:
+    for h_file in html_files:
 
-        # First, add a link to that group file
-        s = '    <a href="./' + group + '">' + group[:-5] + '</a><br>\n'
-        lines.append(s)
-
-        # Then add a link each individual subject in that group
-        s = '    <blockquote>\n'
-        lines.append(s)
-
-        # similarly named .tsv files tell the names of all individual subjects
-        with open(group[:-5] + '.tsv') as tsvfile:
-
-            reader = csv.reader(tsvfile, delimiter='\t')
-
-            for rr, row in enumerate(reader):
-                if rr > 0:
-                    s = '      <a href="./' + row[0] + '.html' + '">' + row[0] + '</a><br>\n'
-                    lines.append(s)
-
-        s = '    </blockquote>\n'
+        # First, add a link to that h_file file
+        s = '    <a href="./' + h_file + '">' + h_file[:-5] + '</a><br>\n'
         lines.append(s)
 
     # The final part of index.html
@@ -72,7 +53,7 @@ def zip_html():
 
     # compress everything into an appropriately named archive file
     # *.html.zip file are automatically shown in another tab in the browser
-    cmd = 'zip -q mriqc.html.zip *.html *.tsv'
+    cmd = f'zip -q {COMMAND}.html.zip *.html'
     LOG.info(f' running "{cmd}"')
     result = sp.run(cmd, shell=True, stdout=sp.PIPE, stderr=sp.PIPE, encoding='utf-8')
     LOG.info(' return code: ' + str(result.returncode))

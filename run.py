@@ -39,6 +39,8 @@ def main(context):
 
         bids_path = utils.bids.download(context)
 
+        utils.bids.tree(bids_path, environ)
+
         utils.bids.run_validation(config, bids_path, environ)
 
         # Build a parameter dictionary specific for COMMAND
@@ -80,7 +82,7 @@ def main(context):
         # possibly save ALL intermediate output
         if config['gear-save-all-output']:
             os.chdir(FLYWHEEL_BASE)
-            cmd = f'zip -r -q {OUTPUT_DIR}/mriqc_work.zip work'
+            cmd = f'zip -r -q {OUTPUT_DIR}/{COMMAND}_work.zip work'
             LOG.info(f' running "{cmd}"')
             result = sp.run(cmd, shell=True, stdout=sp.PIPE, stderr=sp.PIPE, encoding='utf-8')
             LOG.info(' return code: ' + str(result.returncode))

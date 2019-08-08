@@ -84,4 +84,4 @@ def build_command(ParamList, bids_path):
 
     return command
 
-# vi:set autoindent ts=2 sw=2 expandtab : See Vim, :help 'modeline'
+# vi:set autoindent ts=4 sw=4 expandtab : See Vim, :help 'modeline'

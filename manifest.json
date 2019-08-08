@@ -65,7 +65,7 @@
 		},
 		"verbose": {
 			"default": "v",
-			"description": "increases mriqc log verbosity for each occurence, debug level is -vvv",
+			"description": "increases log verbosity for each occurence, debug level is -vvv",
 			"enum": [
 				"",
 				"v",
