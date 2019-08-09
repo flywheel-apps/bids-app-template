@@ -3,14 +3,14 @@
 import json
 import os
 import subprocess as sp
-
-import flywheel
 import psutil
 
+import flywheel
+
+from utils.G import *
 import utils.args
 import utils.bids
 import utils.results
-from utils.G import *
 
 
 def main():
@@ -37,7 +37,7 @@ def main():
         # Build a parameter dictionary specific for COMMAND
         params = utils.args.build(config)
 
-        # Validate the COMMAND parameter dictionary
+        # Validate the command parameter dictionary
         # Raises Exception on fail
         utils.args.validate(params)
 
@@ -68,7 +68,7 @@ def main():
     finally:
         # Cleanup, move all results to the output directory
 
-        utils.results.zip_html()
+        utils.results.zip_htmls()
 
         # possibly save ALL intermediate output
         if config['gear-save-all-output']:
