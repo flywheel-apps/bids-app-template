@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
+import os
 import subprocess as sp
-import os.path as op
 import json
 import pprint
 
 from utils.G import *
+
 
 def download(context):
     """ Download all files from the session in BIDS format
@@ -81,7 +82,7 @@ def run_validation(config, bids_path, environ):
         bids_output = json.loads(result.stdout)
 
         # show summary of valid BIDS stuff
-        LOG.info(' bids-validator results:\n\nValid BIDS files summary:\n' + \
+        LOG.info(' bids-validator results:\n\nValid BIDS files summary:\n' +
                  pprint.pformat(bids_output['summary'], indent=8) + '\n')
 
         num_bids_errors = len(bids_output['issues']['errors'])
@@ -103,9 +104,10 @@ def run_validation(config, bids_path, environ):
             LOG.warning(' ' + warn_msg)
 
         if config['gear-abort-on-bids-error'] and num_bids_errors > 0:
-            LOG.critical(f' {num_bids_errors} BIDS validation errors ' + \
+            LOG.critical(f' {num_bids_errors} BIDS validation errors ' +
                          f'were detected: NOT running {COMMAND}.')
             os.sys.exit(1)
+
 
 def tree(bids_path, environ):
 
@@ -115,20 +117,20 @@ def tree(bids_path, environ):
                     universal_newlines=True, env=environ)
     LOG.info(f'  {command[0]} return code: ' + str(result.returncode))
 
-    html1 = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">\n'+\
-    '<html>\n'+\
-    '  <head>\n'+\
-    '    <meta http-equiv="content-type" content="text/html; charset=UTF-8">\n'+\
-    '    <title>Tree_work_bids</title>\n'+\
-    '  </head>\n'+\
-    '  <body>\n'+\
-    '    Output of <tt><b>tree work/bids</b></tt><br>\n'+\
-    '    <blockquote><tt>work/bids/<br>\n'
+    html1 = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">\n' + \
+            '<html>\n' + \
+            '  <head>\n' + \
+            '    <meta http-equiv="content-type" content="text/html; charset=UTF-8">\n' + \
+            '    <title>Tree_work_bids</title>\n' + \
+            '  </head>\n' + \
+            '  <body>\n' + \
+            '    Output of <tt><b>tree work/bids</b></tt><br>\n' + \
+            '    <blockquote><tt>work/bids/<br>\n'
 
-    html2 = '      </tt><br>\n'+\
-    '    </blockquote>\n'+\
-    '  </body>\n'+\
-    '</html>\n'
+    html2 = '      </tt><br>\n' + \
+            '    </blockquote>\n' + \
+            '  </body>\n' + \
+            '</html>\n'
 
     # put all of that text into the actual file
     with open("output/bids_tree.html", "w") as text_file:

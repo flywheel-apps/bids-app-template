@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 
-import os
 import glob
-import csv
-import shutil
+import os
 import subprocess as sp
 
 from utils.G import *
+
 
 def zip_html():
     """ Construct one index.html to rule them all 
