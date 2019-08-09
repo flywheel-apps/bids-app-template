@@ -1,28 +1,19 @@
 #!/usr/bin/env python3
 
-import codecs
 import json
-import copy
 import os
-import os.path as op
-import sys
 import subprocess as sp
-import shutil
-import pprint
-import logging
+
+import flywheel
 import psutil
-import glob
-import csv
- 
-from utils.G import *
 
 import utils.args
 import utils.bids
 import utils.results
+from utils.G import *
 
-import flywheel
 
-def main(context):
+def main():
     config = context.config
 
     LOG.setLevel(getattr(logging, config['gear-log-level']))
@@ -89,12 +80,11 @@ def main(context):
             LOG.info(f' {cmd.split()[0]} output\n' + str(result.stdout))
 
 
-
 if __name__ == '__main__':
     with flywheel.GearContext() as context:
         context.init_logging()
         context.log_config()
-        main(context)
+        main()
 
 
 # vi:set autoindent ts=4 sw=4 expandtab : See Vim, :help 'modeline'
