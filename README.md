@@ -31,3 +31,8 @@ git push -u origin dev
   * run.py
   
 As you develop new best practices for developing gears, be sure to add them here.
+
+## To Do:
+  * add continuous integration
+  * add testing infrastructure
+  * change this GitHub project into a template
