@@ -2,44 +2,42 @@
 
 import datetime
 import glob
-import os
+import os, os.path as op
 import subprocess as sp
 
-from utils.G import *
 
-
-def zip_it_zip_it_good(name):
+def zip_it_zip_it_good(context, name):
     """ Compress html file into an appropriately named archive file
         *.html.zip files are automatically shown in another tab in the browser """
 
     cmd = f'zip -q {name}.zip index.html'
-    LOG.debug(f' creating viewable archive "{name}.zip"')
+    context.log.debug(f' creating viewable archive "{name}.zip"')
     result = sp.run(cmd, shell=True, stdout=sp.PIPE, stderr=sp.PIPE, encoding='utf-8')
     if result.returncode != 0:
-        LOG.info(f' Problem running {cmd}')
-        LOG.info(' return code: ' + str(result.returncode))
-        LOG.info(f' {cmd.split()[0]} output\n' + str(result.stdout))
+        context.log.info(f' Problem running {cmd}')
+        context.log.info(' return code: ' + str(result.returncode))
+        context.log.info(f' {cmd.split()[0]} output\n' + str(result.stdout))
     else:
-        LOG.debug(' return code: ' + str(result.returncode))
-        LOG.debug(f' {cmd.split()[0]} output\n' + str(result.stdout))
+        context.log.debug(' return code: ' + str(result.returncode))
+        context.log.debug(f' {cmd.split()[0]} output\n' + str(result.stdout))
 
 
-def zip_htmls():
+def zip_htmls(context):
     """ Since zip_all_html() doesn't work, each html file must be
         converted into an archive individually.
         For each html file, rename it to be "index.html", then create a zip
         archive from it.
     """
 
-    LOG.info(' Creating viewable archives for all html files')
-    os.chdir(OUTPUT_DIR)
+    context.log.info(' Creating viewable archives for all html files')
+    os.chdir(context.output_dir)
 
     html_files = glob.glob('*.html')
 
     # if there is an index.html, do it first and re-name it for safe keeping
     save_name = ''
     if op.exists('index.html'):
-        zip_it_zip_it_good('index.html')
+        zip_it_zip_it_good(context,'index.html')
 
         now = datetime.datetime.now()
         save_name = now.strftime("%Y-%m-%d_%H-%M-%S") + '_index.html'
@@ -49,7 +47,7 @@ def zip_htmls():
 
     for h_file in html_files:
         os.rename(h_file, 'index.html')
-        zip_it_zip_it_good(h_file)
+        zip_it_zip_it_good(context,h_file)
         os.rename('index.html', h_file)
 
     # reestore if necessary
@@ -57,7 +55,7 @@ def zip_htmls():
         os.rename(save_name, 'index.html')
 
 
-def zip_all_htmls():
+def zip_all_htmls(context):
     """ If there is no index.html, construct one that links to all
         html files.
         Then make a zip archive that has all html files.
@@ -69,18 +67,18 @@ def zip_all_htmls():
 
     if not op.exists('index.html'):  # create one if it does not exist
 
-        LOG.info(' Creating index.html')
-        os.chdir(OUTPUT_DIR)
+        context.log.info(' Creating index.html')
+        os.chdir(context.output_dir)
 
         # the first part of index.html
         html1 = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">\n' + \
                 '<html>\n' + \
                 '  <head>\n' + \
                 '    <meta http-equiv="content-type" content="text/html; charset=UTF-8">\n' + \
-                f'    <title>{COMMAND} Output</title>\n' + \
+                f'    <title>Command Output</title>\n' + \
                 '  </head>\n' + \
                 '  <body>\n' + \
-                f'    <b>{COMMAND} Output</b><br>\n' + \
+                f'    <b>Command Output</b><br>\n' + \
                 '    <br>\n' + \
                 '    <tt>\n'
 
@@ -108,11 +106,54 @@ def zip_all_htmls():
 
     # compress everything into an appropriately named archive file
     # *.html.zip file are automatically shown in another tab in the browser
-    cmd = f'zip -q {COMMAND}.html.zip *.html'
-    LOG.info(f' creating viewable html archive "{cmd}"')
+    cmd = f'zip -q Command.html.zip *.html'
+    context.log.info(f' creating viewable html archive "{cmd}"')
     result = sp.run(cmd, shell=True, stdout=sp.PIPE, stderr=sp.PIPE, encoding='utf-8')
     if result.returncode != 0:
-        LOG.info(' return code: ' + str(result.returncode))
-        LOG.info(f' {cmd.split()[0]} output\n' + str(result.stdout))
+        context.log.info(' return code: ' + str(result.returncode))
+        context.log.info(f' {cmd.split()[0]} output\n' + str(result.stdout))
+
+# def zip_output(context):
+#     session_label = context.Custom_Dict['session_label']
+#     work_output = op.join(context.work_dir,session_label)
+#     os.chdir(context.output_dir)
+#     cmd = f'zip -r -q {session_label}.zip {work_output}'
+#     context.log.info(f' running "{cmd}"')
+#     result = sp.run(cmd, shell=True, stdout=sp.PIPE, stderr=sp.PIPE, encoding='utf-8')
+#     context.log.info(' return code: ' + str(result.returncode))
+#     context.log.info(f' {cmd.split()[0]} output\n' + str(result.stdout))
+
+def zip_output(context):
+    # Cleanup, create manifest, create zipped results,
+    # move all results to the output directory
+    # This executes regardless of errors or exit status,
+    os.chdir(context.work_dir)
+    # If the output/result.anat path exists, zip regardless of exit status
+    # Clean input_file_basename to lack esc chars and extension info
+
+    # Grab Session label
+    session_label = context.Custom_Dict['session_label']
+    dest_zip = op.join(context.output_dir,session_label + '.zip')
+
+    if op.exists(op.join(context.work_dir,session_label)):
+        context.log.info(
+            'Zipping ' + session_label + ' directory to ' + dest_zip + '.'
+        )
+        # For results with a large number of files, provide a manifest.
+        # Capture the stdout/stderr in a file handle or for logging.
+        manifest = op.join(
+            context.output_dir, session_label + '_output_manifest.txt'
+        )
+        command0 = ['tree', '-shD', '-D', session_label]
+        with open(manifest, 'w') as f:
+            result0 = sp.run(command0, stdout = f)
+        command1 = ['zip', '-r', dest_zip, session_label]
+        result1 = sp.run(command1, stdout=sp.PIPE, stderr=sp.PIPE)
+    else:
+        context.log.info(
+            'No results directory, ' + \
+            op.join(context.work_dir,session_label) + \
+            ', to zip.'
+        )
 
 # vi:set autoindent ts=4 sw=4 expandtab : See Vim, :help 'modeline'

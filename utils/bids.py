@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
 
-import os
+import os, os.path as op
 import subprocess as sp
 import json
 import pprint
-
-from utils.G import *
-
 
 def download(context):
     """ Download all files from the session in BIDS format
@@ -14,15 +11,15 @@ def download(context):
         This creates a simiple dataset_description.json if
         one did not get downloaded.
     """
-
+    
     # the usual BIDS path:
-    bids_path = op.join(FLYWHEEL_BASE, 'work/bids')
+    bids_path = op.join(context.work_dir, 'bids')
 
     # If BIDS was already downloaded, don't do it again
     # (this saves time when developing locally)
     if not op.isdir(bids_path):
 
-        bids_path = context.download_session_bids()
+        bids_path = context.download_session_bids(target_dir=bids_path)
         # Use the following command instead (after core is updated with a fix
         # for it) because it will return the existing dataset_description.json
         # file and does not download scans that don't need to be considered.
@@ -33,7 +30,7 @@ def download(context):
         # platform instead of creating a generic stub?
         required_file = bids_path + '/dataset_description.json'
         if not op.exists(required_file):
-            LOG.info(f' Creating missing {required_file}.')
+            context.log.info(f' Creating missing {required_file}.')
             the_stuff = {
                 "Acknowledgements": "",
                 "Authors": [],
@@ -49,17 +46,17 @@ def download(context):
             with open(required_file, 'w') as outfile:
                 json.dump(the_stuff, outfile)
         else:
-            LOG.info(f'{required_file} exists.')
+            context.log.info(f'{required_file} exists.')
 
-        LOG.info(f' BIDS was downloaded into {bids_path}')
+        context.log.info(f' BIDS was downloaded into {bids_path}')
 
     else:
-        LOG.info(f' Using existing BIDS path {bids_path}')
+        context.log.info(f' Using existing BIDS path {bids_path}')
+    
+    context.Custom_Dict['bids_path'] = bids_path
 
-    return bids_path
 
-
-def run_validation(config, bids_path, environ):
+def run_validation(context):
     """ Run BIDS Validator on bids_path
         Install BIDS Validator into container with: 
             RUN npm install -g bids-validator
@@ -71,18 +68,21 @@ def run_validation(config, bids_path, environ):
             gear-run-bids-validation
             gear-abort-on-bids-error
     """
+    config = context.config
+    bids_path = context.Custom_Dict['bids_path']
+    environ = context.Custom_Dict['environ']
 
     if config['gear-run-bids-validation']:
 
         command = ['bids-validator', '--verbose', '--json', bids_path]
-        LOG.info(' Command:' + ' '.join(command))
+        context.log.info(' Command:' + ' '.join(command))
         result = sp.run(command, stdout=sp.PIPE, stderr=sp.PIPE,
                         universal_newlines=True, env=environ)
-        LOG.info(f' {command} return code: ' + str(result.returncode))
+        context.log.info(f' {command} return code: ' + str(result.returncode))
         bids_output = json.loads(result.stdout)
 
         # show summary of valid BIDS stuff
-        LOG.info(' bids-validator results:\n\nValid BIDS files summary:\n' +
+        context.log.info(' bids-validator results:\n\nValid BIDS files summary:\n' +
                  pprint.pformat(bids_output['summary'], indent=8) + '\n')
 
         num_bids_errors = len(bids_output['issues']['errors'])
@@ -93,7 +93,7 @@ def run_validation(config, bids_path, environ):
             for ff in err['files']:
                 if ff["file"]:
                     err_msg += f'       {ff["file"]["relativePath"]}\n'
-            LOG.error(' ' + err_msg)
+            context.log.error(' ' + err_msg)
 
         # show all warnings
         for warn in bids_output['issues']['warnings']:
@@ -101,21 +101,23 @@ def run_validation(config, bids_path, environ):
             for ff in warn['files']:
                 if ff["file"]:
                     warn_msg += f'       {ff["file"]["relativePath"]}\n'
-            LOG.warning(' ' + warn_msg)
+            context.log.warning(' ' + warn_msg)
 
         if config['gear-abort-on-bids-error'] and num_bids_errors > 0:
-            LOG.critical(f' {num_bids_errors} BIDS validation errors ' +
-                         f'were detected: NOT running {COMMAND}.')
-            os.sys.exit(1)
+            raise Exception(f' {num_bids_errors} BIDS validation errors ' +
+                         f'were detected: NOT running.')
+            # raising Exception instead of exiting.... exterior "try"-block 
+            # catches these
 
 
-def tree(bids_path, environ):
-
+def tree(context):
+    bids_path = context.Custom_Dict['bids_path']
+    environ = context.Custom_Dict['environ']
     command = ['tree', bids_path]
-    LOG.info(' Command:' + ' '.join(command))
+    context.log.info(' Command:' + ' '.join(command))
     result = sp.run(command, stdout=sp.PIPE, stderr=sp.PIPE,
                     universal_newlines=True, env=environ)
-    LOG.info(f'  {command[0]} return code: ' + str(result.returncode))
+    context.log.info(f'  {command[0]} return code: ' + str(result.returncode))
 
     html1 = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">\n' + \
             '<html>\n' + \
