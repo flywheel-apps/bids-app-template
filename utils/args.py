@@ -40,7 +40,8 @@ def build(context):
                 if config[key] != 0:  # if zero, skip and use defaults
                     params[key] = config[key]
                 # else ignore (could this caus a problem?)
-    return params
+    
+        context.Custom_Dict['param_list'] =  params
 
 
 def validate(context):
@@ -74,7 +75,7 @@ def build_command(context):
 
     command = context.Custom_Dict['command']
 
-    param_list = context.Custom_Dict['Param_List']
+    param_list = context.Custom_Dict['param_list']
     bids_path = context.Custom_Dict['bids_path']
 
     for key in param_list.keys():
@@ -125,5 +126,5 @@ def execute(context):
                   ' '.join(command) +
                   '\nfailed. See log for debugging.')
         raise Exception(' ' + result.stderr)
-    
+
 # vi:set autoindent ts=4 sw=4 expandtab : See Vim, :help 'modeline'

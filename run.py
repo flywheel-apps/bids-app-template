@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import json
-import os
+import os, os.path as op
 import subprocess as sp
 import logging
 import psutil
@@ -37,6 +37,11 @@ if __name__ == '__main__':
         context.Custom_Dict['environ'] = environ
 
     try:
+        # for debugging:
+        if context.destination['id'] == 'aex':
+            # give it the tome session
+            context.destination['id']='5d2761383289d60037e8b180'
+
         # Download bids for the current session
         bids.download(context)
 
@@ -55,6 +60,10 @@ if __name__ == '__main__':
         # Create working output directory with session label as name
         args.make_session_directory(context)
 
+        context.Custom_Dict['command'] = ['./test.sh']
+        context.Custom_Dict['command'].append(
+            op.join(context.work_dir,context.Custom_Dict['session_label'])
+        )
         # Build a parameter dictionary specific for COMMAND
         args.build(context)
 
