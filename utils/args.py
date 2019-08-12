@@ -1,7 +1,3 @@
-#!/usr/bin/env python3
-# We do not need the "Shebang" for modules without a 
-# "if __name__ == '__main__':"
-# Statement.
 import subprocess as sp
 import os, os.path as op
 import re

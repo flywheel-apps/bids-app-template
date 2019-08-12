@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import datetime
 import glob
 import os, os.path as op

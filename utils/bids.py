@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import os, os.path as op
 import subprocess as sp
 import json
@@ -11,7 +9,7 @@ def download(context):
         This creates a simiple dataset_description.json if
         one did not get downloaded.
     """
-    
+
     # the usual BIDS path:
     bids_path = op.join(context.work_dir, 'bids')
 
