@@ -30,6 +30,7 @@ WORKDIR ${FLYWHEEL}
 COPY run.py ${FLYWHEEL}/run.py
 COPY utils ${FLYWHEEL}/utils
 COPY manifest.json ${FLYWHEEL}/manifest.json
+COPY test.sh ${FLYWHEEL}/test.sh
 
 # Configure entrypoint
 RUN chmod a+x ${FLYWHEEL}/run.py

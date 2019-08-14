@@ -25,11 +25,11 @@ if __name__ == '__main__':
 
     # f-strings (e.g. f'string {variable}') are introduced in Python3.6
     # for Python3.5 use ('string {}'.format(variable))
-    context.log.debug(f'psutil.cpu_count()= {psutil.cpu_count()}')
-    context.log.debug(f'psutil.virtual_memory().total= ' +
-                      '{psutil.virtual_memory().total / (1024 ** 3):4.1f} GiB')
-    context.log.debug(f'psutil.virtual_memory().available= ' + \
-                      '{psutil.virtual_memory().available / (1024 ** 3):4.1f} GiB')
+    context.log.debug('psutil.cpu_count()= '+str(psutil.cpu_count()))
+    context.log.debug('psutil.virtual_memory().total= {:4.1f} GiB'.format(
+                      psutil.virtual_memory().total / (1024 ** 3)))
+    context.log.debug('psutil.virtual_memory().available= {:4.1f} GiB'.format(
+                      psutil.virtual_memory().available / (1024 ** 3)))
 
     # grab environment for gear
     with open('/tmp/gear_environ.json', 'r') as f:
@@ -45,8 +45,12 @@ if __name__ == '__main__':
         # Download bids for the current session
         bids.download(context)
 
-        # Display bids file hierarchy
-        bids.tree(context)
+        # Save bids file hierarchy `tree` output in .html file
+        bids_path = context.Custom_Dict['bids_path']
+        html_file = 'output/bids_tree'
+        bids.tree(bids_path, html_file)
+        context.log.info('Wrote tree("' + bids_path + '") output into html file "' +
+                         html_file + '.html')
 
         # Validate Bids file heirarchy
         # Bids validation on a phantom tree may be occuring soon
@@ -74,7 +78,7 @@ if __name__ == '__main__':
         # Build command-line string for subprocess and execute
         args.execute(context)
         
-        context.log.info(f' Command successfully executed!')
+        context.log.info(' Command successfully executed!')
         os.sys.exit(0)
 
     except Exception as e:

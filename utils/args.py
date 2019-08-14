@@ -113,9 +113,7 @@ def execute(context):
                     universal_newlines=True, env=environ)
 
     context.log.info(' return code: ' + str(result.returncode))
-    # f-strings (e.g. f'string {variable}') are introduced in Python3.6
-    # for Python3.5 use ('string {}'.format(variable))
-    context.log.info(f' Command output:\n' + result.stdout)
+    context.log.info(' Command output:\n' + result.stdout)
 
     if result.returncode != 0:
         context.log.error(' The command:\n ' +
