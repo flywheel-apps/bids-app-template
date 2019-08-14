@@ -8,16 +8,16 @@ def zip_it_zip_it_good(context, name):
     """ Compress html file into an appropriately named archive file
         *.html.zip files are automatically shown in another tab in the browser """
 
-    cmd = f'zip -q {name}.zip index.html'
-    context.log.debug(f' creating viewable archive "{name}.zip"')
+    cmd = 'zip -q ' + name + '.zip index.html'
+    context.log.debug(' creating viewable archive "' + name + '.zip"')
     result = sp.run(cmd, shell=True, stdout=sp.PIPE, stderr=sp.PIPE, encoding='utf-8')
     if result.returncode != 0:
-        context.log.info(f' Problem running {cmd}')
+        context.log.info(' Problem running ' + cmd)
         context.log.info(' return code: ' + str(result.returncode))
-        context.log.info(f' {cmd.split()[0]} output\n' + str(result.stdout))
+        context.log.info(' ' + cmd.split()[0] + ' output\n' + str(result.stdout))
     else:
         context.log.debug(' return code: ' + str(result.returncode))
-        context.log.debug(f' {cmd.split()[0]} output\n' + str(result.stdout))
+        context.log.debug(' ' + cmd.split()[0] + ' output\n' + str(result.stdout))
 
 
 def zip_htmls(context):
@@ -73,10 +73,10 @@ def zip_all_htmls(context):
                 '<html>\n' + \
                 '  <head>\n' + \
                 '    <meta http-equiv="content-type" content="text/html; charset=UTF-8">\n' + \
-                f'    <title>Command Output</title>\n' + \
+                '    <title>Command Output</title>\n' + \
                 '  </head>\n' + \
                 '  <body>\n' + \
-                f'    <b>Command Output</b><br>\n' + \
+                '    <b>Command Output</b><br>\n' + \
                 '    <br>\n' + \
                 '    <tt>\n'
 
@@ -104,22 +104,13 @@ def zip_all_htmls(context):
 
     # compress everything into an appropriately named archive file
     # *.html.zip file are automatically shown in another tab in the browser
-    cmd = f'zip -q Command.html.zip *.html'
-    context.log.info(f' creating viewable html archive "{cmd}"')
+    cmd = 'zip -q Command.html.zip *.html'
+    context.log.info(' creating viewable html archive "' + cmd + '"')
     result = sp.run(cmd, shell=True, stdout=sp.PIPE, stderr=sp.PIPE, encoding='utf-8')
     if result.returncode != 0:
         context.log.info(' return code: ' + str(result.returncode))
-        context.log.info(f' {cmd.split()[0]} output\n' + str(result.stdout))
+        context.log.info(' ' + cmd.split()[0] + ' output\n' + str(result.stdout))
 
-# def zip_output(context):
-#     session_label = context.Custom_Dict['session_label']
-#     work_output = op.join(context.work_dir,session_label)
-#     os.chdir(context.output_dir)
-#     cmd = f'zip -r -q {session_label}.zip {work_output}'
-#     context.log.info(f' running "{cmd}"')
-#     result = sp.run(cmd, shell=True, stdout=sp.PIPE, stderr=sp.PIPE, encoding='utf-8')
-#     context.log.info(' return code: ' + str(result.returncode))
-#     context.log.info(f' {cmd.split()[0]} output\n' + str(result.stdout))
 
 def zip_output(context):
     # Cleanup, create manifest, create zipped results,
