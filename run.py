@@ -45,8 +45,12 @@ if __name__ == '__main__':
         # Download bids for the current session
         bids.download(context)
 
-        # Display bids file hierarchy
-        bids.tree(context)
+        # Save bids file hierarchy `tree` output in .html file
+        bids_path = context.Custom_Dict['bids_path']
+        html_file = 'output/bids_tree'
+        bids.tree(bids_path, html_file)
+        context.log.info('Wrote tree("' + bids_path + '") output into html file "' +
+                         html_file + '.html')
 
         # Validate Bids file heirarchy
         # Bids validation on a phantom tree may be occuring soon

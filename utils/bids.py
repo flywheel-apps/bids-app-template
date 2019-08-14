@@ -28,7 +28,7 @@ def download(context):
         # platform instead of creating a generic stub?
         required_file = bids_path + '/dataset_description.json'
         if not op.exists(required_file):
-            context.log.info(' Creating missing '+required_file+'.')
+            context.log.info('Creating missing '+required_file+'.')
             the_stuff = {
                 "Acknowledgements": "",
                 "Authors": [],
@@ -46,10 +46,10 @@ def download(context):
         else:
             context.log.info(required_file+' exists.')
 
-        context.log.info(' BIDS was downloaded into '+bids_path)
+        context.log.info('BIDS was downloaded into '+bids_path)
 
     else:
-        context.log.info(' Using existing BIDS path '+bids_path)
+        context.log.info('Using existing BIDS path '+bids_path)
     
     context.Custom_Dict['bids_path'] = bids_path
 
@@ -73,14 +73,14 @@ def run_validation(context):
     if config['gear-run-bids-validation']:
 
         command = ['bids-validator', '--verbose', '--json', bids_path]
-        context.log.info(' Command:' + ' '.join(command))
+        context.log.info('Command:' + ' '.join(command))
         result = sp.run(command, stdout=sp.PIPE, stderr=sp.PIPE,
                         universal_newlines=True, env=environ)
-        context.log.info(' '+command[0]+' return code: ' + str(result.returncode))
+        context.log.info(command[0]+' return code: ' + str(result.returncode))
         bids_output = json.loads(result.stdout)
 
         # show summary of valid BIDS stuff
-        context.log.info(' bids-validator results:\n\nValid BIDS files summary:\n' +
+        context.log.info('bids-validator results:\n\nValid BIDS files summary:\n' +
                  pprint.pformat(bids_output['summary'], indent=8) + '\n')
 
         num_bids_errors = len(bids_output['issues']['errors'])
@@ -91,7 +91,7 @@ def run_validation(context):
             for ff in err['files']:
                 if ff["file"]:
                     err_msg += '       ' + ff["file"]["relativePath"] + '\n'
-            context.log.error(' ' + err_msg)
+            context.log.error(err_msg)
 
         # show all warnings
         for warn in bids_output['issues']['warnings']:
@@ -99,7 +99,7 @@ def run_validation(context):
             for ff in warn['files']:
                 if ff["file"]:
                     warn_msg += '       ' + ff["file"]["relativePath"] + '\n'
-            context.log.warning(' ' + warn_msg)
+            context.log.warning(warn_msg)
 
         if config['gear-abort-on-bids-error'] and num_bids_errors > 0:
             raise Exception(' ' + str(num_bids_errors) + ' BIDS validation errors ' +
@@ -108,22 +108,21 @@ def run_validation(context):
             # catches these
 
 
-def tree(context):
-    """ Write `tree` output as html file """
+def tree(path, base_name):
+    """ Write `tree` output as html file for the given path
+        ".html" will be appended to base_name to create the
+        file name to use for the result.
+    """
 
-    bids_path = context.Custom_Dict['bids_path']
-    environ = context.Custom_Dict['environ']
-    command = ['tree', '--charset=utf-8', bids_path]
-    context.log.info(' Command:' + ' '.join(command))
+    command = ['tree', '--charset=utf-8', path]
     result = sp.run(command, stdout=sp.PIPE, stderr=sp.PIPE,
                     universal_newlines=True)
-    context.log.info('  '+command[0] + ' return code: ' + str(result.returncode))
 
     html1 = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">\n' + \
             '<html>\n' + \
             '  <head>\n' + \
             '    <meta http-equiv="content-type" content="text/html; charset=UTF-8">\n' + \
-            '    <title>Tree_work_bids</title>\n' + \
+            '    <title>tree ' + path + '</title>\n' + \
             '  </head>\n' + \
             '  <body>\n' + \
             '<pre>\n'
@@ -134,10 +133,10 @@ def tree(context):
             '</html>\n'
 
     # put all of that text into the actual file
-    with open("output/bids_tree.html", "w") as text_file:
-        text_file.write(html1)
+    with open(base_name + ".html", "w") as html_file:
+        html_file.write(html1)
         for line in result.stdout.split('\n'):
-            text_file.write(line+'\n')
-        text_file.write(html2)
+            html_file.write(line+'\n')
+        html_file.write(html2)
 
 # vi:set autoindent ts=4 sw=4 expandtab : See Vim, :help 'modeline'
