@@ -30,6 +30,8 @@ git push -u origin dev
   * requirements.txt
   * run.py
   
+See [Building Gears](https://docs.flywheel.io/hc/en-us/articles/360015513653-Building-Gears) for more information.
+
 As you develop new best practices for developing gears, be sure to add them here.
 
 ## To Do:
