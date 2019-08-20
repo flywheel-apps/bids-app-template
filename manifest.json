@@ -1,6 +1,6 @@
 {
 	"name": "bids-app-template",
-	"label": "BIDS-APP: template",
+	"label": "Template",
 	"description": "Template for a gear to work on on BIDS formatted data.",
 	"version": "0.1.2_0.0.0",
 	"custom": {
@@ -8,7 +8,8 @@
 		"gear-builder": {
 			"category": "analysis",
 			"image": "flywheel/bids-app-template:0.1.2_0.0.0"
-		}
+		},
+		"flywheel": {"suite": "BIDS Apps"}
 	},
 	"inputs": {
 		"key": {
@@ -87,11 +88,17 @@
 		"gear-log-level": {
 			"default": "INFO",
 			"description": "Gear Log verbosity level (ERROR|WARNING|INFO|DEBUG)",
-			"type": "string"
+			"type": "string",
+                        "enum": [
+                                "ERROR",
+                                "WARNING",
+                                "INFO",
+                                "DEBUG"
+                        ]
 		},
 		"gear-run-bids-validation": {
 			"default": true,
-			"description": "Gear will run BIDS validation first",
+			"description": "Gear will run BIDS validation before mriqc.  If validation fails and gear-abort-on-bids-error is true, mriq will NOT be run.",
 			"type": "boolean"
 		},
 		"gear-save-all-output": {
