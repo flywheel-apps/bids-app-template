@@ -69,16 +69,22 @@ def build_command(context):
     as such ("-k value" or "--key=value")
     """
 
-    command = context.Custom_Dict['command']
-
     param_list = context.Custom_Dict['param_list']
     bids_path = context.Custom_Dict['bids_path']
+
+    command = context.Custom_Dict['command']
+
+    # add positional arguments first in case there are nargs='*' arguments
+    command.append(bids_path)
+    command.append(context.output_dir)
+    command.append('participant')
 
     for key in param_list.keys():
         # Single character command-line parameters are preceded by a single '-'
         if len(key) == 1:
             command.append('-' + key)
             if len(str(param_list[key])) != 0:
+                # append it like '-k value'
                 command.append(str(param_list[key]))
         # Multi-Character command-line parameters are preceded by a double '--'
         else:
@@ -88,19 +94,25 @@ def build_command(context):
                     command.append('--' + key)
             else:
                 # If Param not boolean, but without value include without value
-                # (e.g. '--key'), else include value (e.g. '--key=value')
                 if len(str(param_list[key])) == 0:
+                    # append it like '--key'
                     command.append('--' + key)
                 else:
-                    command.append('--' + key + '=' + str(param_list[key]))
-        if key == 'verbose':  # handle a 'count' argparse argument
-            # replace "--verbose=vvv' with '-vvv'
+                    # check for argparse nargs='*' lists of multiple values so
+                    #  append it like '--key val1 val2 ...'
+                    if (isinstance(param_list[key], str) and len(param_list[key].split()) > 1):
+                    # then it is a list of multiple things: e.g. "--modality T1w T2w"
+                        command.append('--' + key)
+                        for item in param_list[key].split():
+                            command.append(item)
+                    else: # single value so append it like '--key=value'
+                        command.append('--' + key + '=' + str(param_list[key]))
+        if key == 'verbose':
+            # handle a 'count' argparse argument where manifest gives
+            # enumerated possibilities like v, vv, or vvv
+            # e.g. replace "--verbose=vvv' with '-vvv'
             command[-1] = '-' + param_list[key]
 
-    # add positional arguments
-    command.append(bids_path)
-    command.append(context.output_dir)
-    command.append('participant')
     context.log.info(' Command:' + ' '.join(command))
 
     return command
