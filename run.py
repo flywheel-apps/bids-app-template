@@ -20,8 +20,8 @@ if __name__ == '__main__':
     context.log = get_Custom_Logger('[flywheel/bids-app-template]')
     context.log.setLevel(getattr(logging, context.config['gear-log-level']))
 
-    # Instantiate Custom Dictionary in gear context
-    context.Custom_Dict = {}
+    # Instantiate custom gear dictionary to hold "gear global" info
+    context.gear_dict = {}
 
     # f-strings (e.g. f'string {variable}') are introduced in Python3.6
     # for Python3.5 use ('string {}'.format(variable))
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     # grab environment for gear
     with open('/tmp/gear_environ.json', 'r') as f:
         environ = json.load(f)
-        context.Custom_Dict['environ'] = environ
+        context.gear_dict['environ'] = environ
 
     try:
         # for debugging:
@@ -46,7 +46,7 @@ if __name__ == '__main__':
         bids.download(context)
 
         # Save bids file hierarchy `tree` output in .html file
-        bids_path = context.Custom_Dict['bids_path']
+        bids_path = context.gear_dict['bids_path']
         html_file = 'output/bids_tree'
         bids.tree(bids_path, html_file)
         context.log.info('Wrote tree("' + bids_path + '") output into html file "' +
@@ -64,9 +64,9 @@ if __name__ == '__main__':
         # Create working output directory with session label as name
         args.make_session_directory(context)
 
-        context.Custom_Dict['command'] = ['./test.sh']
-        context.Custom_Dict['command'].append(
-            op.join(context.work_dir,context.Custom_Dict['session_label'])
+        context.gear_dict['command'] = ['./test.sh']
+        context.gear_dict['command'].append(
+            op.join(context.work_dir,context.gear_dict['session_label'])
         )
         # Build a parameter dictionary specific for COMMAND
         args.build(context)
