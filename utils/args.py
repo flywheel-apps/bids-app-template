@@ -10,10 +10,18 @@ def make_session_directory(context):
     """
     fw = context.client
     analysis = fw.get(context.destination['id'])
+    # Kaleb says this may fail because:
+    if analysis.parent.type != 'session':
+        raise TypeError(""" The destination analysis doesn't always have a session
+            parent since analysis gears can be run from the project level.
+            Better to get the session information from
+            context.get_input()['hierarchy']['id'] for a specific input.
+            This also allows the template to accommodate inputs from different
+            sessions.  """)
     session = fw.get(analysis.parents['session'])
     session_label = re.sub('[^0-9a-zA-Z./]+', '_', session.label)
-    # attach session_label to Custom_Dict
-    context.Custom_Dict['session_label'] = session_label
+    # attach session_label to gear_dict
+    context.gear_dict['session_label'] = session_label
     # Create session_label in work directory
     session_dir = op.join(context.work_dir, session_label)
     os.makedirs(session_dir,exist_ok=True)
@@ -37,7 +45,7 @@ def build(context):
                     params[key] = config[key]
                 # else ignore (could this caus a problem?)
     
-        context.Custom_Dict['param_list'] =  params
+        context.gear_dict['param_list'] =  params
 
 
 def validate(context):
@@ -46,7 +54,7 @@ def validate(context):
     Gives warnings for possible settings that could result in bad results.
     Gives errors (and raises exceptions) for settings that are violations 
     """
-    param_list = context.Custom_Dict['param_list']
+    param_list = context.gear_dict['param_list']
     # Test for input existence
     # if not op.exists(params['i']):
     #    raise Exception('Input File Not Found')
@@ -69,10 +77,10 @@ def build_command(context):
     as such ("-k value" or "--key=value")
     """
 
-    param_list = context.Custom_Dict['param_list']
-    bids_path = context.Custom_Dict['bids_path']
+    param_list = context.gear_dict['param_list']
+    bids_path = context.gear_dict['bids_path']
 
-    command = context.Custom_Dict['command']
+    command = context.gear_dict['command']
 
     # add positional arguments first in case there are nargs='*' arguments
     command.append(bids_path)
@@ -119,7 +127,7 @@ def build_command(context):
 
 def execute(context): 
     command = build_command(context)
-    environ = context.Custom_Dict['environ']
+    environ = context.gear_dict['environ']
     # Run the actual command this gear was created for
     result = sp.run(command, stdout=sp.PIPE, stderr=sp.PIPE,
                     universal_newlines=True, env=environ)

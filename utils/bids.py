@@ -51,7 +51,7 @@ def download(context):
     else:
         context.log.info('Using existing BIDS path '+bids_path)
     
-    context.Custom_Dict['bids_path'] = bids_path
+    context.gear_dict['bids_path'] = bids_path
 
 
 def run_validation(context):
@@ -67,8 +67,8 @@ def run_validation(context):
             gear-abort-on-bids-error
     """
     config = context.config
-    bids_path = context.Custom_Dict['bids_path']
-    environ = context.Custom_Dict['environ']
+    bids_path = context.gear_dict['bids_path']
+    environ = context.gear_dict['environ']
 
     if config['gear-run-bids-validation']:
 
