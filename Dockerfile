@@ -12,7 +12,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* 
 # The last line above is to help keep the docker image smaller
 
-RUN npm install -g bids-validator
+RUN npm install -g bids-validator@1.3.0
 
 COPY requirements.txt ./requirements.txt
 RUN pip install -r ./requirements.txt && \
