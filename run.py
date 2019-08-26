@@ -11,13 +11,13 @@ import flywheel
 # GearContext takes care of most of these variables
 # from utils.G import *
 from utils import args, bids, results
-from utils.Custom_Logger import get_Custom_Logger
+from utils.log import get_custom_logger
 
 if __name__ == '__main__':
     # Instantiate the Gear Context
     context = flywheel.GearContext()
     # Get Custom Logger and set attributes
-    context.log = get_Custom_Logger('[flywheel/bids-app-template]')
+    context.log = get_custom_logger('[flywheel/bids-app-template]')
     context.log.setLevel(getattr(logging, context.config['gear-log-level']))
 
     # Instantiate custom gear dictionary to hold "gear global" info

@@ -4,7 +4,7 @@ This is a user-modifiable file for Custom Logging
 import logging
 import sys
 
-def get_Custom_Logger(log_name):
+def get_custom_logger(log_name):
     # Initialize Custom Logging
     # Timestamps with logging assist debugging algorithms
     # With long execution times
@@ -19,4 +19,5 @@ def get_Custom_Logger(log_name):
     logger.setLevel(logging.INFO)
 
     return logger
+
 # vi:set autoindent ts=4 sw=4 expandtab : See Vim, :help 'modeline'
