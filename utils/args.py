@@ -1,6 +1,8 @@
+# If you edit this file, please consider updating bids-app-template
 import subprocess as sp
 import os, os.path as op
 import re
+
 
 def make_session_directory(context):
     """
@@ -10,13 +12,22 @@ def make_session_directory(context):
     """
     fw = context.client
     analysis = fw.get(context.destination['id'])
+    # Kaleb says this may fail because:
+    if analysis.parent.type != 'session':
+        raise TypeError(""" The destination analysis doesn't always have a session
+            parent since analysis gears can be run from the project level.
+            Better to get the session information from
+            context.get_input()['hierarchy']['id'] for a specific input.
+            This also allows the template to accommodate inputs from different
+            sessions.  """)
     session = fw.get(analysis.parents['session'])
     session_label = re.sub('[^0-9a-zA-Z./]+', '_', session.label)
-    # attach session_label to Custom_Dict
-    context.Custom_Dict['session_label'] = session_label
+    # attach session_label to gear_dict
+    context.gear_dict['session_label'] = session_label
     # Create session_label in work directory
     session_dir = op.join(context.work_dir, session_label)
     os.makedirs(session_dir,exist_ok=True)
+
 
 def build(context):
     config = context.config
@@ -37,7 +48,7 @@ def build(context):
                     params[key] = config[key]
                 # else ignore (could this caus a problem?)
     
-        context.Custom_Dict['param_list'] =  params
+        context.gear_dict['param_list'] =  params
 
 
 def validate(context):
@@ -46,7 +57,7 @@ def validate(context):
     Gives warnings for possible settings that could result in bad results.
     Gives errors (and raises exceptions) for settings that are violations 
     """
-    param_list = context.Custom_Dict['param_list']
+    param_list = context.gear_dict['param_list']
     # Test for input existence
     # if not op.exists(params['i']):
     #    raise Exception('Input File Not Found')
@@ -69,16 +80,22 @@ def build_command(context):
     as such ("-k value" or "--key=value")
     """
 
-    command = context.Custom_Dict['command']
+    param_list = context.gear_dict['param_list']
+    bids_path = context.gear_dict['bids_path']
 
-    param_list = context.Custom_Dict['param_list']
-    bids_path = context.Custom_Dict['bids_path']
+    command = context.gear_dict['command']
+
+    # add positional arguments first in case there are nargs='*' arguments
+    command.append(bids_path)
+    command.append(context.output_dir)
+    command.append('participant')
 
     for key in param_list.keys():
         # Single character command-line parameters are preceded by a single '-'
         if len(key) == 1:
             command.append('-' + key)
             if len(str(param_list[key])) != 0:
+                # append it like '-k value'
                 command.append(str(param_list[key]))
         # Multi-Character command-line parameters are preceded by a double '--'
         else:
@@ -88,26 +105,33 @@ def build_command(context):
                     command.append('--' + key)
             else:
                 # If Param not boolean, but without value include without value
-                # (e.g. '--key'), else include value (e.g. '--key=value')
                 if len(str(param_list[key])) == 0:
+                    # append it like '--key'
                     command.append('--' + key)
                 else:
-                    command.append('--' + key + '=' + str(param_list[key]))
-        if key == 'verbose':  # handle a 'count' argparse argument
-            # replace "--verbose=vvv' with '-vvv'
+                    # check for argparse nargs='*' lists of multiple values so
+                    #  append it like '--key val1 val2 ...'
+                    if (isinstance(param_list[key], str) and len(param_list[key].split()) > 1):
+                    # then it is a list of multiple things: e.g. "--modality T1w T2w"
+                        command.append('--' + key)
+                        for item in param_list[key].split():
+                            command.append(item)
+                    else: # single value so append it like '--key=value'
+                        command.append('--' + key + '=' + str(param_list[key]))
+        if key == 'verbose':
+            # handle a 'count' argparse argument where manifest gives
+            # enumerated possibilities like v, vv, or vvv
+            # e.g. replace "--verbose=vvv' with '-vvv'
             command[-1] = '-' + param_list[key]
 
-    # add positional arguments
-    command.append(bids_path)
-    command.append(context.output_dir)
-    command.append('participant')
     context.log.info(' Command:' + ' '.join(command))
 
     return command
 
+
 def execute(context): 
     command = build_command(context)
-    environ = context.Custom_Dict['environ']
+    environ = context.gear_dict['environ']
     # Run the actual command this gear was created for
     result = sp.run(command, stdout=sp.PIPE, stderr=sp.PIPE,
                     universal_newlines=True, env=environ)
@@ -120,5 +144,6 @@ def execute(context):
                   ' '.join(command) +
                   '\nfailed. See log for debugging.')
         raise Exception(' ' + result.stderr)
+
 
 # vi:set autoindent ts=4 sw=4 expandtab : See Vim, :help 'modeline'

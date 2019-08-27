@@ -1,3 +1,4 @@
+# If you edit this file, please consider updating bids-app-template
 import os, os.path as op
 import subprocess as sp
 import json
@@ -22,6 +23,12 @@ def download(context):
         # for it) because it will return the existing dataset_description.json
         # file and does not download scans that don't need to be considered.
         # bids_path = context.download_project_bids(folders=['anat', 'func'])
+
+        # Another way to get this file if there is an input is:
+        #acq = fw.get_acquisition(context.get_input(<input key>)['hierarchy']['id'])
+        #session = fw.get_session(acq.session)
+        #project = fw.get_project(session.parents.project)
+        #dataset_description = project.info.get(['BIDS'])
 
         # make sure dataset_description.json exists
         # Is there a way to download the dataset_description.json file from the 
@@ -51,7 +58,7 @@ def download(context):
     else:
         context.log.info('Using existing BIDS path '+bids_path)
     
-    context.Custom_Dict['bids_path'] = bids_path
+    context.gear_dict['bids_path'] = bids_path
 
 
 def run_validation(context):
@@ -67,8 +74,8 @@ def run_validation(context):
             gear-abort-on-bids-error
     """
     config = context.config
-    bids_path = context.Custom_Dict['bids_path']
-    environ = context.Custom_Dict['environ']
+    bids_path = context.gear_dict['bids_path']
+    environ = context.gear_dict['environ']
 
     if config['gear-run-bids-validation']:
 

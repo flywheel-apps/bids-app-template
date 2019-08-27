@@ -1,3 +1,4 @@
+# editme: change this file as needed
 # Use the latest Python 3 docker image
 FROM python:3 as base
 
@@ -12,10 +13,11 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* 
 # The last line above is to help keep the docker image smaller
 
-RUN npm install -g bids-validator
+RUN npm install -g bids-validator@1.3.0
 
-COPY requirements.txt ./requirements.txt
-RUN pip install -r ./requirements.txt && \
+RUN pip install flywheel-sdk==9.0.2 \
+        flywheel-bids==0.8.0 \
+        psutil==5.6.3 && \
     rm -rf /var/lib/apt/lists/*
 # The last line above is to help keep the docker image smaller
 

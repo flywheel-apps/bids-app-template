@@ -11,18 +11,19 @@ import flywheel
 # GearContext takes care of most of these variables
 # from utils.G import *
 from utils import args, bids, results
-from utils.Custom_Logger import get_Custom_Logger
+from utils.log import get_custom_logger
 
 if __name__ == '__main__':
     # Instantiate the Gear Context
     context = flywheel.GearContext()
     # Get Custom Logger and set attributes
-    context.log = get_Custom_Logger('[flywheel/bids-app-template]')
+    context.log = get_custom_logger('[flywheel/bids-app-template]')
     context.log.setLevel(getattr(logging, context.config['gear-log-level']))
 
-    # Instantiate Custom Dictionary in gear context
-    context.Custom_Dict = {}
+    # Instantiate custom gear dictionary to hold "gear global" info
+    context.gear_dict = {}
 
+    # editme: optional feature
     # f-strings (e.g. f'string {variable}') are introduced in Python3.6
     # for Python3.5 use ('string {}'.format(variable))
     context.log.debug('psutil.cpu_count()= '+str(psutil.cpu_count()))
@@ -34,10 +35,10 @@ if __name__ == '__main__':
     # grab environment for gear
     with open('/tmp/gear_environ.json', 'r') as f:
         environ = json.load(f)
-        context.Custom_Dict['environ'] = environ
+        context.gear_dict['environ'] = environ
 
     try:
-        # for debugging:
+        # editme: for debugging:
         if context.destination['id'] == 'aex':
             # give it the tome session
             context.destination['id']='5d2761383289d60037e8b180'
@@ -45,28 +46,33 @@ if __name__ == '__main__':
         # Download bids for the current session
         bids.download(context)
 
+        # editme: optional feature
         # Save bids file hierarchy `tree` output in .html file
-        bids_path = context.Custom_Dict['bids_path']
+        bids_path = context.gear_dict['bids_path']
         html_file = 'output/bids_tree'
         bids.tree(bids_path, html_file)
         context.log.info('Wrote tree("' + bids_path + '") output into html file "' +
                          html_file + '.html')
 
+        # editme: optional feature, but recommended!
         # Validate Bids file heirarchy
         # Bids validation on a phantom tree may be occuring soon
         bids.run_validation(context)
+
     except Exception as e:
         context.log.critical(e,)
         context.log.exception('Error in BIDS download and validation.',)
         os.sys.exit(1)
 
     try:
+        # editme: optional feature
         # Create working output directory with session label as name
         args.make_session_directory(context)
 
-        context.Custom_Dict['command'] = ['./test.sh']
-        context.Custom_Dict['command'].append(
-            op.join(context.work_dir,context.Custom_Dict['session_label'])
+        # editme: this is the actual command to run the gear
+        context.gear_dict['command'] = ['./test.sh'] 
+        context.gear_dict['command'].append(
+            op.join(context.work_dir,context.gear_dict['session_label'])
         )
         # Build a parameter dictionary specific for COMMAND
         args.build(context)
@@ -87,6 +93,7 @@ if __name__ == '__main__':
         os.sys.exit(1)
 
     finally:
+        # editme: optional feature
         # Cleanup, move all results to the output directory
         results.zip_htmls(context)
 

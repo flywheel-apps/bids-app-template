@@ -1,3 +1,4 @@
+# If you edit this file, please consider updating bids-app-template
 import datetime
 import glob
 import os, os.path as op
@@ -121,7 +122,7 @@ def zip_output(context):
     # Clean input_file_basename to lack esc chars and extension info
 
     # Grab Session label
-    session_label = context.Custom_Dict['session_label']
+    session_label = context.gear_dict['session_label']
     dest_zip = op.join(context.output_dir,session_label + '.zip')
 
     if op.exists(op.join(context.work_dir,session_label)):
