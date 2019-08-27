@@ -1,6 +1,8 @@
+# If you edit this file, please consider updating bids-app-template
 import subprocess as sp
 import os, os.path as op
 import re
+
 
 def make_session_directory(context):
     """
@@ -25,6 +27,7 @@ def make_session_directory(context):
     # Create session_label in work directory
     session_dir = op.join(context.work_dir, session_label)
     os.makedirs(session_dir,exist_ok=True)
+
 
 def build(context):
     config = context.config
@@ -125,6 +128,7 @@ def build_command(context):
 
     return command
 
+
 def execute(context): 
     command = build_command(context)
     environ = context.gear_dict['environ']
@@ -140,5 +144,6 @@ def execute(context):
                   ' '.join(command) +
                   '\nfailed. See log for debugging.')
         raise Exception(' ' + result.stderr)
+
 
 # vi:set autoindent ts=4 sw=4 expandtab : See Vim, :help 'modeline'

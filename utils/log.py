@@ -1,3 +1,4 @@
+# If you edit this file, please consider updating bids-app-template
 """
 This is a user-modifiable file for Custom Logging
 """

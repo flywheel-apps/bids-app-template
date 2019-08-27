@@ -1,3 +1,4 @@
+# If you edit this file, please consider updating bids-app-template
 import os, os.path as op
 import subprocess as sp
 import json

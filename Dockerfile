@@ -1,3 +1,4 @@
+# editme: change this file as needed
 # Use the latest Python 3 docker image
 FROM python:3 as base
 

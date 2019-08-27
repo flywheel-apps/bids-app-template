@@ -23,6 +23,7 @@ if __name__ == '__main__':
     # Instantiate custom gear dictionary to hold "gear global" info
     context.gear_dict = {}
 
+    # editme: optional feature
     # f-strings (e.g. f'string {variable}') are introduced in Python3.6
     # for Python3.5 use ('string {}'.format(variable))
     context.log.debug('psutil.cpu_count()= '+str(psutil.cpu_count()))
@@ -37,7 +38,7 @@ if __name__ == '__main__':
         context.gear_dict['environ'] = environ
 
     try:
-        # for debugging:
+        # editme: for debugging:
         if context.destination['id'] == 'aex':
             # give it the tome session
             context.destination['id']='5d2761383289d60037e8b180'
@@ -45,6 +46,7 @@ if __name__ == '__main__':
         # Download bids for the current session
         bids.download(context)
 
+        # editme: optional feature
         # Save bids file hierarchy `tree` output in .html file
         bids_path = context.gear_dict['bids_path']
         html_file = 'output/bids_tree'
@@ -52,19 +54,23 @@ if __name__ == '__main__':
         context.log.info('Wrote tree("' + bids_path + '") output into html file "' +
                          html_file + '.html')
 
+        # editme: optional feature, but recommended!
         # Validate Bids file heirarchy
         # Bids validation on a phantom tree may be occuring soon
         bids.run_validation(context)
+
     except Exception as e:
         context.log.critical(e,)
         context.log.exception('Error in BIDS download and validation.',)
         os.sys.exit(1)
 
     try:
+        # editme: optional feature
         # Create working output directory with session label as name
         args.make_session_directory(context)
 
-        context.gear_dict['command'] = ['./test.sh']
+        # editme: this is the actual command to run the gear
+        context.gear_dict['command'] = ['./test.sh'] 
         context.gear_dict['command'].append(
             op.join(context.work_dir,context.gear_dict['session_label'])
         )
@@ -87,6 +93,7 @@ if __name__ == '__main__':
         os.sys.exit(1)
 
     finally:
+        # editme: optional feature
         # Cleanup, move all results to the output directory
         results.zip_htmls(context)
 
