@@ -23,6 +23,12 @@ def download(context):
         # file and does not download scans that don't need to be considered.
         # bids_path = context.download_project_bids(folders=['anat', 'func'])
 
+        # Another way to get this file if there is an input is:
+        #acq = fw.get_acquisition(context.get_input(<input key>)['hierarchy']['id'])
+        #session = fw.get_session(acq.session)
+        #project = fw.get_project(session.parents.project)
+        #dataset_description = project.info.get(['BIDS'])
+
         # make sure dataset_description.json exists
         # Is there a way to download the dataset_description.json file from the 
         # platform instead of creating a generic stub?
