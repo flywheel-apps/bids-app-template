@@ -19,8 +19,7 @@ On https://github.com/flywheel-apps, hit the "new" button.
 
 At this point, you can continue on (below) to clone the project
 localy and then copy in and edit the template files, or, even better,
-clone [bids-app-template-test]
-(https://github.com/flywheel-apps/bids-app-template-test), and it
+clone [bids-app-template-test](https://github.com/flywheel-apps/bids-app-template-test), and it
 will do that for you along with setting up a test environment for
 your new BIDS App Gear.
 
