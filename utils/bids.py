@@ -81,10 +81,19 @@ def run_validation(context):
 
         command = ['bids-validator', '--verbose', '--json', bids_path]
         context.log.info('Command:' + ' '.join(command))
-        result = sp.run(command, stdout=sp.PIPE, stderr=sp.PIPE,
-                        universal_newlines=True, env=environ)
+
+        out_path = "work/validator.output.txt"
+        with open(out_path, "w") as f:
+            result = sp.run(command, stdout=f, stderr=sp.PIPE,
+                            universal_newlines=True, env=environ)
+
         context.log.info(command[0]+' return code: ' + str(result.returncode))
-        bids_output = json.loads(result.stdout)
+
+        if result.stderr:
+            context.log.error(result.stderr)
+
+        with open(out_path) as jfp:
+            bids_output = json.load(jfp)
 
         # show summary of valid BIDS stuff
         context.log.info('bids-validator results:\n\nValid BIDS files summary:\n' +
