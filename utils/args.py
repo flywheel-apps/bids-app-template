@@ -10,23 +10,29 @@ def make_session_directory(context):
     of the algorithm.  This will keep the working output of the algorithm 
     separate from the bids input in work/bids.
     """
-    fw = context.client
-    analysis = fw.get(context.destination['id'])
-    # Kaleb says this may fail because:
-    if analysis.parent.type != 'session':
-        raise TypeError(""" The destination analysis doesn't always have a session
-            parent since analysis gears can be run from the project level.
-            Better to get the session information from
-            context.get_input()['hierarchy']['id'] for a specific input.
-            This also allows the template to accommodate inputs from different
-            sessions.  """)
-    session = fw.get(analysis.parents['session'])
-    session_label = re.sub('[^0-9a-zA-Z./]+', '_', session.label)
-    # attach session_label to gear_dict
-    context.gear_dict['session_label'] = session_label
-    # Create session_label in work directory
-    session_dir = op.join(context.work_dir, session_label)
-    os.makedirs(session_dir,exist_ok=True)
+    try:
+        fw = context.client
+        analysis = fw.get(context.destination['id'])
+        # Kaleb says this may fail because:
+        if analysis.parent.type != 'session':
+            raise TypeError(""" The destination analysis doesn't always have a session
+                parent since analysis gears can be run from the project level.
+                Better to get the session information from
+                context.get_input()['hierarchy']['id'] for a specific input.
+                This also allows the template to accommodate inputs from different
+                sessions.  """)
+        session = fw.get(analysis.parents['session'])
+        session_label = re.sub('[^0-9a-zA-Z./]+', '_', session.label)
+        # attach session_label to gear_dict
+        context.gear_dict['session_label'] = session_label
+        # Create session_label in work directory
+        session_dir = op.join(context.work_dir, session_label)
+        os.makedirs(session_dir,exist_ok=True)
+
+    except Exception as e:
+        context.gear_dict['session_label'] = 'error-unknown'
+        context.log.error(e,)
+        context.log.error('Unable to create session directory.')
 
 
 def build(context):
