@@ -12,16 +12,21 @@ def make_session_directory(context):
     """
     try:
         fw = context.client
-        analysis = fw.get(context.destination['id'])
+        #analysis = fw.get(context.destination['id'])
         # Kaleb says this may fail because:
-        if analysis.parent.type != 'session':
-            raise TypeError(""" The destination analysis doesn't always have a session
-                parent since analysis gears can be run from the project level.
-                Better to get the session information from
-                context.get_input()['hierarchy']['id'] for a specific input.
-                This also allows the template to accommodate inputs from different
-                sessions.  """)
-        session = fw.get(analysis.parents['session'])
+        #if analysis.parent.type != 'session':
+        #    raise TypeError(""" The destination analysis doesn't always have a session
+        #        parent since analysis gears can be run from the project level.
+        #        Better to get the session information from
+        #        context.get_input()['hierarchy']['id'] for a specific input.
+        #        This also allows the template to accommodate inputs from different
+        #        sessions.  """)
+        # following https://github.com/flywheel-io/core/blob/79021968fb5b8634b1bcee4a1e22cdc4f6cbbd4e/sdk/codegen/src/main/resources/fw-python/gear_context.py#L287
+        dest_container = fw.get(context.destination['id'])
+        session_id = dest_container.get('parents', {}).get('session')
+        session = fw.get(session_id)
+        # TODO will this work for a non-admin user?
+
         session_label = re.sub('[^0-9a-zA-Z./]+', '_', session.label)
         # attach session_label to gear_dict
         context.gear_dict['session_label'] = session_label
