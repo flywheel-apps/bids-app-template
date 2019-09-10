@@ -2,12 +2,12 @@
   "name": "bids-app-template",
   "label": "editme",
   "description": "Template for a gear to work on on BIDS formatted data.",
-  "version": "0.1.3_0.0.0",
+  "version": "0.0.0_0.0.0",
   "custom": {
-    "docker-image": "flywheel/bids-app-template:0.1.3_0.0.0",
+    "docker-image": "flywheel/bids-app-template:0.0.0_0.0.0",
     "gear-builder": {
       "category": "analysis",
-      "image": "flywheel/bids-app-template:0.1.3_0.0.0"
+      "image": "flywheel/bids-app-template:0.0.0_0.0.0"
     },
     "flywheel": {
       "suite": "BIDS Apps"
