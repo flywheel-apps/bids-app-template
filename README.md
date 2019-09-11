@@ -6,7 +6,7 @@ To create a bids-app gear, follow these steps.
 ## Identify BIDS compatible open source code
 
 * Check out https://github.com/BIDS-Apps.  Maybe it's already done.
-* Note the open source license.  It need to be commercially friendly.
+* Note the open source license.  It needs to be commercially friendly.
 
 ## Create GitHub Project
 
@@ -18,7 +18,7 @@ On https://github.com/flywheel-apps, hit the "new" button.
   * Press the "Create Repository" button.
 
 At this point, you can continue on (below) to clone the project
-localy and then copy in and edit the template files, or, even better,
+localy and then copy in and edit the template files, or, _even better_,
 clone [bids-app-template-test](https://github.com/flywheel-apps/bids-app-template-test), and it
 will do that for you along with setting up a test environment for
 your new BIDS App Gear.
@@ -34,7 +34,6 @@ git push -u origin dev
 ## Copy and edit the template files:
   * manifest.json
   * Dockerfile
-  * requirements.txt
   * run.py
   
 See [Building Gears](https://docs.flywheel.io/hc/en-us/articles/360015513653-Building-Gears) for more information.
