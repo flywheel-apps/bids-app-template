@@ -49,6 +49,7 @@
     "num-things": {
       "default": 1,
       "description": "number of things that is important to set",
+      "optional": true,
       "type": "integer"
     },
     "name-or-something": {
@@ -59,6 +60,7 @@
     "threshold": {
       "default": 3.1415926,
       "description": "threshold eating pie",
+      "optional": true,
       "type": "number"
     },
     "modalities": {
@@ -75,6 +77,7 @@
     "n_procs": {
       "default": 1,
       "description": "number of threads",
+      "optional": true,
       "type": "integer"
     },
     "run-id": {
