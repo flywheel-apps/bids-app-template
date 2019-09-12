@@ -70,7 +70,7 @@ if __name__ == '__main__':
         args.make_session_directory(context)
 
         # editme: this is the actual command to run the gear
-        context.gear_dict['command'] = ['./test.sh'] 
+        context.gear_dict['command'] = ['echo']
         context.gear_dict['command'].append(
             op.join(context.work_dir,context.gear_dict['session_label'])
         )
