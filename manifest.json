@@ -1,7 +1,7 @@
 {
   "name": "bids-app-template",
-  "label": "editme",
-  "description": "Template for a gear to work on on BIDS formatted data.",
+  "label": "<editme Name>: short human-friendly name/description displayed in interface",
+  "description": "<editme Name> (<version>) longer description.",
   "version": "0.0.0_0.0.0",
   "custom": {
     "docker-image": "flywheel/bids-app-template:0.0.0_0.0.0",
@@ -13,7 +13,7 @@
       "suite": "BIDS Apps"
     },
     "license": {
-      "non-commercial-use-only": true,
+      "non-commercial-use-only": false,
       "main": {
         "name": "BSD-3-Clause",
         "url": "https://github.com/poldracklab/mriqc/blob/0.15.1/LICENSE.txt"
