@@ -134,15 +134,6 @@
     }
   },
   "environment": {
-    "PYTHON_PIP_VERSION": "19.2.1",
-    "HOME": "/root",
-    "GPG_KEY": "0D96DF4D4110E5C43FBFB17F2D347EA6AA65421D",
-    "PYTHON_GET_PIP_URL": "https://github.com/pypa/get-pip/raw/404c9418e33c5031b1a9ab623168b3e8a2ed8c88/get-pip.py",
-    "PATH": "/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-    "LANG": "C.UTF-8",
-    "PYTHON_VERSION": "3.7.4",
-    "PWD": "/",
-    "PYTHON_GET_PIP_SHA256": "56bb63d3cf54e7444351256f72a60f575f6d8c7f1faacffae33167afc8e7609d"
   },
   "command": "python run.py",
   "author": "Dr. Smartypants, Whatsamatter U",
