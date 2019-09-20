@@ -1,7 +1,49 @@
 # If you edit this file, please consider updating bids-app-template
+
 import subprocess as sp
 import os, os.path as op
+import logging
 import re
+import shutil
+
+
+log = logging.getLogger(__name__)
+
+
+def set_session_label(context):
+
+    # This is used by args.make_session_directory() and 
+    #                 results.zip_output()
+
+    # TODO will this work for a non-admin user?
+
+    fw = context.client
+
+    dest_container = fw.get(context.destination['id'])
+
+    session_id = dest_container.get('session')
+
+    if session_id is None:
+        session_id = dest_container.get('parents', {}).get('session')
+
+    # Kaleb says 
+    # TODO   Better to get the session information from
+    #        context.get_input()['hierarchy']['id'] for a specific input.
+    #        This also allows the template to accommodate inputs from different
+    #        sessions.
+
+    if session_id is None:
+        log.error('Cannot get session label from destination')
+        context.gear_dict['session_label'] = 'session_unknown'
+
+    else:
+        session = fw.get(session_id)
+        session_label = re.sub('[^0-9a-zA-Z./]+', '_', session.label)
+        # attach session_label to gear_dict
+        context.gear_dict['session_label'] = session_label
+
+    log.debug('Session label is "' + session_label + '" at debug level')
+    log.info('Session label is "' + session_label + '" at info level')
 
 
 def make_session_directory(context):
@@ -10,37 +52,75 @@ def make_session_directory(context):
     of the algorithm.  This will keep the working output of the algorithm 
     separate from the bids input in work/bids.
     """
-    try:
-        fw = context.client
-        #analysis = fw.get(context.destination['id'])
-        # Kaleb says this may fail because:
-        #if analysis.parent.type != 'session':
-        #    raise TypeError(""" The destination analysis doesn't always have a session
-        #        parent since analysis gears can be run from the project level.
-        #        Better to get the session information from
-        #        context.get_input()['hierarchy']['id'] for a specific input.
-        #        This also allows the template to accommodate inputs from different
-        #        sessions.  """)
-        # following https://github.com/flywheel-io/core/blob/79021968fb5b8634b1bcee4a1e22cdc4f6cbbd4e/sdk/codegen/src/main/resources/fw-python/gear_context.py#L287
-        dest_container = fw.get(context.destination['id'])
-        session_id = dest_container.get('parents', {}).get('session')
-        session = fw.get(session_id)
-        # TODO will this work for a non-admin user?
 
-        session_label = re.sub('[^0-9a-zA-Z./]+', '_', session.label)
-        # attach session_label to gear_dict
-        context.gear_dict['session_label'] = session_label
+    try:
         # Create session_label in work directory
-        session_dir = op.join(context.work_dir, session_label)
+        session_dir = op.join(context.work_dir, 
+                              context.gear_dict['session_label'])
         os.makedirs(session_dir,exist_ok=True)
 
     except Exception as e:
         context.gear_dict['session_label'] = 'error-unknown'
-        context.log.error(e,)
-        context.log.error('Unable to create session directory.')
+        log.error(e,)
+        log.error('Unable to create session directory.')
 
 
 def build(context):
+    """
+    Process inputs, contextual values and build a dictionary of
+    key:value command-line parameter names:values These will be
+    validated and assembled into a command-line below.  
+    """
+
+    # 1) Process Inputs
+
+    # Check if the required FreeSurfer license file has been provided
+    # as an input file.
+    fs_license_path = '/opt/freesurfer/license.txt'
+    context.gear_dict['fs_license_found'] = False
+    license_info = ''
+
+    fs_license_file = context.get_input_path('freesurfer_license')
+    if fs_license_file:
+        # just copy the file to the right place
+        shutil.copy(fs_license_file, fs_license_path)
+        context.gear_dict['fs_license_found'] = True
+        log.info('Using FreeSurfer license in input file.')
+
+    if not context.gear_dict['fs_license_found']:
+        # see if it was passed as a string argument
+        if context.config.get('gear-FREESURFER_LICENSE'):
+            fs_arg = context.config['gear-FREESURFER_LICENSE']
+            license_info = '\n'.join(fs_arg.split())
+            context.gear_dict['fs_license_found'] = True
+            log.info('Using FreeSurfer license in gear argument.')
+
+    if not context.gear_dict['fs_license_found']:
+        # see if it was passed as a string argument
+        fw = context.client
+        project_id = fw.get_analysis(context.destination.get('id')).parents.project
+        project = fw.get_project(project_id)
+        if project.info.get('FREESURFER_LICENSE'):
+            license_info = '\n'.join(project.info.get('FREESURFER_LICENSE').split())
+            context.gear_dict['fs_license_found'] = True
+            log.info('Using FreeSurfer license in project info.')
+
+    if not context.gear_dict['fs_license_found']:
+        msg = 'Could not find FreeSurfer license in project info.'
+        print(msg)
+        log.exception(msg)
+        os.sys.exit(1)
+
+    else:
+        if license_info != '':
+            with open(fs_license_path, 'w') as lf:
+                lf.write(license_info)
+
+
+    # 2) Process Contextual values
+    # e.g. context.matlab_license_code
+
+    # 3) Process Configuration (config, rest of command-line parameters)
     config = context.config
     params = {}
     for key in config.keys():
@@ -135,26 +215,44 @@ def build_command(context):
             # e.g. replace "--verbose=vvv' with '-vvv'
             command[-1] = '-' + param_list[key]
 
-    context.log.info(' Command:' + ' '.join(command))
+    log.info('Command:' + ' '.join(command))
 
     return command
 
 
 def execute(context): 
+
     command = build_command(context)
+
     environ = context.gear_dict['environ']
-    # Run the actual command this gear was created for
-    result = sp.run(command, stdout=sp.PIPE, stderr=sp.PIPE,
+
+    # Add environment to log
+    kv = ''
+    for k, v in environ.items():
+        kv += k + '=' + v + ' '
+    log.debug(' Environment: ' + kv)
+
+    if not context.config['gear-dry-run']:
+
+        # Run the actual command this gear was created for
+        result = sp.run(command, stdout=sp.PIPE, stderr=sp.PIPE,
                     universal_newlines=True, env=environ)
 
-    context.log.info(' return code: ' + str(result.returncode))
-    context.log.info(' Command output:\n' + result.stdout)
+    else:
+        result = sp.CompletedProcess
+        result.returncode = 1
+        result.stdout = ''
+        result.stderr = 'gear-dry-run is set:  Did NOT run gear code.'
 
-    if result.returncode != 0:
-        context.log.error(' The command:\n ' +
-                  ' '.join(command) +
-                  '\nfailed. See log for debugging.')
-        raise Exception(' ' + result.stderr)
+    log.info('Return code: ' + str(result.returncode))
+    log.info('Command output:\n' + result.stdout)
 
+    #if result.returncode != 0:
+    #    log.error(result.stderr)
+    #    log.error(' The command:\n ' +
+    #              ' '.join(command) +
+    #              '\nfailed. See log for debugging.')
+
+    return result
 
 # vi:set autoindent ts=4 sw=4 expandtab : See Vim, :help 'modeline'

@@ -131,7 +131,17 @@
       "default": false,
       "description": "Gear will save ALL intermediate output into <command>_work.zip",
       "type": "boolean"
-    }
+    },
+    "gear-dry-run": {
+      "default": false,
+      "description": "Do everything except actually executing the command line",
+      "type": "boolean"
+    },
+    "gear-FREESURFER_LICENSE": {
+      "description": "Text from license file generated during FreeSurfer registration. *Entries should be space separated*",
+      "type": "string",
+      "optional": true
+    }   
   },
   "environment": {
   },
