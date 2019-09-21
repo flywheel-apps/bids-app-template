@@ -16,8 +16,7 @@ def download(context):
         one did not get downloaded.
     """
 
-    # the usual BIDS path:
-    bids_path = op.join(context.work_dir, 'bids')
+    bids_path = context.gear_dict['bids_path'] 
 
     # If BIDS was already downloaded, don't do it again
     # (this saves time when developing locally)

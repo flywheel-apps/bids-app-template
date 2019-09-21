@@ -10,3 +10,6 @@ cd $output_dir
 for dir in Direct1/sub1 Direct2/sub1/sub2 Direct3/sub1/sub2/sub3; do
     touch $dir/file.txt
 done
+
+echo "ls "
+ls

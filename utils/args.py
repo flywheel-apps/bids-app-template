@@ -5,7 +5,9 @@ import os, os.path as op
 import logging
 import re
 import shutil
+import json
 
+from .fs_license import find_freesurfer_license
 
 log = logging.getLogger(__name__)
 
@@ -17,34 +19,40 @@ def set_session_label(context):
 
     # TODO will this work for a non-admin user?
 
-    fw = context.client
+    try:
+        fw = context.client
 
-    dest_container = fw.get(context.destination['id'])
+        dest_container = fw.get(context.destination['id'])
 
-    session_id = dest_container.get('session')
+        session_id = dest_container.get('session')
 
-    if session_id is None:
-        session_id = dest_container.get('parents', {}).get('session')
+        if session_id is None:
+            session_id = dest_container.get('parents', {}).get('session')
 
-    # Kaleb says 
-    # TODO   Better to get the session information from
-    #        context.get_input()['hierarchy']['id'] for a specific input.
-    #        This also allows the template to accommodate inputs from different
-    #        sessions.
+        # Kaleb says 
+        # TODO   Better to get the session information from
+        #        context.get_input()['hierarchy']['id'] for a specific input.
+        #        This also allows the template to accommodate inputs from different
+        #        sessions.
 
-    if session_id is None:
-        log.error('Cannot get session label from destination')
-        context.gear_dict['session_label'] = 'session_unknown'
+        if session_id is None:
+            log.error('Cannot get session label from destination')
+            context.gear_dict['session_label'] = 'session_unknown'
 
-    else:
-        session = fw.get(session_id)
-        session_label = re.sub('[^0-9a-zA-Z./]+', '_', session.label)
-        # attach session_label to gear_dict
-        context.gear_dict['session_label'] = session_label
+        else:
+            session = fw.get(session_id)
+            session_label = re.sub('[^0-9a-zA-Z./]+', '_', session.label)
+            # attach session_label to gear_dict
+            context.gear_dict['session_label'] = session_label
 
-    log.debug('Session label is "' + session_label + '" at debug level')
-    log.info('Session label is "' + session_label + '" at info level')
+        log.debug('Session label is "' + session_label + '" at debug level')
+        log.info('Session label is "' + session_label + '" at info level')
 
+    except Exception as e:
+        # report error and go on in case there are more errors to report
+        context.gear_dict['errors'].append(e)
+        log.critical(e,)
+        log.exception('Error in set_session_label()',)
 
 def make_session_directory(context):
     """
@@ -74,48 +82,8 @@ def build(context):
 
     # 1) Process Inputs
 
-    # Check if the required FreeSurfer license file has been provided
-    # as an input file.
-    fs_license_path = '/opt/freesurfer/license.txt'
-    context.gear_dict['fs_license_found'] = False
-    license_info = ''
-
-    fs_license_file = context.get_input_path('freesurfer_license')
-    if fs_license_file:
-        # just copy the file to the right place
-        shutil.copy(fs_license_file, fs_license_path)
-        context.gear_dict['fs_license_found'] = True
-        log.info('Using FreeSurfer license in input file.')
-
-    if not context.gear_dict['fs_license_found']:
-        # see if it was passed as a string argument
-        if context.config.get('gear-FREESURFER_LICENSE'):
-            fs_arg = context.config['gear-FREESURFER_LICENSE']
-            license_info = '\n'.join(fs_arg.split())
-            context.gear_dict['fs_license_found'] = True
-            log.info('Using FreeSurfer license in gear argument.')
-
-    if not context.gear_dict['fs_license_found']:
-        # see if it was passed as a string argument
-        fw = context.client
-        project_id = fw.get_analysis(context.destination.get('id')).parents.project
-        project = fw.get_project(project_id)
-        if project.info.get('FREESURFER_LICENSE'):
-            license_info = '\n'.join(project.info.get('FREESURFER_LICENSE').split())
-            context.gear_dict['fs_license_found'] = True
-            log.info('Using FreeSurfer license in project info.')
-
-    if not context.gear_dict['fs_license_found']:
-        msg = 'Could not find FreeSurfer license in project info.'
-        print(msg)
-        log.exception(msg)
-        os.sys.exit(1)
-
-    else:
-        if license_info != '':
-            with open(fs_license_path, 'w') as lf:
-                lf.write(license_info)
-
+    # editme: optional.  Keep this if the gear runs Freesurfer
+    find_freesurfer_license(context, '/opt/freesurfer/license.txt')
 
     # 2) Process Contextual values
     # e.g. context.matlab_license_code
@@ -177,6 +145,7 @@ def build_command(context):
     command = context.gear_dict['command']
 
     # add positional arguments first in case there are nargs='*' arguments
+    command.append('output')
     command.append(bids_path)
     command.append(context.output_dir)
     command.append('participant')
@@ -243,15 +212,6 @@ def execute(context):
         result.returncode = 1
         result.stdout = ''
         result.stderr = 'gear-dry-run is set:  Did NOT run gear code.'
-
-    log.info('Return code: ' + str(result.returncode))
-    log.info('Command output:\n' + result.stdout)
-
-    #if result.returncode != 0:
-    #    log.error(result.stderr)
-    #    log.error(' The command:\n ' +
-    #              ' '.join(command) +
-    #              '\nfailed. See log for debugging.')
 
     return result
 

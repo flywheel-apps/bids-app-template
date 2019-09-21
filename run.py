@@ -44,6 +44,8 @@ if __name__ == '__main__':
     # Instantiate custom gear dictionary to hold "gear global" info
     context.gear_dict = {}
 
+    context.gear_dict['errors'] = []
+
     # editme: optional feature
     # f-strings (e.g. f'string {variable}') are introduced in Python3.6
     # for Python3.5 use ('string {}'.format(variable))
@@ -76,18 +78,21 @@ if __name__ == '__main__':
         args.validate(context)
 
     except Exception as e:
+        context.gear_dict['errors'].append(e)
         log.critical(e,)
         log.exception('Error in parameter specification.',)
-        os.sys.exit(1)
 
     try:
+
+        # the usual BIDS path:
+        bids_path = op.join(context.work_dir, 'bids')
+        context.gear_dict['bids_path'] = bids_path
 
         # Download bids for the current session
         bids.download(context)
 
         # editme: optional feature
         # Save bids file hierarchy `tree` output in .html file
-        bids_path = context.gear_dict['bids_path']
         html_file = 'output/bids_tree'
         bids.tree(bids_path, html_file)
         log.info('Wrote tree("' + bids_path + '") output into html file "' +
@@ -105,9 +110,9 @@ if __name__ == '__main__':
         # Add that stuff to utils/bids.py
 
     except Exception as e:
+        context.gear_dict['errors'].append(e)
         log.critical(e,)
         log.exception('Error in BIDS download and validation.',)
-        os.sys.exit(1)
 
     try:
 
@@ -118,6 +123,7 @@ if __name__ == '__main__':
         # Build command-line string for subprocess and execute
         result = args.execute(context)
 
+        log.info('Return code: ' + str(result.returncode))
         log.info(result.stdout)
 
         if result.returncode == 0:
@@ -128,9 +134,9 @@ if __name__ == '__main__':
             log.info('Command failed.')
 
     except Exception as e:
+        context.gear_dict['errors'].append(e)
         log.critical(e,)
         log.exception('Unable to execute command.')
-        os.sys.exit(1)
 
     finally:
 
@@ -142,15 +148,24 @@ if __name__ == '__main__':
 
         # editme: optional feature
         # Cleanup, move all results to the output directory
-         results.zip_htmls(context)
+        results.zip_htmls(context)
 
         # editme: optional feature
         # possibly save ALL intermediate output
         if context.config['gear-save-all-output']:
             results.zip_output(context)
 
-        log.info('BIDS App Gear is done.')
-        os.sys.exit(result.returncode)
+        ret = result.returncode
 
+        if len(context.gear_dict['errors']) > 0 :
+            msg = 'Previous errors:\n'
+            for err in context.gear_dict['errors']:
+                msg += '  ' + str(type(err)).split("'")[1] + ': ' + str(err) + '\n'
+            log.info(msg)
+            ret = 1
+
+        log.info('BIDS App Gear is done.')
+        os.sys.exit(ret)
+ 
 
 # vi:set autoindent ts=4 sw=4 expandtab : See Vim, :help 'modeline'
