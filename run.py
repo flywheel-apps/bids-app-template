@@ -44,11 +44,13 @@ if __name__ == '__main__':
     # Instantiate custom gear dictionary to hold "gear global" info
     context.gear_dict = {}
 
+    # the usual BIDS path:
+    bids_path = op.join(context.work_dir, 'bids')
+    context.gear_dict['bids_path'] = bids_path
+
     context.gear_dict['errors'] = []
 
     # editme: optional feature
-    # f-strings (e.g. f'string {variable}') are introduced in Python3.6
-    # for Python3.5 use ('string {}'.format(variable))
     context.log.debug('psutil.cpu_count()= '+str(psutil.cpu_count()))
     context.log.debug('psutil.virtual_memory().total= {:4.1f} GiB'.format(
                       psutil.virtual_memory().total / (1024 ** 3)))
@@ -66,8 +68,15 @@ if __name__ == '__main__':
 
     try:
 
-        # Set the actual command to run the gear:
-        context.gear_dict['command'] = ['echo']
+        # editme: Set the actual command to run the gear:
+        command = ['echo']
+
+        # editme: add positional arguments that the above caommand needs
+        # This should be done here in case there are nargs='*' arguments
+        command.append('output')
+        command.append(context.gear_dict['bids_path'])
+        command.append(context.output_dir)
+        command.append('participant')
 
         # Build a parameter dictionary specific for COMMAND
         args.build(context)
@@ -83,10 +92,6 @@ if __name__ == '__main__':
         log.exception('Error in parameter specification.',)
 
     try:
-
-        # the usual BIDS path:
-        bids_path = op.join(context.work_dir, 'bids')
-        context.gear_dict['bids_path'] = bids_path
 
         # Download bids for the current session
         bids.download(context)

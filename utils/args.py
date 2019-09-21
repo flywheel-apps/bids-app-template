@@ -140,15 +140,6 @@ def build_command(context):
     """
 
     param_list = context.gear_dict['param_list']
-    bids_path = context.gear_dict['bids_path']
-
-    command = context.gear_dict['command']
-
-    # add positional arguments first in case there are nargs='*' arguments
-    command.append('output')
-    command.append(bids_path)
-    command.append(context.output_dir)
-    command.append('participant')
 
     for key in param_list.keys():
         # Single character command-line parameters are preceded by a single '-'

@@ -22,17 +22,26 @@ def download(context):
     # (this saves time when developing locally)
     if not op.isdir(bids_path):
 
-        bids_path = context.download_session_bids(target_dir=bids_path)
-        # Use the following command instead (after core is updated with a fix
-        # for it) because it will return the existing dataset_description.json
-        # file and does not download scans that don't need to be considered.
-        # bids_path = context.download_project_bids(folders=['anat', 'func'])
+        new_bids_path = context.download_session_bids(target_dir=bids_path)
+
+        # Use the following command instead of he above (after core is 
+	    # updated with a fix for it) because it will return the
+	    # existing dataset_description.json file and does not download
+	    # scans that don't need to be considered.  bids_path =
+	    # context.download_project_bids(folders=['anat', 'func'])
 
         # Another way to get this file if there is an input is:
         #acq = fw.get_acquisition(context.get_input(<input key>)['hierarchy']['id'])
         #session = fw.get_session(acq.session)
         #project = fw.get_project(session.parents.project)
         #dataset_description = project.info.get(['BIDS'])
+
+        if new_bids_path != bids_path:
+            # bids_path in run.py needs to match what is returned by
+            # context.download_session_bids() so change it to this new
+            # place.
+            raise Exception('Unexpected BIDS path "' + new_bids_path + '"')
+            os.sys.exit(-1)
 
         # make sure dataset_description.json exists
         # Is there a way to download the dataset_description.json file from the 
