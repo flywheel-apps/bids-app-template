@@ -139,6 +139,8 @@ def build_command(context):
     as such ("-k value" or "--key=value")
     """
 
+    command = context.gear_dict['command']
+
     param_list = context.gear_dict['param_list']
 
     for key in param_list.keys():
@@ -195,8 +197,7 @@ def execute(context):
     if not context.config['gear-dry-run']:
 
         # Run the actual command this gear was created for
-        result = sp.run(command, stdout=sp.PIPE, stderr=sp.PIPE,
-                    universal_newlines=True, env=environ)
+        result = sp.run(command, env=environ)
 
     else:
         result = sp.CompletedProcess

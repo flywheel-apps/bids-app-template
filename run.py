@@ -23,11 +23,16 @@ if __name__ == '__main__':
     context = flywheel.GearContext()
     context.init_logging(context.config['gear-log-level'])
 
+    # remove the standard handler so the format can be changed
+    logging.root.removeHandler(context.log.root.handlers[0])
+    # Instead of that, just don't propagate these new logs
+    #log.propagate = False
+    #logging.propagate = False
+    # AJW: I tried both of those and there were still repeat messages.
+
     log.setLevel(context.config['gear-log-level'])
     log.info('log level is ' + context.config['gear-log-level'])
 
-    # remove the standard handler so the format can be changed
-    logging.root.removeHandler(context.log.root.handlers[0])
     # Timestamps with logging assist debugging algorithms
     # With long execution times
     handler = logging.StreamHandler(stream=sys.stdout)
@@ -78,6 +83,9 @@ if __name__ == '__main__':
         command.append(context.output_dir)
         command.append('participant')
 
+        # Put command into gear_dict so arguments can be added in args.
+        context.gear_dict['command'] = command
+
         # Build a parameter dictionary specific for COMMAND
         args.build(context)
 
@@ -92,6 +100,10 @@ if __name__ == '__main__':
         log.exception('Error in parameter specification.',)
 
     try:
+
+        # editme: optional feature
+        # Create working output directory with session label as name
+        args.make_session_directory(context)
 
         # Download bids for the current session
         bids.download(context)
@@ -120,10 +132,6 @@ if __name__ == '__main__':
         log.exception('Error in BIDS download and validation.',)
 
     try:
-
-        # editme: optional feature
-        # Create working output directory with session label as name
-        args.make_session_directory(context)
 
         # Build command-line string for subprocess and execute
         result = args.execute(context)
