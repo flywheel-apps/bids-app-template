@@ -39,10 +39,10 @@ if __name__ == '__main__':
     context.gear_dict['errors'] = []
 
     # editme: optional feature
-    context.log.debug('psutil.cpu_count()= '+str(psutil.cpu_count()))
-    context.log.debug('psutil.virtual_memory().total= {:4.1f} GiB'.format(
+    log.debug('psutil.cpu_count()= '+str(psutil.cpu_count()))
+    log.debug('psutil.virtual_memory().total= {:4.1f} GiB'.format(
                       psutil.virtual_memory().total / (1024 ** 3)))
-    context.log.debug('psutil.virtual_memory().available= {:4.1f} GiB'.format(
+    log.debug('psutil.virtual_memory().available= {:4.1f} GiB'.format(
                       psutil.virtual_memory().available / (1024 ** 3)))
 
     # grab environment for gear
