@@ -31,7 +31,10 @@ That is:
   - log something into it to make sure it is working
   - add all of the configuration settings to the log
 
-Then, for all modules (python file) in the gear, add a separate child log with `log = logging.getLogger(__name__)` at the top of the file.
+Then, for all modules (python files) in the gear, add a separate child logat the top of the file with:
+```python
+    log = logging.getLogger(__name__)
+```
 
 Finally, log information at the usual levels:
 ```python
