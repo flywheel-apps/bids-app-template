@@ -5,7 +5,7 @@ To create a bids-app gear, go to [bids-app-template-test](https://github.com/fly
 
 As you develop new best practices for developing gears, be sure to add them in the code and describe them here.
 
-# Best Practices
+# Best Gear Practices
 
 ## Logging
 
@@ -36,7 +36,7 @@ Then, for all modules (python files) in the gear, add a separate child log at th
     log = logging.getLogger(__name__)
 ```
 
-By using [logging in multiple modules](https://docs.python.org/3/howto/logging-cookbook.html#using-logging-in-multiple-modules) in this way, the log message will indicate from which file the log message came.
+By using [logging in multiple modules](https://docs.python.org/3/howto/logging-cookbook.html#using-logging-in-multiple-modules) in this way, the log message will indicate which file generated the log message.
 
 Finally, log information at the usual levels:
 ```python
