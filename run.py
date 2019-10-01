@@ -17,32 +17,15 @@ from utils import args, bids, results
 
 if __name__ == '__main__':
 
-    log = logging.getLogger('[flywheel/bids-fmriprep]')
-
     # Instantiate the Gear Context
     context = flywheel.GearContext()
-    context.init_logging(context.config['gear-log-level'])
 
-    # remove the standard handler so the format can be changed
-    logging.root.removeHandler(context.log.root.handlers[0])
-    # Instead of that, just don't propagate these new logs
-    #log.propagate = False
-    #logging.propagate = False
-    # AJW: I tried both of those and there were still repeat messages.
+    fmt = '%(asctime)s %(levelname)8s %(name)-8s - %(message)s'
+    logging.basicConfig(level=context.config['gear-log-level'],format=fmt)
 
-    log.setLevel(context.config['gear-log-level'])
+    log = logging.getLogger('[flywheel/bids-fmriprep]')
+
     log.info('log level is ' + context.config['gear-log-level'])
-
-    # Timestamps with logging assist debugging algorithms
-    # With long execution times
-    handler = logging.StreamHandler(stream=sys.stdout)
-    format = '%(asctime)s %(levelname)8s %(name)-8s - %(message)s'
-    formatter = logging.Formatter(
-                fmt=format,
-                datefmt='%Y-%m-%d %H:%M:%S')
-    handler.setFormatter(formatter)
-    # replace root log handler
-    context.log.root.addHandler(handler)
 
     context.log_config() # not configuring the log but logging the config
 
