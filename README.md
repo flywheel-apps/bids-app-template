@@ -9,7 +9,7 @@ As you develop new best practices for developing gears, be sure to add them in t
 
 ## Logging
 
-In `run.py`, initialize logging with something like this
+In `run.py`, initialize logging with something like this:
 
 ```python
     # Instantiate the Gear Context
@@ -24,7 +24,24 @@ In `run.py`, initialize logging with something like this
 
     context.log_config() # not configuring the log but logging the config
 ```
+That is:
+  - set log level using "gear-log-level" from the context/manifest
+  - include the date/time in the format
+  - get a logger for the run.py file.
+  - log something into it to make sure it is working
+  - add all of the configuration settings to the log
 
-## To Do:
+Then, for all modules (python file) in the gear, add a separate child log with `log = logging.getLogger(__name__)` at the top of the file.
+
+Finally, log information at the usual levels:
+```python
+    log.debug('very detailed information')
+    log.info('informative text')
+    log.warning('something that needs to be seen')
+    log.error('something went wrong')
+    log.critical('show stopper information')
+```
+
+# To Do:
   * add continuous integration
   * change this GitHub project into a template?
