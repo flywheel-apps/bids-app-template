@@ -31,10 +31,12 @@ That is:
   - log something into it to make sure it is working
   - add all of the configuration settings to the log
 
-Then, for all modules (python files) in the gear, add a separate child logat the top of the file with:
+Then, for all modules (python files) in the gear, add a separate child log at the top of the file with:
 ```python
     log = logging.getLogger(__name__)
 ```
+
+By using [logging in multiple modules](https://docs.python.org/3/howto/logging-cookbook.html#using-logging-in-multiple-modules) in this way, the log message will indicate from which file the log message came.
 
 Finally, log information at the usual levels:
 ```python
@@ -43,6 +45,7 @@ Finally, log information at the usual levels:
     log.warning('something that needs to be seen')
     log.error('something went wrong')
     log.critical('show stopper information')
+    log.exception("something went wrong and here's a stack trace")
 ```
 
 # To Do:
