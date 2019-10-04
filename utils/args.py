@@ -12,65 +12,30 @@ from .fs_license import find_freesurfer_license
 log = logging.getLogger(__name__)
 
 
-def set_session_label(context):
-
-    # This is used by args.make_session_directory() and 
-    #                 results.zip_output()
-
-    # TODO will this work for a non-admin user?
-
-    try:
-        fw = context.client
-
-        dest_container = fw.get(context.destination['id'])
-
-        session_id = dest_container.get('session')
-
-        if session_id is None:
-            session_id = dest_container.get('parents', {}).get('session')
-
-        # Kaleb says 
-        # TODO   Better to get the session information from
-        #        context.get_input()['hierarchy']['id'] for a specific input.
-        #        This also allows the template to accommodate inputs from different
-        #        sessions.
-
-        if session_id is None:
-            log.error('Cannot get session label from destination')
-            context.gear_dict['session_label'] = 'session_unknown'
-
-        else:
-            session = fw.get(session_id)
-            session_label = re.sub('[^0-9a-zA-Z./]+', '_', session.label)
-            # attach session_label to gear_dict
-            context.gear_dict['session_label'] = session_label
-
-        log.debug('Session label is "' + session_label + '" at debug level')
-        log.info('Session label is "' + session_label + '" at info level')
-
-    except Exception as e:
-        # report error and go on in case there are more errors to report
-        context.gear_dict['errors'].append(e)
-        log.critical(e,)
-        log.exception('Error in set_session_label()',)
-
-def make_session_directory(context):
+def make_file_name_safe(input_basename, replace_str=''):
     """
-    This function acquires the session.label and uses it to store the output
-    of the algorithm.  This will keep the working output of the algorithm 
-    separate from the bids input in work/bids.
+    removes non-safe characters from a filename and returns a filename with these characters replaced with replace_str
+    :param input_basename: the input basename of the file to be replaced
+    :type input_basename: str
+    :param log: a logger instance
+    :type log: logging.Logger
+    :param replace_str: the string with which to replace the unsafe characters
+    :type   replace_str: str
+    :return: output_basename, a safe
+    :rtype: str
     """
+    import re
+    safe_patt = re.compile('[^A-Za-z0-9_\.]+')
+    # if the replacement is not a string or not safe, set replace_str to x
+    if not isinstance(replace_str, str) or safe_patt.match(replace_str):
+        log.warning('{} is not a safe string, removing instead'.format(replace_str))
+        replace_str = ''
+    if replace_str:
+        log.debug('Replacing unsafe characters with {}'.format(replace_str))
+    # Replace non-alphanumeric (or underscore) characters with replace_str
+    safe_output_basename = re.sub(safe_patt, replace_str, input_basename)
 
-    try:
-        # Create session_label in work directory
-        session_dir = op.join(context.work_dir, 
-                              context.gear_dict['session_label'])
-        os.makedirs(session_dir,exist_ok=True)
-
-    except Exception as e:
-        context.gear_dict['session_label'] = 'error-unknown'
-        log.error(e,)
-        log.error('Unable to create session directory.')
+    return safe_output_basename
 
 
 def build(context):
@@ -181,30 +146,5 @@ def build_command(context):
 
     return command
 
-
-def execute(context): 
-
-    command = build_command(context)
-
-    environ = context.gear_dict['environ']
-
-    # Add environment to log
-    kv = ''
-    for k, v in environ.items():
-        kv += k + '=' + v + ' '
-    log.debug(' Environment: ' + kv)
-
-    if not context.config['gear-dry-run']:
-
-        # Run the actual command this gear was created for
-        result = sp.run(command, env=environ)
-
-    else:
-        result = sp.CompletedProcess
-        result.returncode = 1
-        result.stdout = ''
-        result.stderr = 'gear-dry-run is set:  Did NOT run gear code.'
-
-    return result
 
 # vi:set autoindent ts=4 sw=4 expandtab : See Vim, :help 'modeline'

@@ -50,6 +50,12 @@ if __name__ == '__main__':
         environ = json.load(f)
         context.gear_dict['environ'] = environ
 
+        # Add environment to log if debugging
+        kv = ''
+        for k, v in environ.items():
+            kv += k + '=' + v + ' '
+        log.debug(' Environment: ' + kv)
+
     # Call this if args.make_session_directory() or results.zip_output() is
     # called later because they expect context.gear_dict['session_label']
     args.set_session_label(context)
@@ -117,7 +123,18 @@ if __name__ == '__main__':
     try:
 
         # Build command-line string for subprocess and execute
-        result = args.execute(context)
+        command = args.build_command(context)
+
+        if not context.config['gear-dry-run']:
+
+            # Run the actual command this gear was created for
+            result = sp.run(command, env=environ)
+
+        else:
+            result = sp.CompletedProcess
+            result.returncode = 1
+            result.stdout = ''
+            result.stderr = 'gear-dry-run is set:  Did NOT run gear code.'
 
         log.info('Return code: ' + str(result.returncode))
         log.info(result.stdout)
