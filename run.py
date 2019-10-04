@@ -59,9 +59,9 @@ if __name__ == '__main__':
         # editme: Set the actual command to run the gear:
         command = ['echo']
 
-        # editme: add positional arguments that the above caommand needs
+        # editme: add positional arguments that the above command needs
         # This should be done here in case there are nargs='*' arguments
-        command.append('output')
+        # These follow the BIDS Apps definition (https://github.com/BIDS-Apps)
         command.append(context.gear_dict['bids_path'])
         command.append(context.output_dir)
         command.append('participant')
