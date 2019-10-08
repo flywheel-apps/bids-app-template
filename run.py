@@ -2,7 +2,7 @@
 """ Run the gear: set up for and call command-line code """
 
 import json
-import os, os.path as op
+import os, os.path
 import subprocess as sp
 import sys
 import logging
@@ -12,7 +12,7 @@ import flywheel
 
 # GearContext takes care of most of these variables
 # from utils.G import *
-from utils import args, bids, results
+from utils import args, bids, results, custom_log, fly
 
 
 if __name__ == '__main__':
@@ -20,12 +20,10 @@ if __name__ == '__main__':
     # Instantiate the Gear Context
     context = flywheel.GearContext()
 
-    fmt = '%(asctime)s %(levelname)8s %(name)-8s - %(message)s'
-    logging.basicConfig(level=context.config['gear-log-level'],format=fmt)
+    # Add manifest.json as the manifest_json attribute
+    setattr(context, 'manifest_json', fly.load_manifest_json())
 
-    log = logging.getLogger('[flywheel/bids-fmriprep]')
-
-    log.info('log level is ' + context.config['gear-log-level'])
+    log = custom_log.log_initializer(context)
 
     context.log_config() # not configuring the log but logging the config
 
@@ -33,7 +31,7 @@ if __name__ == '__main__':
     context.gear_dict = {}
 
     # the usual BIDS path:
-    bids_path = op.join(context.work_dir, 'bids')
+    bids_path = os.path.join(context.work_dir, 'bids')
     context.gear_dict['bids_path'] = bids_path
 
     context.gear_dict['errors'] = []
@@ -58,7 +56,7 @@ if __name__ == '__main__':
 
     # Call this if args.make_session_directory() or results.zip_output() is
     # called later because they expect context.gear_dict['session_label']
-    args.set_session_label(context)
+    fly.set_session_label(context)
 
     try:
 
@@ -75,8 +73,9 @@ if __name__ == '__main__':
         # Put command into gear_dict so arguments can be added in args.
         context.gear_dict['command'] = command
 
-        # Build a parameter dictionary specific for COMMAND
-        args.build(context)
+        # Process inputs, contextual values and build a dictionary of
+        # key-value arguments specific for COMMAND
+        args.get_inputs_and_args(context)
 
         # Validate the command parameter dictionary - make sure everything is 
         # ready to run so errors will appear before launching the actual gear 
@@ -92,7 +91,7 @@ if __name__ == '__main__':
 
         # editme: optional feature
         # Create working output directory with session label as name
-        args.make_session_directory(context)
+        fly.make_session_directory(context)
 
         # Download bids for the current session
         bids.download(context)
@@ -122,7 +121,7 @@ if __name__ == '__main__':
 
     try:
 
-        # Build command-line string for subprocess and execute
+        # Build final command-line string
         command = args.build_command(context)
 
         if not context.config['gear-dry-run']:

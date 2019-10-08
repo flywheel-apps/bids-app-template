@@ -38,7 +38,7 @@ def make_file_name_safe(input_basename, replace_str=''):
     return safe_output_basename
 
 
-def build(context):
+def get_inputs_and_args(context):
     """
     Process inputs, contextual values and build a dictionary of
     key:value command-line parameter names:values These will be
@@ -47,7 +47,8 @@ def build(context):
 
     # 1) Process Inputs
 
-    # editme: optional.  Keep this if the gear runs Freesurfer
+    # editme: optional.  Keep this if the gear runs Freesurfer.  This is here
+    # because one way to pass the license is by an input
     find_freesurfer_license(context, '/opt/freesurfer/license.txt')
 
     # 2) Process Contextual values

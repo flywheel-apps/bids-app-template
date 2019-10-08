@@ -4,6 +4,9 @@ Functions that get info from Flywheel client, mmmmm helpful!
 """
 
 import os
+import logging
+import json
+import re
 
 
 log = logging.getLogger(__name__)
@@ -95,7 +98,7 @@ def make_session_directory(context):
 
     try:
         # Create session_label in work directory
-        session_dir = op.join(context.work_dir, 
+        session_dir = os.path.join(context.work_dir, 
                               context.gear_dict['session_label'])
         os.makedirs(session_dir,exist_ok=True)
 

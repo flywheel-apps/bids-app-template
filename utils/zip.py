@@ -2,6 +2,7 @@
 """
 Things that go zip or unzip
 """
+import logging
 
 
 log = logging.getLogger(__name__)

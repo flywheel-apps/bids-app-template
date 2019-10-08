@@ -15,6 +15,7 @@ def log_initializer(gear_context):
     """
 
     log_level = gear_context.config.get('gear-log-level', 'INFO')
+
     # Set suite (default to flywheel)
     try:
         suite = gear_context.manifest_json['custom']['flywheel']['suite']
