@@ -2,12 +2,12 @@
   "name": "bids-app-template",
   "label": "<editme Name>: short human-friendly name/description displayed in interface",
   "description": "<editme Name> (<version>) longer description.",
-  "version": "0.0.0_0.0.0",
+  "version": "0.0.0_0.1.0",
   "custom": {
-    "docker-image": "flywheel/bids-app-template:0.0.0_0.0.0",
+    "docker-image": "flywheel/bids-app-template:0.0.0_0.1.0",
     "gear-builder": {
       "category": "analysis",
-      "image": "flywheel/bids-app-template:0.0.0_0.0.0"
+      "image": "flywheel/bids-app-template:0.0.0_0.1.0"
     },
     "flywheel": {
       "suite": "BIDS Apps"
@@ -47,7 +47,6 @@
       "type": "boolean"
     },
     "num-things": {
-      "default": 1,
       "description": "number of things that is important to set",
       "optional": true,
       "type": "integer"
@@ -60,7 +59,6 @@
     "threshold": {
       "default": 3.1415926,
       "description": "threshold eating pie",
-      "optional": true,
       "type": "number"
     },
     "modalities": {
@@ -75,7 +73,6 @@
       "type": "string"
     },
     "n_procs": {
-      "default": 1,
       "description": "number of threads",
       "optional": true,
       "type": "integer"
