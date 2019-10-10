@@ -34,6 +34,7 @@ if __name__ == '__main__':
     bids_path = os.path.join(context.work_dir, 'bids')
     context.gear_dict['bids_path'] = bids_path
 
+    # Keep a list of errors to print all in one place at end
     context.gear_dict['errors'] = []
 
     # editme: optional feature
@@ -52,15 +53,15 @@ if __name__ == '__main__':
         kv = ''
         for k, v in environ.items():
             kv += k + '=' + v + ' '
-        log.debug(' Environment: ' + kv)
+        log.debug('Environment: ' + kv)
 
     # Call this if args.make_session_directory() or results.zip_output() is
-    # called later because they expect context.gear_dict['session_label']
+    # used later because they expect context.gear_dict['session_label']
     fly.set_session_label(context)
 
     try:
 
-        # editme: Set the actual command to run the gear:
+        # editme: Set the actual gear command:
         command = ['echo']
 
         # editme: add positional arguments that the above command needs

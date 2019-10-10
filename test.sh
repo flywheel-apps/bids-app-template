@@ -11,5 +11,11 @@ for dir in Direct1/sub1 Direct2/sub1/sub2 Direct3/sub1/sub2/sub3; do
     touch $dir/file.txt
 done
 
+for t in 1 1 1 1 0.5 0.25; do
+    sleep $t 
+    echo "that was '$t' seconds"
+
 echo "ls "
 ls
+
+echo "test.sh is done"

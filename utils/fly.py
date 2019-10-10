@@ -79,8 +79,7 @@ def set_session_label(context):
             # attach session_label to gear_dict
             context.gear_dict['session_label'] = session_label
 
-        log.debug('Session label is "' + session_label + '" at debug level')
-        log.info('Session label is "' + session_label + '" at info level')
+        log.debug('Session label is "' + session_label + '"')
 
     except Exception as e:
         # report error and go on in case there are more errors to report

@@ -8,13 +8,13 @@ log = logging.getLogger(__name__)
 
 
 def find_freesurfer_license(context, fs_license_path):
-    """ creates the Freesurfer license file in one of 3 ways """
+    """ creates the Freesurfer license file at the given place in one of 3 ways """
 
-    # Check if the required FreeSurfer license file has been provided
-    # as an input file.
     context.gear_dict['fs_license_found'] = False
     license_info = ''
 
+    # Check if the required FreeSurfer license file has been provided
+    # as an input file.
     fs_license_file = context.get_input_path('freesurfer_license')
     if fs_license_file:
         # TODO make sure this works, it has not been tested
