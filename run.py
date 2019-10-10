@@ -134,6 +134,8 @@ def set_up_data(context, log):
 def execute(context, log):
     try:
 
+        log.info('Command: ' + ' '.join(context.gear_dict['command']))
+
         if not context.config['gear-dry-run']:
 
             # Run the actual command this gear was created for

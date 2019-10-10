@@ -143,8 +143,6 @@ def build_command(context):
             # e.g. replace "--verbose=vvv' with '-vvv'
             command[-1] = '-' + param_list[key]
 
-    log.info('Command: ' + ' '.join(command))
-
     return command
 
 
