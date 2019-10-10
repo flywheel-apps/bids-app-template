@@ -1,6 +1,6 @@
 {
   "name": "bids-app-template",
-  "label": "<editme Name>: short human-friendly name/description displayed in interface",
+  "label": "<Bids-App-Template>: short human-friendly name/description displayed in interface",
   "description": "<editme Name> (<version>) longer description.",
   "version": "0.0.0_0.1.0",
   "custom": {
