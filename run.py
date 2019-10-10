@@ -23,7 +23,7 @@ if __name__ == '__main__':
     # Add manifest.json as the manifest_json attribute
     setattr(context, 'manifest_json', fly.load_manifest_json())
 
-    log = custom_log.log_initializer(context)
+    log = custom_log.init(context)
 
     context.log_config() # not configuring the log but logging the config
 

@@ -9,29 +9,13 @@ As you develop new best practices for developing gears, be sure to add them in t
 
 ## Logging
 
-In `run.py`, initialize logging with something like this:
-
+In `run.py`, initialize logging with 
 ```python
-    # Instantiate the Gear Context
-    context = flywheel.GearContext()
+    log = custom_log.init(context)
+``` 
 
-    fmt = '%(asctime)s %(levelname)8s %(name)-8s - %(message)s'
-    logging.basicConfig(level=context.config['gear-log-level'],format=fmt)
-
-    log = logging.getLogger('[flywheel/bids-fmriprep]')
-
-    log.info('log level is ' + context.config['gear-log-level'])
-
-    context.log_config() # not configuring the log but logging the config
-```
-That is:
-  - set log level using "gear-log-level" from the context/manifest
-  - include the date/time in the format
-  - get a logger for the run.py file.
-  - log something into it to make sure it is working
-  - add all of the configuration settings to the log
-
-Then, for all modules (each python file that is not the main "run.py"), add a separate child log at the top of the file with:
+Then, for all modules (each python file that is not the main "run.py"), 
+add a separate child log at the top of the file with:
 ```python
     log = logging.getLogger(__name__)
 ```

@@ -5,7 +5,7 @@ This is a user-modifiable file for Custom Logging
 import logging
 import sys
 
-def log_initializer(gear_context):
+def init(gear_context):
     """
     Generate a log with level and name configured for the suite, gear name and gear-log-level
     :param gear_context: an instance of the flywheel gear context that includes the manifest_json attribute
