@@ -13,7 +13,8 @@ done
 
 for t in 1 1 1 1 0.5 0.25; do
     sleep $t 
-    echo "that was '$t' seconds"
+    echo "that was $t seconds"
+done
 
 echo "ls "
 ls
