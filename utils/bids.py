@@ -93,7 +93,7 @@ def run_validation(context):
     if config['gear-run-bids-validation']:
 
         command = ['bids-validator', '--verbose', '--json', bids_path]
-        log.info('Command:' + ' '.join(command))
+        log.info('Command: ' + ' '.join(command))
 
         out_path = "work/validator.output.txt"
         with open(out_path, "w") as f:

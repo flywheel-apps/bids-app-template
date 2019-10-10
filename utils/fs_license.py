@@ -44,7 +44,6 @@ def find_freesurfer_license(context, fs_license_path):
 
     if not context.gear_dict['fs_license_found']:
         msg = 'Could not find FreeSurfer license in project info.'
-        print(msg)
         log.exception(msg)
         os.sys.exit(1)
 
@@ -54,7 +53,6 @@ def find_freesurfer_license(context, fs_license_path):
         if license_info != '':
 
             head, tail = os.path.split(fs_license_path)
-            print(head + '   ' + tail)
 
             if not os.path.exists(head):
                 os.makedirs(head)

@@ -11,14 +11,10 @@ import psutil
 import flywheel
 
 # GearContext takes care of most of these variables
-# from utils.G import *
 from utils import args, bids, results, custom_log, fly
 
 
-if __name__ == '__main__':
-
-    # Instantiate the Gear Context
-    context = flywheel.GearContext()
+def initialize(context):
 
     # Add manifest.json as the manifest_json attribute
     setattr(context, 'manifest_json', fly.load_manifest_json())
@@ -55,10 +51,17 @@ if __name__ == '__main__':
             kv += k + '=' + v + ' '
         log.debug('Environment: ' + kv)
 
+    # editme: optional feature
     # Call this if args.make_session_directory() or results.zip_output() is
     # used later because they expect context.gear_dict['session_label']
     fly.set_session_label(context)
 
+    return log
+
+
+def create_command(context, log):
+
+    # Create the command and validate the given arguments
     try:
 
         # editme: Set the actual gear command:
@@ -83,11 +86,17 @@ if __name__ == '__main__':
         # code.  Raises Exception on fail
         args.validate(context)
 
+        # Build final command-line (a list of strings)
+        command = args.build_command(context)
+
     except Exception as e:
         context.gear_dict['errors'].append(e)
         log.critical(e,)
-        log.exception('Error in parameter specification.',)
+        log.exception('Error in creating and validating command.',)
 
+
+def set_up_data(context, log):
+    # Set up and validate data to be used by command
     try:
 
         # editme: optional feature
@@ -100,6 +109,7 @@ if __name__ == '__main__':
         # editme: optional feature
         # Save bids file hierarchy `tree` output in .html file
         html_file = 'output/bids_tree'
+        bids_path = context.gear_dict['bids_path']
         bids.tree(bids_path, html_file)
         log.info('Wrote tree("' + bids_path + '") output into html file "' +
                          html_file + '.html')
@@ -120,24 +130,23 @@ if __name__ == '__main__':
         log.critical(e,)
         log.exception('Error in BIDS download and validation.',)
 
-    try:
 
-        # Build final command-line string
-        command = args.build_command(context)
+def execute(context, log):
+    try:
 
         if not context.config['gear-dry-run']:
 
             # Run the actual command this gear was created for
-            result = sp.run(command, env=environ)
+            result = sp.run(context.gear_dict['command'], 
+                        env=context.gear_dict['environ'],
+                        stderr = sp.PIPE)
 
         else:
             result = sp.CompletedProcess
             result.returncode = 1
-            result.stdout = ''
             result.stderr = 'gear-dry-run is set:  Did NOT run gear code.'
 
         log.info('Return code: ' + str(result.returncode))
-        log.info(result.stdout)
 
         if result.returncode == 0:
             log.info('Command successfully executed!')
@@ -180,5 +189,18 @@ if __name__ == '__main__':
         log.info('BIDS App Gear is done.')
         os.sys.exit(ret)
  
+
+if __name__ == '__main__':
+
+    context = flywheel.GearContext()
+
+    log = initialize(context)
+
+    create_command(context, log)
+
+    set_up_data(context, log)
+
+    execute(context, log)
+
 
 # vi:set autoindent ts=4 sw=4 expandtab : See Vim, :help 'modeline'
