@@ -10,16 +10,39 @@ import psutil
 
 import flywheel
 
-# GearContext takes care of most of these variables
-from utils import args, bids, results, custom_log, fly
+from utils import args
+
+from utils.bids.download_bids import *
+from utils.bids.validate_bids import *
+from utils.bids.tree_bids import *
+
+from utils.dicom.import_dicom_header_as_dict import *
+
+from utils.fly.custom_log import *
+from utils.fly.get_root_client import *
+from utils.fly.get_session_from_analysis_id import *
+from utils.fly.get_session_uids import *
+from utils.fly.load_manifest_json import *
+from utils.fly.make_file_name_safe import *
+from utils.fly.make_session_directory import *
+from utils.fly.set_session_label import *
+
+from utils.results.zip_all_htmls import *
+from utils.results.zip_htmls import *
+from utils.results.zip_output import *
+
+from utils.helpers.exists import *
+from utils.helpers.extract_return_paths import *
+from utils.helpers.set_environment import *
+
 
 
 def initialize(context):
 
     # Add manifest.json as the manifest_json attribute
-    setattr(context, 'manifest_json', fly.load_manifest_json())
+    setattr(context, 'manifest_json', load_manifest_json())
 
-    log = custom_log.init(context)
+    log = custom_log(context)
 
     context.log_config() # not configuring the log but logging the config
 
@@ -52,9 +75,9 @@ def initialize(context):
         log.debug('Environment: ' + kv)
 
     # editme: optional feature
-    # Call this if args.make_session_directory() or results.zip_output() is
+    # Call this if args.make_session_directory() or zip_output() is
     # used later because they expect context.gear_dict['session_label']
-    fly.set_session_label(context)
+    set_session_label(context)
 
     return log
 
@@ -101,23 +124,23 @@ def set_up_data(context, log):
 
         # editme: optional feature
         # Create working output directory with session label as name
-        fly.make_session_directory(context)
+        make_session_directory(context)
 
         # Download bids for the current session
-        bids.download(context)
+        download_bids(context)
 
         # editme: optional feature
         # Save bids file hierarchy `tree` output in .html file
         html_file = 'output/bids_tree'
         bids_path = context.gear_dict['bids_path']
-        bids.tree(bids_path, html_file)
+        tree_bids(bids_path, html_file)
         log.info('Wrote tree("' + bids_path + '") output into html file "' +
                          html_file + '.html')
 
         # editme: optional feature, but recommended!
         # Validate Bids file heirarchy
         # Bids validation on a phantom tree may be occuring soon
-        bids.run_validation(context)
+        validate_bids(context)
 
         # TODO
         # see https://github.com/bids-standard/pybids/tree/master/examples
@@ -172,12 +195,12 @@ def execute(context, log):
 
         # editme: optional feature
         # Cleanup, move all results to the output directory
-        results.zip_htmls(context)
+        zip_htmls(context)
 
         # editme: optional feature
         # possibly save ALL intermediate output
         if context.config['gear-save-all-output']:
-            results.zip_output(context)
+            zip_output(context)
 
         ret = result.returncode
 

@@ -8,13 +8,15 @@ import logging
 log = logging.getLogger(__name__)
 
 
-def extract_return_path(input_filepath):
+def extract_return_paths(input_filepath):
     """
-    Extracts a zip archive to a temporary file and
+    Extracts a zip archive to a temporary directory and
+    returns a list of paths of the files.  Does not delete
+    the temporary directory.
     :param input_filepath:  a path to a zip archive
     :type input_filepath: str
     :return: file_list, a list of paths to the extracted files
-    :rtype: str
+    :rtype: list of str
     """
     if zipfile.is_zipfile(input_filepath):
         # Make a temporary directory

@@ -2,10 +2,12 @@
 """
 This is a user-modifiable file for Custom Logging
 """
+
 import logging
 import sys
 
-def init(gear_context):
+
+def custom_log(gear_context):
     """
     Generate a log with level and name configured for the suite, gear name and gear-log-level
     :param gear_context: an instance of the flywheel gear context that includes the manifest_json attribute
@@ -28,7 +30,7 @@ def init(gear_context):
     log_name = '/'.join([suite, gear_name])
 
     # Tweak the formatting
-    fmt = '%(asctime)s.%(msecs)03d [%(name)s] %(levelname)-8s: %(message)s'
+    fmt = '%(asctime)s.%(msecs)03d %(levelname)-8s [%(name)s]: %(message)s'
     logging.basicConfig(level=log_level, format=fmt, datefmt='%H:%M:%S')
     log = logging.getLogger(log_name)
     log.critical('{} log level is {}'.format(log_name, log_level))
