@@ -19,4 +19,10 @@ done
 echo "ls "
 ls
 
+if [ -f "input/make_me_barf" ]; then
+    echo "input/make_me_barf exists, so now I generate an error"
+    cd no_such_directory
+fi
+
+
 echo "test.sh is done"
