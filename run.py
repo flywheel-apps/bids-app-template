@@ -221,7 +221,7 @@ def execute(context, log):
             log.info(msg)
             ret = 1
 
-        log.info('BIDS App Gear is done.')
+        log.info('BIDS App Gear is done.  Returning '+str(ret))
         os.sys.exit(ret)
  
 
