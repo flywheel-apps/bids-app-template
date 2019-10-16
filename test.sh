@@ -1,4 +1,17 @@
-#!/bin/bash
+#!/bin/bash -e
+
+# keep track of the last executed command
+trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
+# echo an error message before exiting
+trap 'echo "ERROR \"${last_command}\" command failed with exit code $?."' EXIT
+
+
+if [ -f input/make_me_barf ]; then
+    echo "input/make_me_barf exists, so now I generate an error"
+    cd no_such_directory
+else
+    echo "I will not generate an error"
+fi
 
 # This is a test script that populates the output_directory with touched files
 output_dir=$1
@@ -18,11 +31,6 @@ done
 
 echo "ls "
 ls
-
-if [ -f "input/make_me_barf" ]; then
-    echo "input/make_me_barf exists, so now I generate an error"
-    cd no_such_directory
-fi
 
 
 echo "test.sh is done"
