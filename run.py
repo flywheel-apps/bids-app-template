@@ -159,17 +159,28 @@ def execute(context, log):
 
         log.info('Command: ' + ' '.join(context.gear_dict['command']))
 
-        if not context.config['gear-dry-run']:
+        # Don't run if there were errors or if this is a dry run
+        ok_to_run = True
 
-            # Run the actual command this gear was created for
-            result = sp.run(context.gear_dict['command'], 
-                        env=context.gear_dict['environ'],
-                        stderr = sp.PIPE)
-
-        else:
+        if len(context.gear_dict['errors']) > 0:
+            ok_to_run = False
             result = sp.CompletedProcess
             result.returncode = 1
-            result.stderr = 'gear-dry-run is set:  Did NOT run gear code.'
+            log.info('Command was NOT run because of previous errors.')
+
+        if context.config['gear-dry-run']:
+            ok_to_run = False
+            result = sp.CompletedProcess
+            result.returncode = 1
+            e = 'gear-dry-run is set: Command was NOT run.'
+            log.info(e)
+            context.gear_dict['errors'].append(e)
+
+        if ok_to_run:
+            # Run the actual command this gear was created for
+            result = sp.run(context.gear_dict['command'], 
+                        env = context.gear_dict['environ'],
+                        stderr = sp.PIPE)
 
         log.info('Return code: ' + str(result.returncode))
 
@@ -177,7 +188,6 @@ def execute(context, log):
             log.info('Command successfully executed!')
 
         else:
-            log.error(result.stderr)
             log.info('Command failed.')
 
     except Exception as e:
