@@ -17,6 +17,8 @@ def get_root_client(fw_client):
     :return: fw_client: an instance of the flywheel client with root mode enabled if user is site admin
     """
 
+    log.debug('')
+
     # parse the "url:" part of the api key from the site url
     site_url = fw_client.get_config().site.api_url
     site_patt = re.compile('https:\/\/(.*:).*')

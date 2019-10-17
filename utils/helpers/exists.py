@@ -13,6 +13,8 @@ def exists(file, is_expected=True, quit_on_error=True):
     # is_expected indicates if we're checking to see if it's there or not. True: we want it to be there, false: we don't
     # quit_on_error tells us if we sys.exit on failure or not.
 
+    log.debug('')
+
     path_exists=os.path.exists(file)
 
     # If we find the file and are expecting to

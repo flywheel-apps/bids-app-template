@@ -20,6 +20,9 @@ def get_session_uids(session, output_path):
     :return: session_dict, a dictionary containing session StudyInstanceUIDs and SeriesInstanceUIDs
     :rtype: dict
     """
+
+    log.debug('')
+
     tag_list = ['SeriesInstanceUID', 'StudyInstanceUID']
     log.info('Getting UID info for session {} ({})'.format(session.id, session.label))
     session_dict = dict()

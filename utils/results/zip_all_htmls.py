@@ -19,6 +19,8 @@ def zip_all_htmls(context):
         So do not use this function unless something changes.
     """
 
+    log.debug('')
+
     if not os.path.exists('index.html'):  # create one if it does not exist
 
         log.info(' Creating index.html')

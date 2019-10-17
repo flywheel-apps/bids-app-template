@@ -18,6 +18,9 @@ def extract_return_paths(input_filepath):
     :return: file_list, a list of paths to the extracted files
     :rtype: list of str
     """
+
+    log.debug('')
+
     if zipfile.is_zipfile(input_filepath):
         # Make a temporary directory
         temp_dirpath = tempfile.mkdtemp()

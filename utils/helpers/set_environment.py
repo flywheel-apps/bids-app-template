@@ -9,6 +9,8 @@ log = logging.getLogger(__name__)
 
 def set_environment():
 
+    log.debug('')
+
     # Let's ensure that we have our environment .json file and load it up
     exists(environ_json, log)
 

@@ -13,6 +13,8 @@ def tree_bids(path, base_name):
         file name to use for the result.
     """
 
+    log.debug('')
+
     command = ['tree', '--charset=utf-8', path]
     result = sp.run(command, stdout=sp.PIPE, stderr=sp.PIPE,
                     universal_newlines=True)

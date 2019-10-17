@@ -17,6 +17,9 @@ def get_session_from_analysis_id(fw_client, input_analysis_id):
     :return: session, a flywheel session associated with the analysis
     :rtype: flywheel.models.session.Session
     """
+
+    log.debug('')
+
     try:
         # Grab time for logging how long session get takes
         func_time_start = time.time()

@@ -20,6 +20,9 @@ def import_dicom_header_as_dict(dcm_filepath, tag_keyword_list):
     :return: a dictionary with DICOM tag-DICOM tag value key-value pairs, returns empty dict if not a valid DICOM file
     :rtype: dict
     """
+
+    log.debug('')
+
     header_dict = dict()
     try:
         dataset = pydicom.read_file(dcm_filepath)

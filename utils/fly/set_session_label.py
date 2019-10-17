@@ -16,6 +16,8 @@ def set_session_label(context):
     """
     # TODO will this work for a non-admin user?
 
+    log.debug('')
+
     try:
         fw = context.client
 

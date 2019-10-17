@@ -14,6 +14,8 @@ def make_session_directory(context):
     separate from the bids input in work/bids.
     """
 
+    log.debug('')
+
     try:
         # Create session_label in work directory
         session_dir = os.path.join(context.work_dir, 
