@@ -24,9 +24,11 @@ for dir in Direct1/sub1 Direct2/sub1/sub2 Direct3/sub1/sub2/sub3; do
     touch $dir/file.txt
 done
 
-for t in 1 1 1 1 0.5 0.25; do
-    sleep $t 
-    echo "that was $t seconds"
+for t in 1 1 1 1 1 1 1 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 ; do
+    sleep $(( $t * 15 ))
+    echo "that was $(( $t * 15 )) seconds"
+    /bin/date
+    echo "this goes to stderr" >&2
 done
 
 echo "ls "

@@ -88,7 +88,7 @@ def create_command(context, log):
     try:
 
         # editme: Set the actual gear command:
-        command = ['echo']
+        command = ['./test.sh']
 
         # editme: add positional arguments that the above command needs
         # This should be done here in case there are nargs='*' arguments
@@ -179,8 +179,9 @@ def execute(context, log):
         if ok_to_run:
             # Run the actual command this gear was created for
             result = sp.run(context.gear_dict['command'], 
-                        env = context.gear_dict['environ'],
-                        stderr = sp.PIPE)
+                        env = context.gear_dict['environ'])
+                        # env = context.gear_dict['environ'],
+                        # stderr = sp.PIPE)
 
         log.info('Return code: ' + str(result.returncode))
 
