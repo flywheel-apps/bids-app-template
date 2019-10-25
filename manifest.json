@@ -141,6 +141,7 @@
     }   
   },
   "environment": {
+    "PYTHONUNBUFFERED": "1"
   },
   "command": "python run.py",
   "author": "Dr. Smartypants, Whatsamatter U",
