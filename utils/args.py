@@ -4,7 +4,6 @@ import subprocess as sp
 import os, os.path as op
 import logging
 import re
-import shutil
 import json
 
 from .licenses.freesurfer import find_freesurfer_license
@@ -51,7 +50,7 @@ def get_inputs_and_args(context):
                     params[key] = config[key]
                 # else ignore (could this caus a problem?)
     
-        context.gear_dict['param_list'] =  params
+    context.gear_dict['param_list'] =  params
 
 
 def validate(context):
