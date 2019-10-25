@@ -114,7 +114,7 @@ def create_command(context, log):
 
     except Exception as e:
         context.gear_dict['errors'].append(e)
-        log.critical(e,)
+        log.critical(e)
         log.exception('Error in creating and validating command.',)
 
 
@@ -127,7 +127,8 @@ def set_up_data(context, log):
         make_session_directory(context)
 
         # Download bids for the current session
-        download_bids(context)
+        download_bids(context) # editme: add kwargs to limit what is downloaded
+        # e.g. folders=['anat', 'func']
 
         # editme: optional feature
         # Save bids file hierarchy `tree` output in .html file
@@ -150,7 +151,7 @@ def set_up_data(context, log):
 
     except Exception as e:
         context.gear_dict['errors'].append(e)
-        log.critical(e,)
+        log.critical(e)
         log.exception('Error in BIDS download and validation.',)
 
 
@@ -180,6 +181,7 @@ def execute(context, log):
             # Run the actual command this gear was created for
             result = sp.run(context.gear_dict['command'], 
                         env = context.gear_dict['environ'])
+            log.info(repr(result))
 
         log.info('Return code: ' + str(result.returncode))
 
@@ -191,7 +193,7 @@ def execute(context, log):
 
     except Exception as e:
         context.gear_dict['errors'].append(e)
-        log.critical(e,)
+        log.critical(e)
         log.exception('Unable to execute command.')
 
     finally:
