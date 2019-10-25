@@ -3,7 +3,7 @@
 # keep track of the last executed command
 trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
 # echo an error message before exiting
-trap 'echo "ERROR \"${last_command}\" command failed with exit code $?."' EXIT
+trap '{ err=$?; >&2 echo "ERROR \"${last_command}\" command failed with exit code $err."; exit $err; } ' EXIT
 
 
 if [ -f input/make_me_barf ]; then
