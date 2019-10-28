@@ -10,7 +10,7 @@ import pprint
 log = logging.getLogger(__name__)
 
 
-def download_bids(context):
+def download_bids(context, **kwargs):
     """ Download all files from the session in BIDS format
         bids_path will point to the local BIDS folder
         This creates a simiple dataset_description.json if
@@ -25,13 +25,7 @@ def download_bids(context):
     # (this saves time when developing locally)
     if not op.isdir(bids_path):
 
-        new_bids_path = context.download_session_bids(target_dir=bids_path)
-
-        # Use the following command instead of he above (after core is 
-	    # updated with a fix for it) because it will return the
-	    # existing dataset_description.json file and does not download
-	    # scans that don't need to be considered.  bids_path =
-	    # context.download_project_bids(folders=['anat', 'func'])
+        new_bids_path = context.download_project_bids('work/bids',kwargs)
 
         # Another way to get this file if there is an input is:
         #acq = fw.get_acquisition(context.get_input(<input key>)['hierarchy']['id'])

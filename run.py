@@ -126,9 +126,10 @@ def set_up_data(context, log):
         # Create working output directory with session label as name
         make_session_directory(context)
 
-        # Download bids for the current session
-        download_bids(context) # editme: add kwargs to limit what is downloaded
+        # Download bids for the current session 
+        # editme: add kwargs to limit what is downloaded
         # e.g. folders=['anat', 'func']
+        download_bids(context,folders=['anat', 'func'])
 
         # editme: optional feature
         # Save bids file hierarchy `tree` output in .html file
