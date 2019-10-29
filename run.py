@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """ Run the gear: set up for and call command-line code """
 
-import json
-import os, os.path
+import os
 import subprocess as sp
 import sys
 import logging
@@ -128,8 +127,12 @@ def set_up_data(context, log):
 
         # Download bids for the current session 
         # editme: add kwargs to limit what is downloaded
-        # e.g. folders=['anat', 'func']
-        download_bids(context,folders=['anat', 'func'])
+        # bool src_data: Whether or not to include src data (e.g. dicoms) default: False
+        # list subjects: The list of subjects to include (via subject code) otherwise all subjects
+        # list sessions: The list of sessions to include (via session label) otherwise all sessions
+        # list folders: The list of folders to include (otherwise all folders) e.g. ['anat', 'func']
+        # **kwargs: Additional arguments to pass to download_bids_dir
+        download_bids(context, folders=['anat', 'func'])
 
         # editme: optional feature
         # Save bids file hierarchy `tree` output in .html file
@@ -216,7 +219,7 @@ def execute(context, log):
 
         ret = result.returncode
 
-        if len(context.gear_dict['errors']) > 0 :
+        if len(context.gear_dict['errors']) > 0:
             msg = 'Previous errors:\n'
             for err in context.gear_dict['errors']:
                 msg += '  ' + str(type(err)).split("'")[1] + ': ' + str(err) + '\n'

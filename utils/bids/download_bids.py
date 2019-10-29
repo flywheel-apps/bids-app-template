@@ -10,10 +10,10 @@ import pprint
 log = logging.getLogger(__name__)
 
 
-def download_bids(context, **kwargs):
+def download_bids(context, src_data=False, subjects=None, sessions=None, folders=None, **kwargs):
     """ Download all files from the session in BIDS format
         bids_path will point to the local BIDS folder
-        This creates a simiple dataset_description.json if
+        This creates a simple dataset_description.json if
         one did not get downloaded.
     """
 
@@ -25,13 +25,21 @@ def download_bids(context, **kwargs):
     # (this saves time when developing locally)
     if not op.isdir(bids_path):
 
-        new_bids_path = context.download_project_bids('work/bids',kwargs)
+        # bool src_data: Whether or not to include src data (e.g. dicoms)
+        # list subjects: The list of subjects to include (via subject code) otherwise all subjects
+        # list sessions: The list of sessions to include (via session label) otherwise all sessions
+        # list folders: The list of folders to include (otherwise all folders) e.g. ['anat', 'func']
+        # **kwargs: Additional arguments to pass to download_bids_dir
+        new_bids_path = context.download_project_bids('work/bids', src_data, subjects, sessions, folders)
+
+        # def download_project_bids(self, target_dir='work/bids', src_data=False, subjects=None, sessions=None,
+        #                          folders=None, **kwargs):
 
         # Another way to get this file if there is an input is:
-        #acq = fw.get_acquisition(context.get_input(<input key>)['hierarchy']['id'])
-        #session = fw.get_session(acq.session)
-        #project = fw.get_project(session.parents.project)
-        #dataset_description = project.info.get(['BIDS'])
+        # acq = fw.get_acquisition(context.get_input(<input key>)['hierarchy']['id'])
+        # session = fw.get_session(acq.session)
+        # project = fw.get_project(session.parents.project)
+        # dataset_description = project.info.get(['BIDS'])
 
         if new_bids_path != bids_path:
             # bids_path in run.py needs to match what is returned by
