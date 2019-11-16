@@ -31,26 +31,32 @@ def zip_htmls(context):
 
         html_files = glob.glob('*.html')
 
-        # if there is an index.html, do it first and re-name it for safe keeping
-        save_name = ''
-        if os.path.exists('index.html'):
-            log.info('Found index.html')
-            zip_it_zip_it_good(context,'index.html')
+        if len(html_files) > 0:
 
-            now = datetime.datetime.now()
-            save_name = now.strftime("%Y-%m-%d_%H-%M-%S") + '_index.html'
-            os.rename('index.html', save_name)
+            # if there is an index.html, do it first and re-name it for safe 
+            # keeping
+            save_name = ''
+            if os.path.exists('index.html'):
+                log.info('Found index.html')
+                zip_it_zip_it_good(context,'index.html')
 
-            html_files.remove('index.html')  # don't do this one later
+                now = datetime.datetime.now()
+                save_name = now.strftime("%Y-%m-%d_%H-%M-%S") + '_index.html'
+                os.rename('index.html', save_name)
 
-        for h_file in html_files:
-            os.rename(h_file, 'index.html')
-            zip_it_zip_it_good(context,context.output_dir + '/' + h_file)
-            os.rename('index.html', h_file)
+                html_files.remove('index.html')  # don't do this one later
 
-        # reestore if necessary
-        if save_name != '':
-            os.rename(save_name, 'index.html')
+            for h_file in html_files:
+                os.rename(h_file, 'index.html')
+                zip_it_zip_it_good(context,context.output_dir + '/' + h_file)
+                os.rename('index.html', h_file)
+
+            # reestore if necessary
+            if save_name != '':
+                os.rename(save_name, 'index.html')
+
+        else:
+            log.warning('No *.html files at ' + path)
 
     else:
 

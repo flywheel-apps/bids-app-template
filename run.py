@@ -5,6 +5,7 @@ import os
 import subprocess as sp
 import sys
 import logging
+import shutil
 import psutil
 
 import flywheel
@@ -72,6 +73,9 @@ def initialize(context):
     if session_id:
         session = fw.get(session_id)
         context.gear_dict['session_label'] = session.label
+    else:
+        context.gear_dict['session_label'] = 'unknown_session'
+        log.warning('Session label is ' + context.gear_dict['session_label'])
 
     # the usual BIDS path:
     bids_path = os.path.join(context.work_dir, 'bids')
@@ -101,9 +105,10 @@ def initialize(context):
         log.debug('Environment: ' + kv)
 
     # editme: optional feature
-    # Call this if args.make_session_directory() or zip_output() is
-    # used later because they expect context.gear_dict['session_label']
-    set_session_label(context)
+    # Call this if make_session_directory() is used later because it expects
+    # context.gear_dict['session_label_clean']
+    context.gear_dict['session_label_clean'] = make_file_name_safe(
+          context.gear_dict['session_label'], '_')
 
     return log
 
@@ -225,7 +230,7 @@ def execute(context, log):
         if context.config['gear-dry-run']:
             ok_to_run = False
             result = sp.CompletedProcess
-            result.returncode = 1
+            result.returncode = 0
             e = 'gear-dry-run is set: Command was NOT run.'
             log.warning(e)
             context.gear_dict['warnings'].append(e)
@@ -273,7 +278,12 @@ def execute(context, log):
         zip_intermediate_selected(context)
 
         # clean up: removed output that was zipped
-        shutil.rmtree(context.gear_dict['output_analysisid_dir'])
+        if os.path.exists(context.gear_dict['output_analysisid_dir']):
+
+            shutil.rmtree(context.gear_dict['output_analysisid_dir'])
+
+        else:
+            log.info('Output directory does not exist so it cannot be removed')
 
         ret = result.returncode
 
