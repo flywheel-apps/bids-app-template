@@ -18,32 +18,49 @@ def zip_htmls(context):
         archive from it.
     """
 
-    log.debug('')
 
-    log.info(' Creating viewable archives for all html files')
-    os.chdir(context.output_dir)
+    log.info('Creating viewable archives for all html files')
 
-    html_files = glob.glob('*.html')
+    path = context.gear_dict['output_analysisid_dir'] + '/fmriprep'
 
-    # if there is an index.html, do it first and re-name it for safe keeping
-    save_name = ''
-    if os.path.exists('index.html'):
-        zip_it_zip_it_good(context,'index.html')
+    if os.path.exists(path):
 
-        now = datetime.datetime.now()
-        save_name = now.strftime("%Y-%m-%d_%H-%M-%S") + '_index.html'
-        os.rename('index.html', save_name)
+        log.info('Found path: ' + path)
 
-        html_files.remove('index.html')  # don't do this one later
+        os.chdir(path)
 
-    for h_file in html_files:
-        os.rename(h_file, 'index.html')
-        zip_it_zip_it_good(context,h_file)
-        os.rename('index.html', h_file)
+        html_files = glob.glob('*.html')
 
-    # reestore if necessary
-    if save_name != '':
-        os.rename(save_name, 'index.html')
+        if len(html_files) > 0:
+
+            # if there is an index.html, do it first and re-name it for safe 
+            # keeping
+            save_name = ''
+            if os.path.exists('index.html'):
+                log.info('Found index.html')
+                zip_it_zip_it_good(context,'index.html')
+
+                now = datetime.datetime.now()
+                save_name = now.strftime("%Y-%m-%d_%H-%M-%S") + '_index.html'
+                os.rename('index.html', save_name)
+
+                html_files.remove('index.html')  # don't do this one later
+
+            for h_file in html_files:
+                os.rename(h_file, 'index.html')
+                zip_it_zip_it_good(context,context.output_dir + '/' + h_file)
+                os.rename('index.html', h_file)
+
+            # reestore if necessary
+            if save_name != '':
+                os.rename(save_name, 'index.html')
+
+        else:
+            log.warning('No *.html files at ' + path)
+
+    else:
+
+        log.error('Path NOT found: ' + path)
 
 
 # vi:set autoindent ts=4 sw=4 expandtab : See Vim, :help 'modeline'

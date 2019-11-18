@@ -124,7 +124,7 @@
       "description": "Gear will run BIDS validation before mriqc.  If validation fails and gear-abort-on-bids-error is true, mriq will NOT be run.",
       "type": "boolean"
     },
-    "gear-save-all-output": {
+    "gear-save-intermediate-output": {
       "default": false,
       "description": "Gear will save ALL intermediate output into <command>_work.zip",
       "type": "boolean"

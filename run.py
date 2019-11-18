@@ -5,6 +5,7 @@ import os
 import subprocess as sp
 import sys
 import logging
+import shutil
 import psutil
 
 import flywheel
@@ -34,6 +35,10 @@ from utils.helpers.exists import *
 from utils.helpers.extract_return_paths import *
 from utils.helpers.set_environment import *
 
+from utils.results.zip_intermediate import zip_all_intermediate_output
+from utils.results.zip_intermediate import zip_intermediate_selected
+
+import utils.dry_run
 
 
 def initialize(context):
@@ -48,12 +53,38 @@ def initialize(context):
     # Instantiate custom gear dictionary to hold "gear global" info
     context.gear_dict = {}
 
+    # Keep a list of errors and warning to print all in one place at end of log
+    # Any errors will prevent the command from running and will cause exit(1)
+    context.gear_dict['errors'] = []  
+    context.gear_dict['warnings'] = []
+
+    # Get level of run from destination's parent: subject or session
+    fw = context.client
+    dest_container = fw.get(context.destination['id'])
+    context.gear_dict['run_level'] = dest_container.parent.type
+
+    subject_id = dest_container.parents.subject
+    context.gear_dict['subject_id'] = subject_id
+    subject = fw.get(subject_id)
+    context.gear_dict['subject_code'] = subject.code
+
+    session_id = dest_container.parents.session
+    context.gear_dict['session_id'] = session_id
+    if session_id:
+        session = fw.get(session_id)
+        context.gear_dict['session_label'] = session.label
+    else:
+        context.gear_dict['session_label'] = 'unknown_session'
+        log.warning('Session label is ' + context.gear_dict['session_label'])
+
     # the usual BIDS path:
     bids_path = os.path.join(context.work_dir, 'bids')
     context.gear_dict['bids_path'] = bids_path
 
-    # Keep a list of errors to print all in one place at end
-    context.gear_dict['errors'] = []
+    # in the output/ directory, add extra analysis_id directory name for easy
+    #  zipping of final outputs to return.
+    context.gear_dict['output_analysisid_dir'] = \
+        context.output_dir + '/' + context.destination['id']
 
     # editme: optional feature
     log.debug('psutil.cpu_count()= '+str(psutil.cpu_count()))
@@ -74,9 +105,10 @@ def initialize(context):
         log.debug('Environment: ' + kv)
 
     # editme: optional feature
-    # Call this if args.make_session_directory() or zip_output() is
-    # used later because they expect context.gear_dict['session_label']
-    set_session_label(context)
+    # Call this if make_session_directory() is used later because it expects
+    # context.gear_dict['session_label_clean']
+    context.gear_dict['session_label_clean'] = make_file_name_safe(
+          context.gear_dict['session_label'], '_')
 
     return log
 
@@ -93,7 +125,7 @@ def create_command(context, log):
         # This should be done here in case there are nargs='*' arguments
         # These follow the BIDS Apps definition (https://github.com/BIDS-Apps)
         command.append(context.gear_dict['bids_path'])
-        command.append(context.output_dir)
+        command.append(context.gear_dict['output_analysisid_dir'])
         command.append('participant')
 
         # Put command into gear_dict so arguments can be added in args.
@@ -132,7 +164,29 @@ def set_up_data(context, log):
         # list sessions: The list of sessions to include (via session label) otherwise all sessions
         # list folders: The list of folders to include (otherwise all folders) e.g. ['anat', 'func']
         # **kwargs: Additional arguments to pass to download_bids_dir
-        download_bids(context, folders=['anat', 'func'])
+
+        if context.gear_dict['run_level'] == 'subject':
+
+            log.info('Downloading BIDS for subject "' + 
+                     context.gear_dict['subject_code'] + '"')
+
+            download_bids(context, 
+                      subjects = [context.gear_dict['subject_code']],
+                      folders=['anat', 'func', 'fmap'])
+
+        elif context.gear_dict['run_level'] == 'session':
+
+            log.info('Downloading BIDS for session "' + 
+                     context.gear_dict['session_label'] + '"')
+
+            download_bids(context, 
+                      sessions = [context.gear_dict['session_label']],
+                      folders=['anat', 'func', 'fmap'])
+
+        else:
+            msg = 'This job is not being run at the subject or session level'
+            raise TypeError(msg)
+
 
         # editme: optional feature
         # Save bids file hierarchy `tree` output in .html file
@@ -176,16 +230,17 @@ def execute(context, log):
         if context.config['gear-dry-run']:
             ok_to_run = False
             result = sp.CompletedProcess
-            result.returncode = 1
+            result.returncode = 0
             e = 'gear-dry-run is set: Command was NOT run.'
-            log.info(e)
-            context.gear_dict['errors'].append(e)
+            log.warning(e)
+            context.gear_dict['warnings'].append(e)
+            utils.dry_run.pretend_it_ran(context)
 
         if ok_to_run:
             # Run the actual command this gear was created for
             result = sp.run(context.gear_dict['command'], 
                         env = context.gear_dict['environ'])
-            log.info(repr(result))
+            log.debug(repr(result))
 
         log.info('Return code: ' + str(result.returncode))
 
@@ -212,17 +267,44 @@ def execute(context, log):
         # Cleanup, move all results to the output directory
         zip_htmls(context)
 
+        zip_output(context)
+
         # editme: optional feature
         # possibly save ALL intermediate output
-        if context.config['gear-save-all-output']:
-            zip_output(context)
+        if context.config['gear-save-intermediate-output']:
+            zip_all_intermediate_output(context)
+
+        # possibly save intermediate files and folders
+        zip_intermediate_selected(context)
+
+        # clean up: removed output that was zipped
+        if os.path.exists(context.gear_dict['output_analysisid_dir']):
+
+            shutil.rmtree(context.gear_dict['output_analysisid_dir'])
+
+        else:
+            log.info('Output directory does not exist so it cannot be removed')
 
         ret = result.returncode
 
-        if len(context.gear_dict['errors']) > 0:
+        if len(context.gear_dict['warnings']) > 0 :
+            msg = 'Previous warnings:\n'
+            for err in context.gear_dict['warnings']:
+                if str(type(err)).split("'")[1] == 'str':
+                    # show string
+                    msg += '  Warning: ' + str(err) + '\n'
+                else:  # show type (of warning) and warning message
+                    msg += '  ' + str(type(err)).split("'")[1] + ': ' + str(err) + '\n'
+            log.info(msg)
+
+        if len(context.gear_dict['errors']) > 0 :
             msg = 'Previous errors:\n'
             for err in context.gear_dict['errors']:
-                msg += '  ' + str(type(err)).split("'")[1] + ': ' + str(err) + '\n'
+                if str(type(err)).split("'")[1] == 'str':
+                    # show string
+                    msg += '  Error msg: ' + str(err) + '\n'
+                else:  # show type (of error) and error message
+                    msg += '  ' + str(type(err)).split("'")[1] + ': ' + str(err) + '\n'
             log.info(msg)
             ret = 1
 

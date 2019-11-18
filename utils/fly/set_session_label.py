@@ -36,15 +36,20 @@ def set_session_label(context):
 
         if session_id is None:
             log.error('Cannot get session label from destination')
-            context.gear_dict['session_label'] = 'session_unknown'
+            session_label = 'session_unknown'
+            context.gear_dict['session_label'] = session_label
+            context.gear_dict['session_label_clean'] = session_label
 
         else:
             session = fw.get(session_id)
-            session_label = re.sub('[^0-9a-zA-Z./]+', '_', session.label)
+            session_label_clean = re.sub('[^0-9a-zA-Z./]+', '_', session.label)
             # attach session_label to gear_dict
             context.gear_dict['session_label'] = session_label
+            context.gear_dict['session_label_clean'] = session_label_clean
 
         log.debug('Session label is "' + session_label + '"')
+        log.debug('Session label to use for directory name is "' + 
+                   session_label_clean + '"')
 
     except Exception as e:
         # report error and go on in case there are more errors to report

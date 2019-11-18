@@ -19,11 +19,11 @@ def make_session_directory(context):
     try:
         # Create session_label in work directory
         session_dir = os.path.join(context.work_dir, 
-                              context.gear_dict['session_label'])
+                              context.gear_dict['session_label_clean'])
         os.makedirs(session_dir,exist_ok=True)
 
     except Exception as e:
-        context.gear_dict['session_label'] = 'error-unknown'
+        context.gear_dict['session_label_clean'] = 'error-unknown'
         log.error(e,)
         log.error('Unable to create session directory.')
 
