@@ -38,6 +38,11 @@
     "key": {
       "base": "api-key",
       "read-only": true
+    },
+    "freesurfer_license": {
+      "description": "FreeSurfer license file, provided during registration with FreeSurfer. This file will by copied to the $FSHOME directory and used during execution of the Gear.",
+      "base": "file",
+      "optional": true
     }
   },
   "config": {
