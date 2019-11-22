@@ -25,7 +25,6 @@ from utils.fly.get_session_uids import *
 from utils.fly.load_manifest_json import *
 from utils.fly.make_file_name_safe import *
 from utils.fly.make_session_directory import *
-from utils.fly.set_session_label import *
 
 from utils.helpers.exists import *
 from utils.helpers.extract_return_paths import *

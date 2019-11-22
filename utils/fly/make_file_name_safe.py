@@ -28,10 +28,11 @@ def make_file_name_safe(input_basename, replace_str=''):
     if not isinstance(replace_str, str) or safe_patt.match(replace_str):
         log.warning('{} is not a safe string, removing instead'.format(replace_str))
         replace_str = ''
-    if replace_str:
-        log.debug('Replacing unsafe characters with {}'.format(replace_str))
+
     # Replace non-alphanumeric (or underscore) characters with replace_str
     safe_output_basename = re.sub(safe_patt, replace_str, input_basename)
+
+    log.debug('"' + input_basename + '" -> "' + safe_output_basename + '"')
 
     return safe_output_basename
 
