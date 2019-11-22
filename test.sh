@@ -28,7 +28,7 @@ else
 fi
 
 # This is a test script that populates the output_directory with touched files
-output_dir=$1
+output_dir=$2
 
 mkdir -p $output_dir/{Direct1/sub1,Direct2/sub1/sub2,Direct3/sub1/sub2/sub3}
 
