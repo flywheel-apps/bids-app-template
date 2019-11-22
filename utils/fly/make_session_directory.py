@@ -19,7 +19,7 @@ def make_session_directory(context):
     try:
         # Create session_label in work directory
         session_dir = os.path.join(context.work_dir, 
-                              context.gear_dict['session_label_clean'])
+                              context.gear_dict['session_label_safe'])
         os.makedirs(session_dir,exist_ok=True)
 
     except Exception as e:
