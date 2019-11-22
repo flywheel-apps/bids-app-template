@@ -2,12 +2,12 @@
   "name": "bids-app-template",
   "label": "<Bids-App-Template>: short human-friendly name/description displayed in interface",
   "description": "<editme Name> (<version>) longer description.",
-  "version": "0.0.0_0.1.4",
+  "version": "0.0.0_0.1.5",
   "custom": {
-    "docker-image": "flywheel/bids-app-template:0.0.0_0.1.4",
+    "docker-image": "flywheel/bids-app-template:0.0.0_0.1.5",
     "gear-builder": {
       "category": "analysis",
-      "image": "flywheel/bids-app-template:0.0.0_0.1.4"
+      "image": "flywheel/bids-app-template:0.0.0_0.1.5"
     },
     "flywheel": {
       "suite": "BIDS Apps"
@@ -38,6 +38,11 @@
     "key": {
       "base": "api-key",
       "read-only": true
+    },
+    "freesurfer_license": {
+      "description": "FreeSurfer license file, provided during registration with FreeSurfer. This file will by copied to the $FSHOME directory and used during execution of the Gear.",
+      "base": "file",
+      "optional": true
     }
   },
   "config": {
@@ -129,9 +134,24 @@
       "description": "Gear will save ALL intermediate output into <command>_work.zip",
       "type": "boolean"
     },
+    "gear-intermediate-files": {
+      "description": "Space separated list of FILES to retain from the intermediate work directory.",
+      "default": "",
+      "type": "string"
+    },
+    "gear-intermediate-folders": {
+      "description": "Space separated list of FOLDERS to retain from the intermediate work directory.",
+      "default": "",
+      "type": "string"
+    },
     "gear-dry-run": {
       "default": false,
       "description": "Do everything except actually executing the command line",
+      "type": "boolean"
+    },
+    "gear-keep-output": {
+      "default": false,
+      "description": "Don't delete output.  Output is always zipped into a single file for easy download.  Choose this option to prevent output deletion after zipping.",
       "type": "boolean"
     },
     "gear-FREESURFER_LICENSE": {

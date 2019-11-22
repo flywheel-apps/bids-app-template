@@ -6,22 +6,32 @@ import os
 import logging
 import subprocess as sp
 
-from .zip_it_zip_it_good import *
 
 log = logging.getLogger(__name__)
 
 
-def zip_htmls(context):
-    """ Since zip_all_html() doesn't work, each html file must be
-        converted into an archive individually.
-        For each html file, rename it to be "index.html", then create a zip
-        archive from it.
+def zip_it_zip_it_good(context, name):
+    """ Compress html file into an appropriately named archive file *.html.zip 
+    files are automatically shown in another tab in the browser. These are
+    saved at the top level of the output folder."""
+
+    dest_zip = os.path.join(context.output_dir,name + '.zip')
+
+    log.info('Creating viewable archive "' + dest_zip + '"')
+
+    command = ['zip', '-q', dest_zip, 'index.html']
+    result = sp.run(command, check=True)
+
+
+def zip_htmls(context, path):
+    """ Zip all .html files at the given path so they can be displayed
+        on the Flywheel platform.
+        Each html file must be converted into an archive individually:
+          rename each to be "index.html", then create a zip archive from it.  
     """
 
 
     log.info('Creating viewable archives for all html files')
-
-    path = context.gear_dict['output_analysisid_dir'] + '/fmriprep'
 
     if os.path.exists(path):
 

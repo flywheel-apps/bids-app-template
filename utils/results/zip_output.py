@@ -14,15 +14,25 @@ def zip_output(context):
 
     # This executes regardless of errors or exit status,
 
-    # Zip file name has <subject> and <analysis>
-    subject = context.gear_dict['subject_code']
+    # Set Zip file "name": either project, subject, or session name
+    if context.gear_dict['run_level'] == 'project':
+        name = context.gear_dict['project_label']
+
+    elif context.gear_dict['run_level'] == 'subject':
+        name = context.gear_dict['subject_code'] 
+
+    elif context.gear_dict['run_level'] == 'session':
+        name = context.gear_dict['session_label']
+
     analysis_id = context.destination['id']
-    file_name = 'fmriprep_' + subject + '_' + analysis_id + '.zip'
+
+    file_name = 'fmriprep_' + name + '_' + analysis_id + '.zip'
+
     dest_zip = os.path.join(context.output_dir,file_name)
 
     # The destination id is used as the subdirectory to put results into
-    actual_dir = context.destination['id']
-    full_path = context.output_dir + '/' + actual_dir
+    full_path = context.gear_dict['output_analysisid_dir']
+    actual_dir = os.path.basename(full_path)
 
     if os.path.exists(full_path):
 
