@@ -143,6 +143,7 @@ def create_command(context, log):
         command = [context.gear_dict['COMMAND']]
 
         # editme: add positional arguments that the above command needs
+        # 3 positional args: bids path, output dir, 'participant'
         # This should be done here in case there are nargs='*' arguments
         # These follow the BIDS Apps definition (https://github.com/BIDS-Apps)
         command.append(context.gear_dict['bids_path'])
@@ -223,7 +224,7 @@ def set_up_data(context, log):
 
         # editme: optional feature
         # Save bids file hierarchy `tree` output in .html file
-        html_file = 'output/bids_tree'
+        html_file = 'output/bids_tree_' + context.destination['id']
         bids_path = context.gear_dict['bids_path']
         tree_bids(bids_path, html_file)
         log.info('Wrote tree("' + bids_path + '") output into html file "' +
@@ -298,9 +299,11 @@ def execute(context, log):
 
         # editme: optional feature
         # Cleanup, move all results to the output directory
+        zip_htmls(context, context.output_dir)  # zip any .html files in output/
         path = context.gear_dict['output_analysisid_dir']
-        zip_htmls(context, path)
+        zip_htmls(context, path)  # zip any .html files in output/<analysis_id>/
 
+        # zip entire output/<analysis_id> folder
         zip_output(context)
 
         # editme: optional feature
