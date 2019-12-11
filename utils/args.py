@@ -59,9 +59,28 @@ def validate(context):
     Gives errors (and raises exceptions) for settings that are violations 
     """
 
-    log.debug('')
 
     param_list = context.gear_dict['param_list']
+
+    log.info('Checking param_list: ' + repr(param_list))
+
+    I_must_not_go_on = False
+
+    # all must be one of these strings
+    #if 'stages' in param_list:
+
+    #    stages = param_list['stages'].split()
+
+    #    for stage in stages:
+
+    #        if stage not in ['autorecon1','autorecon2','autorecon2-cp',
+    #                         'autorecon2-wm','autorecon-pial','autorecon3',
+    #                         'autorecon-all','all']:
+    #            msg = 'Invalid stage "' + stage + '"'
+    #            context.gear_dict['errors'].append(msg)
+    #            log.critical(msg)
+    #            I_must_not_go_on = True
+
     # Test for input existence
     # if not op.exists(params['i']):
     #    raise Exception('Input File Not Found')
@@ -76,6 +95,13 @@ def validate(context):
     #        log.warning(' The value of ' + str(params['s'] + \
     #                    ' for -s may cause a singular matrix'))
 
+    if I_must_not_go_on:
+        log.exception('Configuration error.')
+        raise Exception('Configuration error.')
+
+    else:
+        log.info('param_list check: OK')
+
 
 def build_command(context):
     """
@@ -86,7 +112,7 @@ def build_command(context):
 
     log.debug('')
 
-    command = context.gear_dict['command']
+    command = context.gear_dict['command_line']
 
     param_list = context.gear_dict['param_list']
 
@@ -123,8 +149,6 @@ def build_command(context):
             # enumerated possibilities like v, vv, or vvv
             # e.g. replace "--verbose=vvv' with '-vvv'
             command[-1] = '-' + param_list[key]
-
-    return command
 
 
 # vi:set autoindent ts=4 sw=4 expandtab : See Vim, :help 'modeline'
