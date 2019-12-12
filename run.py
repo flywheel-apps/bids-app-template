@@ -262,7 +262,7 @@ def execute(context, log):
             result.returncode = 1
             log.info('Command was NOT run because of previous errors.')
 
-        if context.config['gear-dry-run']:
+        elif context.config['gear-dry-run']:
             ok_to_run = False
             result = sp.CompletedProcess
             result.returncode = 0
