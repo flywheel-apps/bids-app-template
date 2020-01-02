@@ -6,7 +6,7 @@ import logging
 import re
 import json
 
-from .licenses.freesurfer import find_freesurfer_license
+from .license.freesurfer import find_freesurfer_license
 
 
 log = logging.getLogger(__name__)
