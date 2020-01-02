@@ -16,8 +16,7 @@ RUN apt-get update && \
 RUN npm install -g bids-validator@1.3.8
 
 RUN pip install flywheel-sdk==10.3.0 \
-        flywheel-bids==0.8.2 \
-        psutil==5.6.3 && \
+        flywheel-bids==0.8.2 && \
     rm -rf /root/.cache/pip
 # could add pybids
 # The last line above is to help keep the docker image smaller

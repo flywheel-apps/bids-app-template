@@ -6,7 +6,6 @@ import subprocess as sp
 import sys
 import logging
 import shutil
-import psutil
 
 import flywheel
 
@@ -114,11 +113,10 @@ def initialize(context):
         context.output_dir + '/' + context.destination['id']
 
     # editme: optional feature
-    log.debug('psutil.cpu_count()= '+str(psutil.cpu_count()))
-    log.debug('psutil.virtual_memory().total= {:4.1f} GiB'.format(
-                      psutil.virtual_memory().total / (1024 ** 3)))
-    log.debug('psutil.virtual_memory().available= {:4.1f} GiB'.format(
-                      psutil.virtual_memory().available / (1024 ** 3)))
+    # get # cpu's to set -openmp
+    cpu_count = str(os.cpu_count())
+    log.info('os.cpu_count() = ' + cpu_count)
+    context.gear_dict['cpu_count'] = cpu_count
 
     # grab environment for gear
     with open('/tmp/gear_environ.json', 'r') as f:
@@ -262,7 +260,7 @@ def execute(context, log):
             result.returncode = 1
             log.info('Command was NOT run because of previous errors.')
 
-        if context.config['gear-dry-run']:
+        elif context.config['gear-dry-run']:
             ok_to_run = False
             result = sp.CompletedProcess
             result.returncode = 0
