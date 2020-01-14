@@ -63,6 +63,7 @@ def initialize(context):
     fw = context.client
     dest_container = fw.get(context.destination['id'])
     context.gear_dict['run_level'] = dest_container.parent.type
+    log.info('Running at the ' + context.gear_dict['run_level'] + ' level.')
 
     project_id = dest_container.parents.project
     context.gear_dict['project_id'] = project_id
@@ -117,6 +118,11 @@ def initialize(context):
     cpu_count = str(os.cpu_count())
     log.info('os.cpu_count() = ' + cpu_count)
     context.gear_dict['cpu_count'] = cpu_count
+
+    log.info('psutil.virtual_memory().total= {:4.1f} GiB'.format(
+                      psutil.virtual_memory().total / (1024 ** 3)))
+    log.info('psutil.virtual_memory().available= {:4.1f} GiB'.format(
+                      psutil.virtual_memory().available / (1024 ** 3)))
 
     # grab environment for gear
     with open('/tmp/gear_environ.json', 'r') as f:
@@ -214,6 +220,7 @@ def set_up_data(context, log):
 
             # filter by session
             download_bids(context, 
+                      subjects = [context.gear_dict['subject_code']],
                       sessions = [context.gear_dict['session_label']],
                       folders=folders_to_load)
 
