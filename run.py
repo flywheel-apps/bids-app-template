@@ -209,7 +209,7 @@ def set_up_data(context, log):
             log.info('Downloading BIDS for subject "' + 
                      context.gear_dict['subject_code'] + '"')
 
-            # filter by subject
+            # only download this subject
             download_bids(context, 
                       subjects = [context.gear_dict['subject_code']],
                       folders=folders_to_load)
@@ -219,14 +219,15 @@ def set_up_data(context, log):
             log.info('Downloading BIDS for session "' + 
                      context.gear_dict['session_label'] + '"')
 
-            # filter by session
+            # only download data for this session AND this subject
             download_bids(context, 
                       subjects = [context.gear_dict['subject_code']],
                       sessions = [context.gear_dict['session_label']],
                       folders=folders_to_load)
 
         else:
-            msg = 'This job is not being run at the project subject or session level'
+            msg = 'This job is not being run at the project subject or ' +\
+                  'session level'
             raise TypeError(msg)
 
         # editme: optional feature
