@@ -6,6 +6,7 @@ import subprocess as sp
 import sys
 import logging
 import shutil
+import psutil
 
 import flywheel
 
