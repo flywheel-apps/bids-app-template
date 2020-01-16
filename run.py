@@ -76,7 +76,7 @@ def initialize(context):
     else:
         context.gear_dict['project_label'] = 'unknown_project'
         context.gear_dict['project_label_safe'] = 'unknown_project'
-        log.warning('Project label is ' + context.gear_dict['project_label'])
+    log.info('Project label is ' + context.gear_dict['project_label'])
 
     subject_id = dest_container.parents.subject
     context.gear_dict['subject_id'] = subject_id
@@ -88,7 +88,7 @@ def initialize(context):
     else:
         context.gear_dict['subject_code'] = 'unknown_subject'
         context.gear_dict['subject_code_safe'] = 'unknown_subject'
-        log.warning('Subject code is ' + context.gear_dict['subject_code'])
+    log.info('Subject code is ' + context.gear_dict['subject_code'])
 
     session_id = dest_container.parents.session
     context.gear_dict['session_id'] = session_id
@@ -100,7 +100,7 @@ def initialize(context):
     else:
         context.gear_dict['session_label'] = 'unknown_session'
         context.gear_dict['session_label_safe'] = 'unknown_session'
-        log.warning('Session label is ' + context.gear_dict['session_label'])
+    log.info('Session label is ' + context.gear_dict['session_label'])
 
     # Set first part of result zip file names based on the above file safe names
     set_zip_head(context)
