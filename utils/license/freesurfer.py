@@ -2,10 +2,9 @@
 Installs Freesurfer license.txt file
 """
 
+import logging
 import os
 import shutil
-import logging
-
 
 log = logging.getLogger(__name__)
 
