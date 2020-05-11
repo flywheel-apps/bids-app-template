@@ -2,7 +2,7 @@
 # Use the latest Python 3 docker image
 FROM python:3 as base
 
-MAINTAINER Flywheel <support@flywheel.io>
+LABEL maintainer="support@flywheel.io"
 
 RUN apt-get update && \
     curl -sL https://deb.nodesource.com/setup_10.x | bash - && \
@@ -13,9 +13,9 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* 
 # The last line above is to help keep the docker image smaller
 
-RUN npm install -g bids-validator@1.3.8
+RUN npm install -g bids-validator@1.4.0
 
-RUN pip install flywheel-sdk==10.7.1 \
+RUN pip install flywheel-sdk==11.2.3 \
         flywheel-bids==0.8.2 \
         psutil==5.6.3 && \
     rm -rf /root/.cache/pip
