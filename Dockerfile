@@ -15,12 +15,9 @@ RUN apt-get update && \
 
 RUN npm install -g bids-validator@1.4.0
 
-RUN pip install flywheel-sdk==11.2.3 \
-        flywheel-bids==0.8.2 \
-        psutil==5.6.3 && \
+COPY requirements.txt /tmp
+RUN pip install -r /tmp/requirements.txt && \
     rm -rf /root/.cache/pip
-# could add pybids
-# The last line above is to help keep the docker image smaller
 
 # Make directory for flywheel spec (v0)
 ENV FLYWHEEL /flywheel/v0
