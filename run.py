@@ -120,10 +120,10 @@ def initialize(context):
     log.info('os.cpu_count() = ' + cpu_count)
     context.gear_dict['cpu_count'] = cpu_count
 
-    log.info('psutil.virtual_memory().total= {:4.1f} GiB'.format(
-                      psutil.virtual_memory().total / (1024 ** 3)))
-    log.info('psutil.virtual_memory().available= {:4.1f} GiB'.format(
-                      psutil.virtual_memory().available / (1024 ** 3)))
+    # editme: optional feature
+    mem_gb = psutil.virtual_memory().available / (1024 ** 3)
+    log.info('psutil.virtual_memory().available= {:4.1f} GiB'.format(mem_gb))
+    context.gear_dict['mem_gb'] = mem_gb
 
     # grab environment for gear
     with open('/tmp/gear_environ.json', 'r') as f:
