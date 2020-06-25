@@ -366,11 +366,9 @@ def execute(context, log):
             ret = 1
 
         return ret
- 
 
-if __name__ == '__main__':
 
-    context = flywheel.GearContext()
+def main(context):
 
     log = initialize(context)
 
@@ -383,7 +381,13 @@ if __name__ == '__main__':
 
     log.info('BIDS App Gear is done.  Returning '+str(ret))
 
+    return ret
+
+
+if __name__ == '__main__':
+
+    context = flywheel.GearContext()
+
+    ret = main(context)
+
     sys.exit(ret)
-
-
-# vi:set autoindent ts=4 sw=4 expandtab : See Vim, :help 'modeline'
