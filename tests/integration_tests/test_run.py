@@ -29,7 +29,7 @@ def install_gear(zip_name):
         zip_name (str): name of zip file that holds simulated gear.
     """
 
-    gear_tests = "/src/tests/gear_tests/"
+    gear_tests = "/src/tests/data/gear_tests/"
     gear = "/flywheel/v0/"
     os.chdir(gear)  # Make sure we're in the right place (gear works in "work/" dir)
 
