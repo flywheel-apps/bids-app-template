@@ -1,6 +1,4 @@
-# editme: change this file as needed
-# Use the latest Python 3 docker image
-FROM python:3 as base
+FROM python:3.8-buster as base
 
 LABEL maintainer="support@flywheel.io"
 
@@ -29,7 +27,7 @@ RUN python -c 'import os, json; f = open("/tmp/gear_environ.json", "w"); json.du
 
 # Copy executable/manifest to Gear
 COPY manifest.json ${FLYWHEEL}/manifest.json
-COPY test.sh ${FLYWHEEL}/test.sh
+COPY tests/test.sh ${FLYWHEEL}/test.sh
 COPY utils ${FLYWHEEL}/utils
 COPY run.py ${FLYWHEEL}/run.py
 

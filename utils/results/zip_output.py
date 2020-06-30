@@ -37,7 +37,7 @@ def zip_output(context):
 
     if os.path.exists(full_path):
 
-        log.debug('Output directory exists: ' + full_path)
+        log.debug('Output directory exists: ' + str(full_path))
 
         # output went into output/analysis_id/...
         os.chdir(context.output_dir)
@@ -50,6 +50,6 @@ def zip_output(context):
 
     else:
 
-        log.error('Output directory does not exist: ' + full_path)
+        log.error('Output directory does not exist: ' + str(full_path))
 
 # vi:set autoindent ts=4 sw=4 expandtab : See Vim, :help 'modeline'

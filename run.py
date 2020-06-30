@@ -112,7 +112,7 @@ def initialize(context):
     # in the output/ directory, add extra analysis_id directory name for easy
     #  zipping of final outputs to return.
     context.gear_dict['output_analysisid_dir'] = \
-        context.output_dir + '/' + context.destination['id']
+        context.output_dir / context.destination['id']
 
     # editme: optional feature
     # get # cpu's to set -openmp
@@ -258,7 +258,8 @@ def set_up_data(context, log):
 def execute(context, log):
     try:
 
-        log.info('Command: ' + ' '.join(context.gear_dict['command_line']))
+        log.info('Command: ' + 
+        ' '.join(str(w) for w in context.gear_dict['command_line']))
 
         # Don't run if there were errors or if this is a dry run
         ok_to_run = True
@@ -333,7 +334,7 @@ def execute(context, log):
 
                 shutil.rmtree(context.gear_dict['output_analysisid_dir'])
                 log.debug('removing output directory "' + 
-                          context.gear_dict['output_analysisid_dir'] + '"')
+                          str(context.gear_dict['output_analysisid_dir']) + '"')
 
             else:
                 log.info('NOT removing output directory "' + 

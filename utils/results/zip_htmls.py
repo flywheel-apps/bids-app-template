@@ -38,7 +38,7 @@ def zip_htmls(context, path):
 
     if os.path.exists(path):
 
-        log.info('Found path: ' + path)
+        log.info('Found path: ' + str(path))
 
         os.chdir(path)
 
@@ -69,11 +69,11 @@ def zip_htmls(context, path):
                 os.rename(save_name, 'index.html')
 
         else:
-            log.warning('No *.html files at ' + path)
+            log.warning('No *.html files at ' + str(path))
 
     else:
 
-        log.error('Path NOT found: ' + path)
+        log.error('Path NOT found: ' + str(path))
 
 
 # vi:set autoindent ts=4 sw=4 expandtab : See Vim, :help 'modeline'
