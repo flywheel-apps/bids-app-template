@@ -27,7 +27,6 @@ RUN python -c 'import os, json; f = open("/tmp/gear_environ.json", "w"); json.du
 
 # Copy executable/manifest to Gear
 COPY manifest.json ${FLYWHEEL}/manifest.json
-COPY tests/test.sh ${FLYWHEEL}/test.sh
 COPY utils ${FLYWHEEL}/utils
 COPY run.py ${FLYWHEEL}/run.py
 

@@ -8,13 +8,15 @@ import logging
 import shutil
 import psutil
 
-import flywheel
+import flywheel_gear_toolkit
+from flywheel_gear_toolkit.licenses.freesurfer import install_freesurfer_license
+from flywheel_gear_toolkit.interfaces.command_line import build_command_list 
+
+from utils.bids.run_level import get_run_level_and_hierarchy
+from utils.fly.make_file_name_safe import make_file_name_safe
+
 
 from utils import args
-
-from utils.bids.download_bids import *
-from utils.bids.validate_bids import *
-from utils.bids.tree_bids import *
 
 from utils.dicom.import_dicom_header_as_dict import *
 
@@ -23,14 +25,12 @@ from utils.fly.get_root_client import *
 from utils.fly.get_session_from_analysis_id import *
 from utils.fly.get_session_uids import *
 from utils.fly.load_manifest_json import *
-from utils.fly.make_file_name_safe import *
 from utils.fly.make_session_directory import *
 
 from utils.helpers.exists import *
 from utils.helpers.extract_return_paths import *
 from utils.helpers.set_environment import *
 
-from utils.results.set_zip_name import set_zip_head
 from utils.results.zip_htmls import zip_htmls
 from utils.results.zip_output import zip_output
 from utils.results.zip_intermediate import zip_all_intermediate_output
@@ -39,96 +39,35 @@ from utils.results.zip_intermediate import zip_intermediate_selected
 import utils.dry_run
 
 
-def initialize(context):
+def main(gtk_context):
 
-    # Add manifest.json as the manifest_json attribute
-    setattr(context, 'manifest_json', load_manifest_json())
-
-    log = custom_log(context)
-
-    context.log_config() # not configuring the log but logging the config
-
-    # Instantiate custom gear dictionary to hold "gear global" info
-    context.gear_dict = {}
-
-    # The main command line command to be run:
-    # editme: Set the actual gear command:
-    context.gear_dict['COMMAND'] = './test.sh'
+    log = gtk_context.log
 
     # Keep a list of errors and warning to print all in one place at end of log
     # Any errors will prevent the command from running and will cause exit(1)
-    context.gear_dict['errors'] = []  
-    context.gear_dict['warnings'] = []
+    errors = []  
+    warnings = []
 
-    # Get level of run from destination's parent: subject or session
-    fw = context.client
-    dest_container = fw.get(context.destination['id'])
-    context.gear_dict['run_level'] = dest_container.parent.type
-    log.info('Running at the ' + context.gear_dict['run_level'] + ' level.')
+    hierarchy = get_run_level_and_hierarchy(
+        gtk_context.client,
+        gtk_context.destination['id'])
 
-    project_id = dest_container.parents.project
-    context.gear_dict['project_id'] = project_id
-    if project_id:
-        project = fw.get(project_id)
-        context.gear_dict['project_label'] = project.label
-        context.gear_dict['project_label_safe'] = \
-            make_file_name_safe(project.label, '_')
-    else:
-        context.gear_dict['project_label'] = 'unknown_project'
-        context.gear_dict['project_label_safe'] = 'unknown_project'
-    log.info('Project label is ' + context.gear_dict['project_label'])
+    run_label = make_file_name_safe(hierarchy["run_label"])
 
-    subject_id = dest_container.parents.subject
-    context.gear_dict['subject_id'] = subject_id
-    if subject_id:
-        subject = fw.get(subject_id)
-        context.gear_dict['subject_code'] = subject.code
-        context.gear_dict['subject_code_safe'] = \
-            make_file_name_safe(subject.code, '_')
-    else:
-        context.gear_dict['subject_code'] = 'unknown_subject'
-        context.gear_dict['subject_code_safe'] = 'unknown_subject'
-    log.info('Subject code is ' + context.gear_dict['subject_code'])
-
-    session_id = dest_container.parents.session
-    context.gear_dict['session_id'] = session_id
-    if session_id:
-        session = fw.get(session_id)
-        context.gear_dict['session_label'] = session.label
-        context.gear_dict['session_label_safe'] = \
-            make_file_name_safe(session.label, '_')
-    else:
-        context.gear_dict['session_label'] = 'unknown_session'
-        context.gear_dict['session_label_safe'] = 'unknown_session'
-    log.info('Session label is ' + context.gear_dict['session_label'])
-
-    # Set first part of result zip file names based on the above file safe names
-    set_zip_head(context)
-
-    # the usual BIDS path:
-    bids_path = os.path.join(context.work_dir, 'bids')
-    context.gear_dict['bids_path'] = bids_path
-
-    # in the output/ directory, add extra analysis_id directory name for easy
-    #  zipping of final outputs to return.
-    context.gear_dict['output_analysisid_dir'] = \
-        context.output_dir / context.destination['id']
+    output_analysisid_dir = gtk_context.output_dir / gtk_context.destination['id']
 
     # editme: optional feature
     # get # cpu's to set -openmp
     cpu_count = str(os.cpu_count())
     log.info('os.cpu_count() = ' + cpu_count)
-    context.gear_dict['cpu_count'] = cpu_count
 
     # editme: optional feature
     mem_gb = psutil.virtual_memory().available / (1024 ** 3)
     log.info('psutil.virtual_memory().available= {:4.1f} GiB'.format(mem_gb))
-    context.gear_dict['mem_gb'] = mem_gb
 
-    # grab environment for gear
+    # grab environment for gear (saved in Dockerfile)
     with open('/tmp/gear_environ.json', 'r') as f:
         environ = json.load(f)
-        context.gear_dict['environ'] = environ
 
         # Add environment to log if debugging
         kv = ''
@@ -136,28 +75,39 @@ def initialize(context):
             kv += k + '=' + v + ' '
         log.debug('Environment: ' + kv)
 
-    return log
+    gear_config = {}
+    for key, val in gtk_context.config.items():
+        if key.startswith('gear-'):
+            gear_config[key] = val
+            del gtk_context.config[key]
+    json.dumps(gtk_context, indent=4)
 
+    # The main command line command to be run:
+    # editme: Set the actual gear command:
+    command = ['./tests/test.sh']
 
-def create_command(context, log):
+    command_name = make_file_name_safe(command[0])
 
-    # Create the command and validate the given arguments
-    try:
+    # editme: add positional arguments that the above command needs
+    # 3 positional args: bids path, output dir, 'participant'
+    # This should be done here in case there are nargs='*' arguments
+    # These follow the BIDS Apps definition (https://github.com/BIDS-Apps)
+    command.append(gtk_context.work_dir / 'bids')
+    command.append(output_analysisid_dir)
+    command.append('participant')
 
-        # Set the actual gear command:
-        command = [context.gear_dict['COMMAND']]
+    command = build_command_list(command, gtk_context.config)
 
-        # editme: add positional arguments that the above command needs
-        # 3 positional args: bids path, output dir, 'participant'
-        # This should be done here in case there are nargs='*' arguments
-        # These follow the BIDS Apps definition (https://github.com/BIDS-Apps)
-        command.append(context.gear_dict['bids_path'])
-        command.append(context.gear_dict['output_analysisid_dir'])
-        command.append('participant')
+    # Set first part of result zip file names based on the above file safe names
+    zip_head = f"{command_name}_{run_label}_{gtk_context.destination['id']}"
 
-        # Put command into gear_dict so arguments can be added in args.
-        context.gear_dict['command_line'] = command
+    install_freesurfer_license(gtk_context, '/opt/freesurfer/license.txt')
 
+    print(command)
+    print('Stopping early')
+    sys.exit(1)
+
+"""
         # Process inputs, contextual values and build a dictionary of
         # key-value arguments specific for COMMAND
         args.get_inputs_and_args(context)
@@ -177,7 +127,9 @@ def create_command(context, log):
         log.exception('Error in creating and validating command.')
 
 
-def set_up_data(context, log):
+    if len(context.gear_dict['errors']) == 0:
+
+def set_up_data(gtk_context):
     # Set up and validate data to be used by command
     try:
 
@@ -253,9 +205,9 @@ def set_up_data(context, log):
         context.gear_dict['errors'].append(e)
         log.critical(e)
         log.exception('Error in BIDS download and validation.')
+"""
 
-
-def execute(context, log):
+def execute(gtk_context):
     try:
 
         log.info('Command: ' + 
@@ -369,26 +321,21 @@ def execute(context, log):
         return ret
 
 
-def main(context):
 
-    log = initialize(context)
 
-    create_command(context, log)
-
-    if len(context.gear_dict['errors']) == 0:
-        set_up_data(context, log)
-
-    ret = execute(context, log)
-
-    log.info('BIDS App Gear is done.  Returning '+str(ret))
-
-    return ret
+    return exit_status
 
 
 if __name__ == '__main__':
 
-    context = flywheel.GearContext()
+    gtk_context = flywheel_gear_toolkit.GearToolkitContext()
 
-    ret = main(context)
+    # Setup basic logging and log the configuration for this job
+    gtk_context.init_logging('debug')
+    gtk_context.log_config()
 
-    sys.exit(ret)
+    exit_status = main(context)
+
+    gtk_context.log.info('BIDS App Gear is done.  Returning %s', exit_status)
+
+    sys.exit(exit_status)

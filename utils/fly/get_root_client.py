@@ -21,7 +21,7 @@ def get_root_client(fw_client):
 
     # parse the "url:" part of the api key from the site url
     site_url = fw_client.get_config().site.api_url
-    site_patt = re.compile('https:\/\/(.*:).*')
+    site_patt = re.compile(r'https://(.*:).*')
     site_url = site_patt.match(site_url).group(1)
     user = fw_client.get_current_user()
     api_key = user.api_key.key

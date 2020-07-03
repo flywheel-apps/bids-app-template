@@ -51,9 +51,9 @@ main() {
 
     if [ "${BUILD_IMAGE}" == "1" ]; then
 
-        echo docker build -f Dockerfile -t "${DOCKER_IMAGE}" .
+        echo docker build -f Dockerfile -t "${DOCKER_IMAGE_NAME}" .
 
-        docker build -f Dockerfile -t "${DOCKER_IMAGE}" .
+        docker build -f Dockerfile -t "${DOCKER_IMAGE_NAME}" .
 
         echo docker build -f "${DOCKERFILE}" \
           --build-arg DOCKER_IMAGE_NAME=${DOCKER_IMAGE_NAME} \
