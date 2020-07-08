@@ -15,6 +15,9 @@ for dir in $output_dir/Direct1/sub1 $output_dir/Direct2/sub1/sub2 $output_dir/Di
     touch $dir/file.txt
 done
 
+echo "add html files to find in $output_dir"
+cp /flywheel/v0/output/bids_tree.html $output_dir
+cp /flywheel/v0/output/bids_tree.html $output_dir/index.html
 
 if [ -f input/make_me_barf ]; then
     echo "input/make_me_barf exists, so now I generate an error"

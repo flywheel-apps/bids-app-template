@@ -34,59 +34,64 @@ def tree_bids(directory, base_name, title=None, extra=None):
     """
 
     if directory is None:
-        directory = Path('(unknown)')
+        directory = Path("(unknown)")
 
     if title is None:
-        title = ''
+        title = ""
 
     with open(base_name + ".html", "w") as html_file:
 
-        html1 = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 ' \
-                'Transitional//EN">\n' + \
-                '<html>\n' + \
-                '  <head>\n' + \
-                '    <meta http-equiv="content-type" content="text/html; '\
-                'charset=UTF-8">\n' + \
-                '    <title>tree ' + directory.name + '</title>\n' + \
-                '  </head>\n' + \
-                '  <body>\n' + \
-                '  <h1>' + title + '</h1>\n' + \
-                '  <b>' + directory.name + '</b>\n' + \
-                '<pre>\n'
+        html1 = (
+            '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 '
+            'Transitional//EN">\n'
+            + "<html>\n"
+            + "  <head>\n"
+            + '    <meta http-equiv="content-type" content="text/html; '
+            'charset=UTF-8">\n'
+            + "    <title>tree "
+            + directory.name
+            + "</title>\n"
+            + "  </head>\n"
+            + "  <body>\n"
+            + "  <h1>"
+            + title
+            + "</h1>\n"
+            + "  <b>"
+            + directory.name
+            + "</b>\n"
+            + "<pre>\n"
+        )
         html_file.write(html1)
 
-        dir_str = str(directory) + '/'
+        dir_str = str(directory) + "/"
 
         log.info('Getting "tree" listing of %s', dir_str)
 
-        html_file.write(dir_str + '\n')
+        html_file.write(dir_str + "\n")
 
         num_dirs = 0
         num_files = 0
 
-        for path in sorted(directory.rglob('*')):
+        for path in sorted(directory.rglob("*")):
 
             depth = len(path.relative_to(directory).parts)
-            spacer = '    ' * depth
+            spacer = "    " * depth
 
             # print(f'{depth:02d} {spacer}+ {path.name}')
 
             if path.is_file():
                 num_files += 1
-                html_file.write(f'{spacer}{path.name}\n')
+                html_file.write(f"{spacer}{path.name}\n")
             else:
                 num_dirs += 1
-                html_file.write(f'{spacer}{path.name}/\n')
+                html_file.write(f"{spacer}{path.name}/\n")
 
-        html_file.write(f'{num_dirs} directories, {num_files} files\n')
+        html_file.write(f"{num_dirs} directories, {num_files} files\n")
 
         if extra:
-            html_file.write(f'\n{extra}\n')
+            html_file.write(f"\n{extra}\n")
 
-        html2 = '</pre>\n' + \
-                '    </blockquote>\n' + \
-                '  </body>\n' + \
-                '</html>\n'
+        html2 = "</pre>\n" + "    </blockquote>\n" + "  </body>\n" + "</html>\n"
         html_file.write(html2)
 
     log.info('Wrote "%s.html"', base_name)

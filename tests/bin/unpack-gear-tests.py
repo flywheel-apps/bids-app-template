@@ -28,12 +28,12 @@ def main():
     # - tests/data/gear_tests/
     # Make sure running in proper place
     gear_test_paths = [
-        './tests/data/gear_tests',
-        './data/gear_tests',
-        '../data/gear_tests',
-        './gear_tests',
+        "./tests/data/gear_tests",
+        "./data/gear_tests",
+        "../data/gear_tests",
+        "./gear_tests",
     ]
-    if Path.cwd().parts[-3:] == ('tests', 'data', 'gear_tests'):
+    if Path.cwd().parts[-3:] == ("tests", "data", "gear_tests"):
         print(f"Packing tests in {str(Path.cwd())}")
     else:
         for gtp in gear_test_paths:
@@ -41,34 +41,34 @@ def main():
                 print(f"Packing tests in {str(Path(gtp))}")
                 os.chdir(Path(gtp))
 
-    if args.test == 'all':
-        tests = glob.glob('*.zip')
+    if args.test == "all":
+        tests = glob.glob("*.zip")
     else:
         tests = [args.test]
 
     for test in tests:
-       
+
         name = test[:-4]
         if args.verbose > 0:
             print(f'"{test}" --> "{name}"')
 
         if Path(name).exists():
-            print(f'{name} already exsts, not unzipping.')
+            print(f"{name} already exsts, not unzipping.")
         else:
-            print(f'Unzipping {name}.')
-            zip_file = ZipFile(test, 'r')
+            print(f"Unzipping {name}.")
+            zip_file = ZipFile(test, "r")
             zip_file.extractall(name)
-
 
     return exit_code
 
- 
-if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("test",help="The name of a test .zip file.")
-    parser.add_argument('-v', '--verbose', action='count', default=0)
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    parser.add_argument("test", help="The name of a test .zip file.")
+    parser.add_argument("-v", "--verbose", action="count", default=0)
 
     args = parser.parse_args()
 

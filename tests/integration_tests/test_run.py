@@ -6,6 +6,8 @@ import os
 from pathlib import Path
 import shutil
 from unittest.mock import patch
+from unittest import skip
+from unittest import TestCase
 import logging
 import json
 from zipfile import ZipFile
@@ -38,36 +40,36 @@ def install_gear(zip_name):
 
     for dir_name in ["input", "output", "work"]:
         path = Path(gear + dir_name)
-        if path.exists(): 
+        if path.exists():
             shutil.rmtree(path)
 
     print(f'\ninstalling new gear, "{zip_name}"...')
     unzip_archive(gear_tests + zip_name, gear)
 
     # swap in user's api-key if there is one (fake) in the config
-    config_json = Path('./config.json')
+    config_json = Path("./config.json")
     if config_json.exists():
-        print(f'Found {str(config_json)}')
+        print(f"Found {str(config_json)}")
         api_dict = None
         with open(config_json) as cjf:
             config_dict = json.load(cjf)
-            pprint(config_dict['inputs'])
-            if 'api_key' in config_dict['inputs']:
+            pprint(config_dict["inputs"])
+            if "api_key" in config_dict["inputs"]:
                 print(f'Found "api_key" in config_dict["inputs"]')
 
-                user_json = Path(Path.home() / '.config/flywheel/user.json')
+                user_json = Path(Path.home() / ".config/flywheel/user.json")
                 if user_json.exists():
                     with open(user_json) as ujf:
                         api_dict = json.load(ujf)
-                    config_dict['inputs']['api_key']['key'] = api_dict['key']
-                    print(f'installing api-key...')
+                    config_dict["inputs"]["api_key"]["key"] = api_dict["key"]
+                    print(f"installing api-key...")
                 else:
-                    print(f"{str(user_json)} not foun.  Can't get api key.")
+                    print(f"{str(user_json)} not found.  Can't get api key.")
             else:
                 print(f'No "api_key" in config_dict["inputs"]')
 
         if api_dict:
-            with open(config_json, 'w') as cjf:
+            with open(config_json, "w") as cjf:
                 json.dump(config_dict, cjf)
     else:
         print(f"{str(config_json)} does not exist.  Can't set api key.")
@@ -100,9 +102,9 @@ def print_captured(captured):
 
 def test_dry_run_works(caplog):
 
-    user_json = Path(Path.home() / '.config/flywheel/user.json')
+    user_json = Path(Path.home() / ".config/flywheel/user.json")
     if not user_json.exists():
-        pytest.skip(f"No API key available in {str(user_json)}")
+        TestCase.skipTest("", f"No API key available in {str(user_json)}")
 
     caplog.set_level(logging.DEBUG)
 
@@ -114,6 +116,29 @@ def test_dry_run_works(caplog):
 
         print_caplog(caplog)
 
-        assert "bids-validator return code: 0" in caplog.messages[41]
-        assert "gear-dry-run is set" in caplog.messages[46]
+        assert "No BIDS errors detected." in caplog.messages[31]
+        assert "gear-dry-run is set" in caplog.messages[54]
         assert status == 0
+
+
+def test_wet_run_works(caplog):
+
+    user_json = Path(Path.home() / ".config/flywheel/user.json")
+    if not user_json.exists():
+        TestCase.skipTest("", f"No API key available in {str(user_json)}")
+
+    caplog.set_level(logging.DEBUG)
+
+    install_gear("wet_run.zip")
+
+    with flywheel_gear_toolkit.GearToolkitContext(input_args=[]) as gtk_context:
+
+        status = run.main(gtk_context)
+
+        print_caplog(caplog)
+
+        assert "sub-TOME3024_ses-Session2_acq-MPR_T1w.nii.gz" in caplog.messages[29]
+        assert "Not running BIDS validation" in caplog.messages[37]
+        assert "I will not generate an error" in caplog.messages[43]
+        assert status == 0
+        assert 0

@@ -74,23 +74,24 @@ def call_validate_bids(bids_path, out_path):
             and a list of errors and warnings (if any).
     """
 
-    log.debug('Running BIDS Validator')
+    log.debug("Running BIDS Validator")
 
-    command = ['bids-validator', '--verbose', '--json', str(bids_path)]
-    msg = 'Command: ' + ' '.join(command)
+    command = ["bids-validator", "--verbose", "--json", str(bids_path)]
+    msg = "Command: " + " ".join(command)
     log.info(msg)
 
     try:
         with open(out_path, "w") as f:
-            result = sp.run(command, stdout=f, stderr=sp.PIPE,
-                            universal_newlines=True, check=True)
+            result = sp.run(
+                command, stdout=f, stderr=sp.PIPE, universal_newlines=True, check=True
+            )
 
     except sp.CalledProcessError as err:
         log.error(repr(err))
         result = sp.CompletedProcess
         result.returncode = err.returncode
 
-    msg = command[0] + ' return code: ' + str(result.returncode)
+    msg = command[0] + " return code: " + str(result.returncode)
     log.info(msg)
 
     # read validation result file to get results as dictionary
@@ -113,29 +114,32 @@ def show_errors_and_warnings(bids_output):
     """Show what is in BIDS validation output"""
 
     # show summary of valid BIDS stuff
-    if 'summary' in bids_output:
-        msg = 'bids-validator results:\n\nValid BIDS files summary:\n' + \
-              pprint.pformat(bids_output['summary'], indent=8) + '\n'
+    if "summary" in bids_output:
+        msg = (
+            "bids-validator results:\n\nValid BIDS files summary:\n"
+            + pprint.pformat(bids_output["summary"], indent=8)
+            + "\n"
+        )
         log.info(msg)
 
     # show all errors
-    for err in bids_output['issues']['errors']:
-        err_msg = err['reason'] + '\n'
-        for ff in err['files']:
+    for err in bids_output["issues"]["errors"]:
+        err_msg = err["reason"] + "\n"
+        for ff in err["files"]:
             if ff["file"]:
-                err_msg += '      In file ' + ff["file"]["relativePath"]
-            if 'evidence' in ff and ff["evidence"]:
-                err_msg += ', ' + ff["evidence"] + '\n'
+                err_msg += "      In file " + ff["file"]["relativePath"]
+            if "evidence" in ff and ff["evidence"]:
+                err_msg += ", " + ff["evidence"] + "\n"
             else:
-                err_msg += '\n'
+                err_msg += "\n"
         log.error(err_msg)
 
     # show all warnings
-    for warn in bids_output['issues']['warnings']:
-        warn_msg = warn['reason'] + '\n'
-        for ff in warn['files']:
+    for warn in bids_output["issues"]["warnings"]:
+        warn_msg = warn["reason"] + "\n"
+        for ff in warn["files"]:
             if ff["file"]:
-                warn_msg += '      ' + ff["file"]["relativePath"] + '\n'
+                warn_msg += "      " + ff["file"]["relativePath"] + "\n"
         log.warning(warn_msg)
 
 
@@ -163,12 +167,12 @@ def validate_bids(bids_path):
 
     num_bids_errors = -1  # impossible value
 
-    out_path = Path(bids_path) / '..' / 'validator.output.json'
+    out_path = Path(bids_path) / ".." / "validator.output.json"
 
     err_code, bids_output = call_validate_bids(bids_path, out_path)
 
     try:
-        num_bids_errors = len(bids_output['issues']['errors'])
+        num_bids_errors = len(bids_output["issues"]["errors"])
 
         show_errors_and_warnings(bids_output)
 
@@ -177,16 +181,14 @@ def validate_bids(bids_path):
         err_code = 12
 
     if num_bids_errors < 0:
-        log.debug('BIDS validation could not run.')
+        log.debug("BIDS validation could not run.")
         err_code = 11
 
     elif num_bids_errors > 0:
         err_code = 10
-        log.error(
-            '%d BIDS validation error(s) were detected.',
-            num_bids_errors)
+        log.error("%d BIDS validation error(s) were detected.", num_bids_errors)
 
     else:
-        log.debug('No BIDS errors detected.')
+        log.debug("No BIDS errors detected.")
 
     return err_code
