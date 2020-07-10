@@ -2,7 +2,7 @@
 
 set -eu
 unset CDPATH
-cd "$( dirname $0 )/../.."
+cd "$( dirname "$0" )/../.."
 
 
 USAGE="

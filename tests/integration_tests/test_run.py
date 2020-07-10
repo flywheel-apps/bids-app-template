@@ -5,13 +5,9 @@
 import os
 from pathlib import Path
 import shutil
-from unittest.mock import patch
-from unittest import skip
 from unittest import TestCase
 import logging
 import json
-from zipfile import ZipFile
-import hashlib
 from pprint import pprint
 
 import flywheel_gear_toolkit
@@ -116,8 +112,13 @@ def test_dry_run_works(caplog):
 
         print_caplog(caplog)
 
-        assert "No BIDS errors detected." in caplog.messages[31]
-        assert "gear-dry-run is set" in caplog.messages[54]
+        assert Path("/flywheel/v0/work/bids/.bidsignore").exists()
+        assert "No BIDS errors detected." in caplog.messages[32]
+        assert "Zipping work directory" in caplog.messages[50]
+        assert "file:   ./bids/dataset_description.json" in caplog.messages[53]
+        assert "folder: ./reportlets/somecmd/sub-TOME3024/anat" in caplog.messages[55]
+        assert "Could not find file" in caplog.messages[57]
+        assert "gear-dry-run is set" in caplog.messages[59]
         assert status == 0
 
 
@@ -137,8 +138,6 @@ def test_wet_run_works(caplog):
 
         print_caplog(caplog)
 
-        assert "sub-TOME3024_ses-Session2_acq-MPR_T1w.nii.gz" in caplog.messages[29]
-        assert "Not running BIDS validation" in caplog.messages[37]
-        assert "I will not generate an error" in caplog.messages[43]
-        assert status == 0
-        assert 0
+        assert "sub-TOME3024_ses-Session2_acq-MPR_T1w.nii.gz" in caplog.messages[30]
+        assert "Not running BIDS validation" in caplog.messages[38]
+        assert "now I generate an error" in caplog.messages[44]

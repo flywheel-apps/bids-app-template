@@ -203,7 +203,7 @@ def test_run_level_no_project_says_so(caplog):
     assert hierarchy["run_level"] == "no_parent"
 
 
-def test_run_level_no_project_says_so(caplog):
+def test_run_level_unknown_project_says_so(caplog):
     """a destination that has no project id in parents probably never happens"""
 
     caplog.set_level(logging.DEBUG)

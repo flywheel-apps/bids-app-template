@@ -2,12 +2,12 @@
   "name": "bids-app-template",
   "label": "<Bids-App-Template>: short human-friendly name/description displayed in interface",
   "description": "<editme Name> (<version>) longer description.",
-  "version": "0.0.0_0.1.11",
+  "version": "0.0.0_0.2.2",
   "custom": {
-    "docker-image": "flywheel/bids-app-template:0.0.0_0.1.11",
+    "docker-image": "flywheel/bids-app-template:0.0.0_0.2.2",
     "gear-builder": {
       "category": "analysis",
-      "image": "flywheel/bids-app-template:0.0.0_0.1.11"
+      "image": "flywheel/bids-app-template:0.0.0_0.2.2"
     },
     "flywheel": {
       "suite": "BIDS Apps"
@@ -41,6 +41,11 @@
     },
     "freesurfer_license": {
       "description": "FreeSurfer license file, provided during registration with FreeSurfer. This file will by copied to the $FSHOME directory and used during execution of the Gear.",
+      "base": "file",
+      "optional": true
+    },
+    "bidsignore": {
+      "description": "A .bidsignore file to provide to the bids-validator that this gear runs before running the main command.",
       "base": "file",
       "optional": true
     }
@@ -99,7 +104,7 @@
     },
     "verbose": {
       "default": "v",
-      "description": "increases log verbosity for each occurence, debug level is -vvv",
+      "description": "increases log verbosity for each occurrence, debug level is -vvv",
       "enum": [
         "",
         "v",

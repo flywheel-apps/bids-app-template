@@ -13,14 +13,11 @@ def make_file_name_safe(input_basename, replace_str=""):
 
     :param input_basename: the input basename of the file to be replaced
     :type input_basename: str
-    :param log: a logger instance
-    :type log: logging.Logger
     :param replace_str: the string with which to replace the unsafe characters
     :type   replace_str: str
     :return: output_basename, a safe
     :rtype: str
     """
-    import re
 
     safe_patt = re.compile(r"[^A-Za-z0-9_\-.]+")
     # if the replacement is not a string or not safe, set replace_str to x

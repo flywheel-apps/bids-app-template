@@ -3,7 +3,6 @@
 import os
 import logging
 from pathlib import Path
-import sys
 
 
 log = logging.getLogger(__name__)

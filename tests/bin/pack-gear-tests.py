@@ -99,6 +99,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    exit_code = main()
-
-    os.sys.exit(exit_code)
+    os.sys.exit(main())

@@ -7,7 +7,7 @@ import logging
 
 from flywheel import ApiException
 from flywheel_bids.export_bids import download_bids_dir
-from flywheel_bids.supporting_files.errors import BIDSExportError
+from utils.bids.errors import BIDSExportError
 
 from .validate import validate_bids
 from .tree import tree_bids
@@ -283,17 +283,17 @@ def download_bids_for_runlevel(
                 bids_path = None
                 err_code = 20
 
-        except ApiException as err:
-            log.exception(err, exc_info=True)
-            extra_tree_text += f"EXCEPTION: {err}\n"
-            bids_path = None
-            err_code = 25  # download_bids_dir() ApiException
-
         except BIDSExportError as bidserr:
             log.critical(bidserr, exc_info=True)
             extra_tree_text += f"{bidserr}\n"
             bids_path = None
             err_code = 21
+
+        except ApiException as err:
+            log.exception(err, exc_info=True)
+            extra_tree_text += f"EXCEPTION: {err}\n"
+            bids_path = None
+            err_code = 25  # download_bids_dir() ApiException
 
     if bids_path:  # then validate it
 

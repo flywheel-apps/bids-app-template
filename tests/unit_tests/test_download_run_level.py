@@ -1,12 +1,9 @@
 """Unit tests for download_run_level.py"""
 
-from os import chdir
 import logging
 from pathlib import Path
 import json
-from unittest.mock import patch, MagicMock
-import unittest
-
+from unittest.mock import patch
 import copy
 
 import flywheel
@@ -17,7 +14,7 @@ from utils.bids.download_run_level import (
     fix_dataset_description,
     download_bids_for_runlevel,
 )
-from errors import BIDSExportError
+from utils.bids.errors import BIDSExportError
 
 
 DATASET_DESCRIPTION = {
@@ -413,27 +410,22 @@ def test_download_bids_for_runlevel_unknown_detected(tmp_path, caplog):
     ):
 
         with patch(
-            "utils.bids.download_run_level.download_bids_dir",
-            side_effect=flywheel.ApiException("foo", "fum"),
+            "utils.bids.download_run_level.validate_bids", return_value=0,
         ):
 
-            with patch(
-                "utils.bids.download_run_level.validate_bids", return_value=0,
-            ):
+            gtk_context = flywheel_gear_toolkit.GearToolkitContext(
+                input_args=["-d aex:analysis"], gear_path=tmp_path
+            )
 
-                gtk_context = flywheel_gear_toolkit.GearToolkitContext(
-                    input_args=["-d aex:analysis"], gear_path=tmp_path
-                )
-
-                err_code = download_bids_for_runlevel(
-                    gtk_context,
-                    HIERARCHY,
-                    tree=False,
-                    tree_title=None,
-                    src_data=True,
-                    folders=["anat", "func"],
-                    dry_run=True,
-                )
+            err_code = download_bids_for_runlevel(
+                gtk_context,
+                HIERARCHY,
+                tree=False,
+                tree_title=None,
+                src_data=True,
+                folders=["anat", "func"],
+                dry_run=True,
+            )
 
     assert len(caplog.records) == 5
     assert "run_level = who knows" in caplog.records[3].message
@@ -441,7 +433,6 @@ def test_download_bids_for_runlevel_unknown_detected(tmp_path, caplog):
     HIERARCHY["run_level"] = "acquisition"  # fix what was broke
 
 
-@unittest.skip(f"Skippig becaus of crazy error")
 def test_download_bids_for_runlevel_bidsexporterror_exception_detected(
     tmp_path, caplog
 ):
@@ -535,7 +526,7 @@ def test_download_bids_for_runlevel_nothing_downloaded_detected(tmp_path, caplog
 
     caplog.set_level(logging.DEBUG)
 
-    HIERARCHY["run_level"] = "project"
+    HIERARCHY["run_level"] = "subject"
 
     with patch(
         "flywheel_gear_toolkit.GearToolkitContext.client", return_value=Acquisition(),

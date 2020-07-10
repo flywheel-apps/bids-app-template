@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-""" Run the gear: set up for and call command-line code """
+"""Run the gear: set up for and call command-line command."""
 
 import os
-import subprocess as sp
 import sys
-import logging
 import shutil
 import psutil
 import json
@@ -25,6 +23,9 @@ from utils.results.zip_intermediate import zip_all_intermediate_output
 from utils.results.zip_intermediate import zip_intermediate_selected
 
 
+FREESURFER_FULLPATH = "/opt/freesurfer/license.txt"
+
+
 def main(gtk_context):
 
     log = gtk_context.log
@@ -34,12 +35,19 @@ def main(gtk_context):
     errors = []
     warnings = []
 
+    # Given the destination container, figure out if running at the project,
+    # subject, or session level.
     hierarchy = get_run_level_and_hierarchy(
         gtk_context.client, gtk_context.destination["id"]
     )
 
+    # This is the label of the project, subject or session and is used
+    # as part of the name of the output files.
     run_label = make_file_name_safe(hierarchy["run_label"])
 
+    # Output will be put into a directory named as the destination id.
+    # This allows the raw output to be deleted so that a zipped archive
+    # can be returned.
     output_analysisid_dir = gtk_context.output_dir / gtk_context.destination["id"]
 
     # editme: optional feature
@@ -77,6 +85,7 @@ def main(gtk_context):
     # editme: Set the actual gear command:
     command = ["./tests/test.sh"]
 
+    # This is also used as part of the name of output files
     command_name = make_file_name_safe(command[0])
 
     # editme: add positional arguments that the above command needs
@@ -90,21 +99,23 @@ def main(gtk_context):
     command = build_command_list(command, command_config)
     # print(command)
 
-    # Set first part of result zip file names based on the above file safe names
-    zip_head = f"{command_name}_{run_label}_{gtk_context.destination['id']}"
-
-    install_freesurfer_license(gtk_context, "/opt/freesurfer/license.txt")
+    # editme: if the command needs a freesurfer license keep this
+    if Path(FREESURFER_FULLPATH).exists():
+        log.debug("%s exists.", FREESURFER_FULLPATH)
+    install_freesurfer_license(gtk_context, FREESURFER_FULLPATH)
 
     if len(errors) == 0:
 
+        # editme: optional feature
         # Create HTML file that shows BIDS "Tree" like output?
         tree = True
         tree_title = f"{command_name} BIDS Tree"
 
-        # Whether or not to include src data (e.g. dicoms)
+        # Whether or not to include src data (e.g. dicoms) when downloading BIDS
         src_data = False
 
         # Limit download to specific folders? e.g. ['anat','func','fmap']
+        # when downloading BIDS
         folders = []  # empty list is no limit
 
         download_bids_for_runlevel(
@@ -117,6 +128,12 @@ def main(gtk_context):
             dry_run=gtk_context.config.get("gear-dry-run"),
             do_validate_bids=gtk_context.config.get("gear-run-bids-validation"),
         )
+
+        # now that work/bids/ exists, copy in the ignore file
+        bidsignore_path = gtk_context.get_input_path("bidsignore")
+        if bidsignore_path:
+            shutil.copy(bidsignore_path, "work/bids/.bidsignore")
+            log.info("Installed .bidsignore in work/bids/")
 
         # see https://github.com/bids-standard/pybids/tree/master/examples
         # for any necessary work on the bids files inside the gear, perhaps
@@ -149,6 +166,7 @@ def main(gtk_context):
             log.info("Creating output directory %s", output_analysisid_dir)
             Path(output_analysisid_dir).mkdir()
 
+            # This is what it is all about
             exec_command(command, environ=environ)
 
     except RuntimeError as exc:
@@ -159,17 +177,13 @@ def main(gtk_context):
 
     finally:
 
+        # Cleanup, move all results to the output directory
+
         # TODO
         # see https://github.com/bids-standard/pybids/tree/master/examples
         # for any necessary work on the bids files inside the gear, perhaps
         # to query results or count stuff to estimate how long things will take.
-        # Add that stuff to utils/results.py
-
-        # editme: optional feature
-        # Cleanup, move all results to the output directory
-
-        # zip any .html files in output/<analysis_id>/
-        zip_htmls(gtk_context, output_analysisid_dir)
+        # Add that to utils/results.py
 
         # zip entire output/<analysis_id> folder into
         #  <gear_name>_<project|subject|session label>_<analysis.id>.zip
@@ -178,12 +192,16 @@ def main(gtk_context):
             + f"_{run_label}_{gtk_context.destination['id']}.zip"
         )
         zip_output(
-            gtk_context.output_dir,
+            str(gtk_context.output_dir),
             gtk_context.destination["id"],
             zip_file_name,
             dry_run=False,
             exclude_files=None,
         )
+
+        # editme: optional feature
+        # zip any .html files in output/<analysis_id>/
+        zip_htmls(gtk_context, output_analysisid_dir)
 
         # editme: optional feature
         # possibly save ALL intermediate output
@@ -208,6 +226,7 @@ def main(gtk_context):
         else:
             log.info("Output directory does not exist so it cannot be removed")
 
+        # Report errors and warnings at the end of the log so they can be easily seen.
         if len(warnings) > 0:
             msg = "Previous warnings:\n"
             for err in warnings:
@@ -242,7 +261,7 @@ if __name__ == "__main__":
     gtk_context.init_logging("debug")
     gtk_context.log_config()
 
-    exit_status = main(context)
+    exit_status = main(gtk_context)
 
     gtk_context.log.info("BIDS App Gear is done.  Returning %s", exit_status)
 

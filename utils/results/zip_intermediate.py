@@ -14,13 +14,14 @@ def zip_intermediate_selected(context, run_label):
     them into one archive.
     """
 
-    log.debug("")
-
     do_find = False
+    files = []
+    folders = []
     # get list of intermediate files (if any)
     if context.config.get("gear-intermediate-files", None):
         if len(context.config["gear-intermediate-files"]) > 0:
             files = context.config["gear-intermediate-files"].split()
+            log.debug(str(files))
             do_find = True
 
     # get list of intermediate folders (if any)
@@ -41,12 +42,15 @@ def zip_intermediate_selected(context, run_label):
 
         log.info('Files and folders will be zipped to "' + dest_zip + '"')
 
+        files_found = []
+        folders_found = []
         for subdir, walk_dirs, walk_files in os.walk("."):
 
             for ff in walk_files:
                 if ff in files:
                     path = os.path.join(subdir, ff)
                     if os.path.exists(path):
+                        files_found.append(ff)
                         log.info("Zipping file:   " + path)
                         command = ["zip", "-q", dest_zip, path]
                         result = sp.run(command, check=True)
@@ -55,8 +59,7 @@ def zip_intermediate_selected(context, run_label):
 
             for ff in walk_dirs:
                 if ff in folders:
-                    print("subdir = " + subdir)
-                    print("ff     = " + ff)
+                    folders_found.append(ff)
                     path = os.path.join(subdir, ff)
                     if os.path.exists(path):
                         log.info("Zipping folder: " + path)
@@ -64,16 +67,20 @@ def zip_intermediate_selected(context, run_label):
                         result = sp.run(command, check=True)
                     else:
                         log.error("Missing folder:   " + path)
+        for ff in files:
+            if ff not in files_found:
+                log.error(f"Could not find file '{ff}'")
+        for ff in folders:
+            if ff not in folders_found:
+                log.error(f"Could not find folder '{ff}'")
     else:
         log.debug("No files or folders specified in config to zip")
 
 
-def zip_all_intermediate_output(context):
+def zip_all_intermediate_output(context, run_label):
     """
     Zip all intermediate output in the "work/ directory into one archive.
     """
-
-    log.debug("")
 
     # Name of zip file has <subject> and <analysis>
     analysis_id = context.destination["id"]
