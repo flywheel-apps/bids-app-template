@@ -18,7 +18,7 @@ was created specifically for gears that run on BIDS formatted data, but it can b
 to any gear.  The file `manifest.json` provides examples of inputs, configuration parameters, and
 references.  This template can be uploaded as is and will run as a gear.
 
-Run the tests in the top level directory with:
+Run the tests from the top level directory with:
 
 ```bash
 ./tests/bin/docker-test.sh
