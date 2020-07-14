@@ -9,6 +9,8 @@ Usage:
 Run tests in a docker container.
 Options:
     -h, --help      Print this help and exit
+    -B, --no-build  Don't build the docker image (use existing)
+    -s, --shell     Drop into the container with bash instead of normal entry
     -- TEST_ARGS    Arguments passed to tests.sh
 "
 
@@ -48,6 +50,10 @@ main() {
     echo "DOCKER_IMAGE_NAME is" $DOCKER_IMAGE_NAME 
 
     if [ "${BUILD_IMAGE}" == "1" ]; then
+
+        echo docker build -f Dockerfile -t "${DOCKER_IMAGE_NAME}" .
+
+        docker build -f Dockerfile -t "${DOCKER_IMAGE_NAME}" .
 
         echo docker build -f "${DOCKERFILE}" \
           --build-arg DOCKER_IMAGE_NAME=${DOCKER_IMAGE_NAME} \

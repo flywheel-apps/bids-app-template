@@ -1,6 +1,4 @@
-# editme: change this file as needed
-# Use the latest Python 3 docker image
-FROM python:3 as base
+FROM python:3.8-buster as base
 
 LABEL maintainer="support@flywheel.io"
 
@@ -13,7 +11,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* 
 # The last line above is to help keep the docker image smaller
 
-RUN npm install -g bids-validator@1.4.0
+RUN npm install -g bids-validator@1.5.4
 
 COPY requirements.txt /tmp
 RUN pip install -r /tmp/requirements.txt && \
@@ -29,7 +27,6 @@ RUN python -c 'import os, json; f = open("/tmp/gear_environ.json", "w"); json.du
 
 # Copy executable/manifest to Gear
 COPY manifest.json ${FLYWHEEL}/manifest.json
-COPY test.sh ${FLYWHEEL}/test.sh
 COPY utils ${FLYWHEEL}/utils
 COPY run.py ${FLYWHEEL}/run.py
 
