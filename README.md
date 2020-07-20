@@ -5,7 +5,7 @@ This template has a complete set of features for to help convert
 [BIDS Apps](https://bids-apps.neuroimaging.io/about/) into 
 [Flywheel Gears](https://github.com/flywheel-io/gears/tree/master/spec).
 
-To create a new BIDS App gear using this template click on "Uset this template" above and
+To create a new BIDS App gear using this template click on "Use this template" above and
 then edit `run.py`, `manifest.json`, `Dockerfile` and other files as necessary to create
 your gear.  Python modules in `utils/` provide features to help set up the data to run on,
 call the BIDS App command, and then get the results into the output folder.  This template
