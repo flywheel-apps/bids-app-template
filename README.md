@@ -5,11 +5,32 @@ This template has a complete set of features for to help convert
 [BIDS Apps](https://bids-apps.neuroimaging.io/about/) into 
 [Flywheel Gears](https://github.com/flywheel-io/gears/tree/master/spec).
 
-To develop a new BIDS App gear, clone this repository locally using the new name for your gear:
+To create a new BIDS App gear using this template, follow these steps.
 
-```bash
-git clone git@github.com:flywheel-apps/bids-app-template.git my-gear
+## Create GitHub Project
+
+On https://github.com/flywheel-apps, hit the "new" button. 
+  *  Create new repository with owner "flywheel-apps" and give it a lower-case-with-dashes name like "bids-freesurfer".  In the following instructions, it will be called `bids-app`.  
+  * Give it a description like, "Gear that runs freesurfer on BIDS-curated data".  
+  * Keep it private for now, not that nobody should see it, but there's no need for a lot of intrusive questions about it before it is even released for the first time.  
+  * Check the "Initialize this repository with a README", add a .gitignore for Python, and set the license to the same license as the open source code.
+  * Press the "Create Repository" button.
+  * Clone your new project locally: press "Clone or download" and then, create a new branch for editing the repository: 
+
 ```
+git clone git@github.com:flywheel-apps/bids-app.git
+cd bids-app
+git checkout -b dev
+git push -u origin dev
+cd ..
+```
+
+At this point you'll have 3 files in your local gear directory: `.gitignore`, `LICENSE`,
+and `README.md`, and you have a "dev" branch locally and on GitHub.  If you don't want to 
+create a GitHub repository, you can just create a directory with your new bids-app name.
+
+To use this template, clone this repository locally and then move all of the files and
+folders (including the hidden ones) into the BIDS App gear repository. You created/ above.
 
 Then edit `run.py`, `manifest.json`, `Dockerfile` and other files as necessary to create
 your gear.  Python modules in `utils/` provide features to help set up the data to run on,
@@ -90,7 +111,7 @@ bids validator.
 
 ### freesurfer_license (optional)
 Your FreeSurfer license file. [Obtaining a license is free](https://surfer.nmr.mgh.harvard.edu/registration.html).
-This file will by copied into the $FSHOME directory.  There are [three ways](https://docs.flywheel.io/hc/en-us/articles/360013235453-How-to-include-a-Freesurfer-license-file-in-order-to-run-the-fMRIPrep-gear-)
+This file will be copied into the $FSHOME directory.  There are [three ways](https://docs.flywheel.io/hc/en-us/articles/360013235453-How-to-include-a-Freesurfer-license-file-in-order-to-run-the-fMRIPrep-gear-)
 to provide the license to this gear.  A license is required for this gear to run.
 
 # Configuration Options
