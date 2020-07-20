@@ -5,34 +5,8 @@ This template has a complete set of features for to help convert
 [BIDS Apps](https://bids-apps.neuroimaging.io/about/) into 
 [Flywheel Gears](https://github.com/flywheel-io/gears/tree/master/spec).
 
-To create a new BIDS App gear using this template, follow these steps.
-
-## Create GitHub Project
-
-On https://github.com/flywheel-apps, hit the "new" button. 
-  *  Create new repository with owner "flywheel-apps" and give it a lower-case-with-dashes name like "bids-freesurfer".  In the following instructions, it will be called `bids-app`.  
-  * Give it a description like, "Gear that runs freesurfer on BIDS-curated data".  
-  * Keep it private for now, not that nobody should see it, but there's no need for a lot of intrusive questions about it before it is even released for the first time.  
-  * Check the "Initialize this repository with a README", add a .gitignore for Python, and set the license to the same license as the open source code.
-  * Press the "Create Repository" button.
-  * Clone your new project locally: press "Clone or download" and then, create a new branch for editing the repository: 
-
-```
-git clone git@github.com:flywheel-apps/bids-app.git
-cd bids-app
-git checkout -b dev
-git push -u origin dev
-cd ..
-```
-
-At this point you'll have 3 files in your local gear directory: `.gitignore`, `LICENSE`,
-and `README.md`, and you have a "dev" branch locally and on GitHub.  If you don't want to 
-create a GitHub repository, you can just create a directory with your new bids-app name.
-
-To use this template, clone this repository locally and then move all of the files and
-folders (including the hidden ones) into the BIDS App gear repository. You created/ above.
-
-Then edit `run.py`, `manifest.json`, `Dockerfile` and other files as necessary to create
+To create a new BIDS App gear using this template click on "Uset this template" above and
+then edit `run.py`, `manifest.json`, `Dockerfile` and other files as necessary to create
 your gear.  Python modules in `utils/` provide features to help set up the data to run on,
 call the BIDS App command, and then get the results into the output folder.  This template
 was created specifically for gears that run on BIDS formatted data, but it can be a good start
