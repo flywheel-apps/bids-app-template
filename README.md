@@ -30,7 +30,7 @@ and `README.md`, and you have a "dev" branch locally and on GitHub.  If you don'
 create a GitHub repository, you can just create a directory with your new bids-app name.
 
 To use this template, clone this repository locally and then move all of the files and
-folders (including the hidden ones) into the BIDS App gear repostory. You created above.
+folders (including the hidden ones) into the BIDS App gear repository. You created/ above.
 
 Then edit `run.py`, `manifest.json`, `Dockerfile` and other files as necessary to create
 your gear.  Python modules in `utils/` provide features to help set up the data to run on,
@@ -111,7 +111,7 @@ bids validator.
 
 ### freesurfer_license (optional)
 Your FreeSurfer license file. [Obtaining a license is free](https://surfer.nmr.mgh.harvard.edu/registration.html).
-This file will by copied into the $FSHOME directory.  There are [three ways](https://docs.flywheel.io/hc/en-us/articles/360013235453-How-to-include-a-Freesurfer-license-file-in-order-to-run-the-fMRIPrep-gear-)
+This file will be copied into the $FSHOME directory.  There are [three ways](https://docs.flywheel.io/hc/en-us/articles/360013235453-How-to-include-a-Freesurfer-license-file-in-order-to-run-the-fMRIPrep-gear-)
 to provide the license to this gear.  A license is required for this gear to run.
 
 # Configuration Options
