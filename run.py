@@ -23,6 +23,10 @@ from utils.results.zip_intermediate import zip_all_intermediate_output
 from utils.results.zip_intermediate import zip_intermediate_selected
 
 
+GEAR = "bids-app-template"
+REPO = "flywheel-apps"
+CONTAINER = f"{REPO}/{GEAR}]"
+
 FREESURFER_FULLPATH = "/opt/freesurfer/license.txt"
 
 
@@ -147,7 +151,7 @@ def main(gtk_context):
             do_validate_bids=gtk_context.config.get("gear-run-bids-validation"),
         )
         if error_code > 0 and not gtk_context.config.get("gear-ignore-bids-errors"):
-            errors.append("BIDS Error(s) detected.  Did not run BIDS App")
+            errors.append(f"BIDS Error(s) detected.  Did not run {CONTAINER}")
 
         # now that work/bids/ exists, copy in the ignore file
         bidsignore_path = gtk_context.get_input_path("bidsignore")
@@ -286,6 +290,6 @@ if __name__ == "__main__":
 
     exit_status = main(gtk_context)
 
-    gtk_context.log.info("BIDS App Gear is done.  Returning %s", exit_status)
+    gtk_context.log.info("%s Gear is done.  Returning %s", CONTAINER, exit_status)
 
     sys.exit(exit_status)

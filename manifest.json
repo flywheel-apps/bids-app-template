@@ -136,7 +136,7 @@
     },
     "gear-run-bids-validation": {
       "default": true,
-      "description": "Gear will run BIDS validation before mriqc.  If validation fails and gear-abort-on-bids-error is true, mriq will NOT be run.",
+      "description": "Gear will run BIDS validation after downloading data.  If validation fails and gear-abort-on-bids-error is true, <command> will NOT be run.",
       "type": "boolean"
     },
     "gear-save-intermediate-output": {
@@ -156,7 +156,7 @@
     },
     "gear-dry-run": {
       "default": false,
-      "description": "Do everything except actually executing the command line",
+      "description": "Do everything except actually executing <command>",
       "type": "boolean"
     },
     "gear-keep-output": {
