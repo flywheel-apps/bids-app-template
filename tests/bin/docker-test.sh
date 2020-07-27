@@ -42,12 +42,22 @@ main() {
         shift
     done
 
-    DOCKER_IMAGE="flywheel/bids-app-template:${DOCKER_TAG}"
-
     VER=$(cat manifest.json | jq -r '.version')
     DOCKER_IMAGE_NAME=$(cat manifest.json | jq '.custom."gear-builder".image')
+    echo "DOCKER_IMAGE_NAME is" $DOCKER_IMAGE_NAME
     DOCKER_IMAGE_NAME=$( echo $DOCKER_IMAGE_NAME | tr -d '"' )
     echo "DOCKER_IMAGE_NAME is" $DOCKER_IMAGE_NAME 
+
+    IFS=':'
+    read -a strarr <<< "$DOCKER_IMAGE_NAME"
+    echo ${strarr[0]}
+    IFS='/'
+    read -a strarr <<< "$strarr"
+    echo ${strarr[1]}
+    DOCKER_IMAGE="flywheel/${strarr}:${DOCKER_TAG}"
+    echo "DOCKER_IMAGE is $DOCKER_IMAGE"
+    IFS=''
+
 
     if [ "${BUILD_IMAGE}" == "1" ]; then
 
