@@ -46,7 +46,7 @@ main() {
     DOCKER_IMAGE_NAME=$(cat manifest.json | jq '.custom."gear-builder".image')
     echo "DOCKER_IMAGE_NAME is" $DOCKER_IMAGE_NAME
     DOCKER_IMAGE_NAME=$( echo $DOCKER_IMAGE_NAME | tr -d '"' )
-    echo "DOCKER_IMAGE_NAME is" $DOCKER_IMAGE_NAME 
+    echo "DOCKER_IMAGE_NAME is" $DOCKER_IMAGE_NAME
 
     IFS=':'
     read -a strarr <<< "$DOCKER_IMAGE_NAME"

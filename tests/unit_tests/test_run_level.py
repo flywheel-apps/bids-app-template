@@ -1,13 +1,12 @@
 """Unit tests for run_level.py"""
 
-from os import chdir
-import logging
-from pathlib import Path
 import json
-from unittest.mock import patch, MagicMock
+import logging
+from os import chdir
+from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 import flywheel
-
 
 from utils.bids.run_level import get_run_level_and_hierarchy
 
@@ -162,10 +161,10 @@ def test_run_level_acquisition_works(caplog):
 
 
 def test_run_level_no_parent_says_so(caplog):
-    """Running on an acquisition as a destination e.g. (on ss.ce.flywheel.io): 
-    
+    """Running on an acquisition as a destination e.g. (on ss.ce.flywheel.io):
+
     run_level = no_parent,  job.id = 5c92a228c488760025dc699f
-    classifier acquisition  dicom-mr-classifier 0.8.2 
+    classifier acquisition  dicom-mr-classifier 0.8.2
          {'id': 'thadbrown@flywheel.io', 'type': 'user'}
     job.destination = {'id': '5c929faeb33891002dc06903', 'type': 'acquisition'}
     parent  None

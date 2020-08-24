@@ -5,7 +5,6 @@ import logging
 
 from flywheel import ApiException
 
-
 log = logging.getLogger(__name__)
 
 
@@ -17,8 +16,8 @@ def get_run_level_and_hierarchy(fw, destination_id):
         destination_id (id): id of the destination of the gear
 
     Returns:
-        hierarchy (dict): containing the run_level and labels for the 
-            run_label, group, project, subject, session, and 
+        hierarchy (dict): containing the run_level and labels for the
+            run_label, group, project, subject, session, and
             acquisition.
 
     Note:

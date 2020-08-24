@@ -1,27 +1,30 @@
 #!/usr/bin/env python3
 """Run the gear: set up for and call command-line command."""
 
-import os
-import sys
-import shutil
-import psutil
 import json
+import os
+import shutil
+import sys
 from pathlib import Path
 
 import flywheel_gear_toolkit
+import psutil
+from flywheel_gear_toolkit.interfaces.command_line import (
+    build_command_list,
+    exec_command,
+)
 from flywheel_gear_toolkit.licenses.freesurfer import install_freesurfer_license
-from flywheel_gear_toolkit.interfaces.command_line import build_command_list
-from flywheel_gear_toolkit.interfaces.command_line import exec_command
 from flywheel_gear_toolkit.utils.zip_tools import zip_output
 
-from utils.bids.run_level import get_run_level_and_hierarchy
 from utils.bids.download_run_level import download_bids_for_runlevel
-from utils.fly.make_file_name_safe import make_file_name_safe
+from utils.bids.run_level import get_run_level_and_hierarchy
 from utils.dry_run import pretend_it_ran
+from utils.fly.make_file_name_safe import make_file_name_safe
 from utils.results.zip_htmls import zip_htmls
-from utils.results.zip_intermediate import zip_all_intermediate_output
-from utils.results.zip_intermediate import zip_intermediate_selected
-
+from utils.results.zip_intermediate import (
+    zip_all_intermediate_output,
+    zip_intermediate_selected,
+)
 
 GEAR = "bids-app-template"
 REPO = "flywheel-apps"
@@ -61,10 +64,10 @@ def main(gtk_context):
     n_cpus = gtk_context.config.get("n_cpus")
     if n_cpus:
         if n_cpus > os_cpu_count:
-            log.warning('n_cpus > number available, using %d', os_cpu_count)
+            log.warning("n_cpus > number available, using %d", os_cpu_count)
             gtk_context.config["n_cpus"] = os_cpu_count
         elif n_cpus == 0:
-            log.info('n_cpus == 0, using %d (maximum available)', os_cpu_count)
+            log.info("n_cpus == 0, using %d (maximum available)", os_cpu_count)
             gtk_context.config["n_cpus"] = os_cpu_count
     else:  # Default is to use all cpus available
         gtk_context.config["n_cpus"] = os_cpu_count  # zoom zoom
@@ -282,7 +285,7 @@ if __name__ == "__main__":
     gtk_context = flywheel_gear_toolkit.GearToolkitContext()
 
     # Setup basic logging and log the configuration for this job
-    if gtk_context["gear-log-level"] == 'INFO':
+    if gtk_context["gear-log-level"] == "INFO":
         gtk_context.init_logging("info")
     else:
         gtk_context.init_logging("debug")

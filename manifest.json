@@ -168,7 +168,7 @@
       "description": "Text from license file generated during FreeSurfer registration. *Entries should be space separated*",
       "type": "string",
       "optional": true
-    }   
+    }
   },
   "environment": {
     "PYTHONUNBUFFERED": "1"

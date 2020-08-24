@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """A robust template for accessing BIDS formatted data."""
 
-from pathlib import Path
 import json
 import logging
+from pathlib import Path
 
 from flywheel import ApiException
 from flywheel_bids.export_bids import download_bids_dir
+
 from utils.bids.errors import BIDSExportError
 
-from .validate import validate_bids
 from .tree import tree_bids
-
+from .validate import validate_bids
 
 log = logging.getLogger(__name__)
 
@@ -94,8 +94,8 @@ def download_bids_for_runlevel(
 
     Args:
         gtk_context (gear_toolkit.GearToolkitContext): flywheel gear context
-        hierarchy (dict): containing the run_level and labels for the 
-            run_label, group, project, subject, session, and 
+        hierarchy (dict): containing the run_level and labels for the
+            run_label, group, project, subject, session, and
             acquisition.
         tree (boolean): create HTML page in output showing 'tree' of bids data
         src_data (boolean): download source data (dicoms) as well

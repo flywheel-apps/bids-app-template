@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """For test(s) *.zip, unzip into directory with same name.
 
-Use "unpack-tests.py all" to unzip every test unless it is 
+Use "unpack-tests.py all" to unzip every test unless it is
 already unzipped.
 
 Example:
@@ -10,10 +10,10 @@ Example:
 """
 
 import argparse
+import glob
 import os
 from pathlib import Path
 from zipfile import ZipFile
-import glob
 
 
 def main():

@@ -1,21 +1,19 @@
 """Unit tests for download_run_level.py"""
 
+import copy
+import json
 import logging
 from pathlib import Path
-import json
 from unittest.mock import patch
-import copy
 
 import flywheel
 import flywheel_gear_toolkit
 
-
 from utils.bids.download_run_level import (
-    fix_dataset_description,
     download_bids_for_runlevel,
+    fix_dataset_description,
 )
 from utils.bids.errors import BIDSExportError
-
 
 DATASET_DESCRIPTION = {
     "Acknowledgements": "",
