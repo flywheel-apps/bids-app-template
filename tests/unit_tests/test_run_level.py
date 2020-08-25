@@ -23,7 +23,7 @@ class Session:
 
 class Subject:
     def __init__(self):
-        self.code = "TheSubjectCode"
+        self.label = "TheSubjectCode"
 
 
 class Project:
@@ -89,7 +89,7 @@ def test_run_level_project_works(caplog):
     assert "run_level = project" in caplog.records[0].message
     assert "monkeyshine" in caplog.records[1].message
     assert "TheProjectLabel" in caplog.records[2].message
-    assert "subject_code = unknown subject" in caplog.records[3].message
+    assert "subject_label = unknown subject" in caplog.records[3].message
     assert "session_label = unknown session" in caplog.records[4].message
     assert "acquisition_label = unknown acquisition" in caplog.records[5].message
 
@@ -112,7 +112,7 @@ def test_run_level_subject_works(caplog):
     assert "run_level = subject" in caplog.records[0].message
     assert "monkeyshine" in caplog.records[1].message
     assert "TheProjectLabel" in caplog.records[2].message
-    assert "subject_code = TheSubjectCode" in caplog.records[3].message
+    assert "subject_label = TheSubjectCode" in caplog.records[3].message
     assert "session_label = unknown session" in caplog.records[4].message
     assert "acquisition_label = unknown acquisition" in caplog.records[5].message
 
@@ -134,7 +134,7 @@ def test_run_level_session_works(caplog):
     assert "run_level = session" in caplog.records[0].message
     assert "monkeyshine" in caplog.records[1].message
     assert "TheProjectLabel" in caplog.records[2].message
-    assert "subject_code = TheSubjectCode" in caplog.records[3].message
+    assert "subject_label = TheSubjectCode" in caplog.records[3].message
     assert "session_label = TheSessionLabel" in caplog.records[4].message
     assert "acquisition_label = unknown acquisition" in caplog.records[5].message
 
@@ -155,7 +155,7 @@ def test_run_level_acquisition_works(caplog):
     assert "run_level = acquisition" in caplog.records[0].message
     assert "monkeyshine" in caplog.records[1].message
     assert "TheProjectLabel" in caplog.records[2].message
-    assert "subject_code = TheSubjectCode" in caplog.records[3].message
+    assert "subject_label = TheSubjectCode" in caplog.records[3].message
     assert "session_label = TheSessionLabel" in caplog.records[4].message
     assert "acquisition_label = TheAcquisitionLabel" in caplog.records[5].message
 

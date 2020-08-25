@@ -90,7 +90,7 @@ HIERARCHY = {
     "run_label": "acquisition_label",
     "group": "monkeyshine",
     "project_label": "TheProjectLabel",
-    "subject_code": "TheSubjectCode",
+    "subject_label": "TheSubjectCode",
     "session_label": "TheSessionLabel",
     "acquisition_label": "TheAcquisitionLabel",
 }

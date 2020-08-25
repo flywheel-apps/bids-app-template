@@ -51,14 +51,15 @@ def get_run_level_and_hierarchy(fw, destination_id):
 
         if destination.parents["subject"]:
             subject = fw.get(destination.parents["subject"])
-            subject_code = subject.code
-            # subject_label = subject.label
+            print(subject)
+            # subject_code = subject.code
+            subject_label = subject.label
             # subject_master_code = subject.master_code
             # subject_firstname = subject.firstname
             # subject_lastname = subject.lastname
         else:
-            subject_code = "unknown subject"
-        log.info("subject_code = %s", subject_code)
+            subject_label = "unknown subject"
+        log.info("subject_label = %s", subject_label)
 
         if destination.parents["session"]:
             session = fw.get(destination.parents["session"])
@@ -77,7 +78,7 @@ def get_run_level_and_hierarchy(fw, destination_id):
         if run_level == "project":
             run_label = project_label
         elif run_level == "subject":
-            run_label = subject_code
+            run_label = subject_label
         elif run_level == "session":
             run_label = session_label
         elif run_level == "acquisition":
@@ -91,7 +92,7 @@ def get_run_level_and_hierarchy(fw, destination_id):
         run_label = "unknown"
         group = None
         project_label = None
-        subject_code = None
+        subject_label = None
         session_label = None
         acquisition_label = None
 
@@ -100,7 +101,7 @@ def get_run_level_and_hierarchy(fw, destination_id):
         "run_label": run_label,
         "group": group,
         "project_label": project_label,
-        "subject_code": subject_code,
+        "subject_label": subject_label,
         "session_label": session_label,
         "acquisition_label": acquisition_label,
     }

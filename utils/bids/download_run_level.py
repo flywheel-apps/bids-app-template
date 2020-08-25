@@ -155,7 +155,9 @@ def download_bids_for_runlevel(
 
         elif gtk_context.destination["type"] == "acquisition":
             log.info("Destination is acquisition, changing run_level to " "acquisition")
-            acquisition = gtk_context.client.get(gtk_context.destination["id"])
+            acquisition = gtk_context.client.get_acquisition(
+                gtk_context.destination["id"]
+            )
             hierarchy["acquisition_label"] = acquisition.label
             extra_tree_text += (
                 f'  {"acquisition_label":<18}: changed to ' + f"{acquisition.label}\n\n"
@@ -204,7 +206,9 @@ def download_bids_for_runlevel(
 
             elif run_level == "subject":
 
-                log.info('Downloading BIDS for subject "%s"', hierarchy["subject_code"])
+                log.info(
+                    'Downloading BIDS for subject "%s"', hierarchy["subject_label"]
+                )
 
                 if Path(BIDS_DIR).exists():
                     bids_path = BIDS_DIR
@@ -215,7 +219,7 @@ def download_bids_for_runlevel(
                         src_data=src_data,
                         folders=folders,
                         dry_run=dry_run,
-                        subjects=[hierarchy["subject_code"]],
+                        subjects=[hierarchy["subject_label"]],
                     )
 
             elif run_level == "session":
@@ -233,7 +237,7 @@ def download_bids_for_runlevel(
                         src_data=src_data,
                         folders=folders,
                         dry_run=dry_run,
-                        subjects=[hierarchy["subject_code"]],
+                        subjects=[hierarchy["subject_label"]],
                         sessions=[hierarchy["session_label"]],
                     )
 
