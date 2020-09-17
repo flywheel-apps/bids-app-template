@@ -1,7 +1,7 @@
 # bids-app-template
 A Template for Gears running on BIDS formatted data.
 
-This template has a complete set of features for to help convert
+This template has a complete set of features to help convert
 [BIDS Apps](https://bids-apps.neuroimaging.io/about/) into
 [Flywheel Gears](https://github.com/flywheel-io/gears/tree/master/spec).
 
