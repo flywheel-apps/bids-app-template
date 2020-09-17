@@ -53,7 +53,7 @@ inside the running docker container.  Here is the "dry_run" test:
                         └── sub-TOME3024_ses-Session2_acq-MPR_T1w.nii.gz
 ```
 
-If you are logged in to a Flywheel instance and have a fake api-key installed in `config.json`,
+If you are logged in to a Flywheel instance,
 these integration tests can make SDK calls on that instance using your api-key.
 
 In the dry_run test shown above, BIDS formatted data is included in the test so it does not need
