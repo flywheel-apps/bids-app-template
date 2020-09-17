@@ -30,7 +30,19 @@ GEAR = "bids-app-template"
 REPO = "flywheel-apps"
 CONTAINER = f"{REPO}/{GEAR}]"
 
-FREESURFER_FULLPATH = "/opt/freesurfer/license.txt"
+# The BIDS App command to run
+BIDS_APP = "./tests/test.sh"
+
+# What level to run at (positional_argument #3)
+ANALYSIS_LEVEL = "participant"  # "group"
+
+# when downloading BIDS Limit download to specific folders? e.g. ['anat','func','fmap']
+DOWNLOAD_MODALITIES = []  # empty list is no limit
+
+# Whether or not to include src data (e.g. dicoms) when downloading BIDS
+DOWNLOAD_SOURCE = False
+
+FREESURFER_LICENSE = "/opt/freesurfer/license.txt"
 
 
 def main(gtk_context):
@@ -86,21 +98,9 @@ def main(gtk_context):
             kv += k + "=" + v + " "
         log.debug("Environment: " + kv)
 
-    # get config for command by skipping gear config parameters
-    command_config = {}
-    for key, val in gtk_context.config.items():
-        if not key.startswith("gear-"):
-            command_config[key] = val
-    # print("command_config:", json.dumps(command_config, indent=4))
-
-    # Validate the command parameter dictionary - make sure everything is
-    # ready to run so errors will appear before launching the actual gear
-    # code.  Add descriptions of problems to errors & warnings lists.
-    # print("gtk_context.config:", json.dumps(gtk_context.config, indent=4))
-
     # The main command line command to be run:
     # editme: Set the actual gear command:
-    command = ["./tests/test.sh"]
+    command = [BIDS_APP]
 
     # This is also used as part of the name of output files
     command_name = make_file_name_safe(command[0])
@@ -111,23 +111,44 @@ def main(gtk_context):
     # These follow the BIDS Apps definition (https://github.com/BIDS-Apps)
     command.append(str(gtk_context.work_dir / "bids"))
     command.append(str(output_analysisid_dir))
-    command.append("participant")
+    command.append(ANALYSIS_LEVEL)
+
+    # get config for command by skipping gear config parameters
+    command_config = {}
+    for key, val in gtk_context.config.items():
+
+        if key == "bids_app_args":
+            bids_app_args = val.split(" ")
+            for baa in bids_app_args:
+                command.append(baa)
+
+        elif not key.startswith("gear-"):
+            command_config[key] = val
+
+    # print("command_config:", json.dumps(command_config, indent=4))
+
+    # Validate the command parameter dictionary - make sure everything is
+    # ready to run so errors will appear before launching the actual gear
+    # code.  Add descriptions of problems to errors & warnings lists.
+    # print("gtk_context.config:", json.dumps(gtk_context.config, indent=4))
 
     command = build_command_list(command, command_config)
     # print(command)
 
-    # editme: only for --verbose argparse argument
+    # editme: fix --verbose argparse argument
     for ii, cmd in enumerate(command):
         if cmd.startswith("--verbose"):
             # handle a 'count' argparse argument where manifest gives
             # enumerated possibilities like v, vv, or vvv
             # e.g. replace "--verbose=vvv' with '-vvv'
-            command[ii] = cmd.split("=")[1]
+            command[ii] = "-" + cmd.split("=")[1]
+
+    log.info("command is: %s", str(command))
 
     # editme: if the command needs a freesurfer license keep this
-    if Path(FREESURFER_FULLPATH).exists():
-        log.debug("%s exists.", FREESURFER_FULLPATH)
-    install_freesurfer_license(gtk_context, FREESURFER_FULLPATH)
+    if Path(FREESURFER_LICENSE).exists():
+        log.debug("%s exists.", FREESURFER_LICENSE)
+    install_freesurfer_license(gtk_context, FREESURFER_LICENSE)
 
     if len(errors) == 0:
 
@@ -136,20 +157,13 @@ def main(gtk_context):
         tree = True
         tree_title = f"{command_name} BIDS Tree"
 
-        # Whether or not to include src data (e.g. dicoms) when downloading BIDS
-        src_data = False
-
-        # Limit download to specific folders? e.g. ['anat','func','fmap']
-        # when downloading BIDS
-        folders = []  # empty list is no limit
-
         error_code = download_bids_for_runlevel(
             gtk_context,
             hierarchy,
             tree=tree,
             tree_title=tree_title,
-            src_data=src_data,
-            folders=folders,
+            src_data=DOWNLOAD_SOURCE,
+            folders=DOWNLOAD_MODALITIES,
             dry_run=gtk_context.config.get("gear-dry-run"),
             do_validate_bids=gtk_context.config.get("gear-run-bids-validation"),
         )

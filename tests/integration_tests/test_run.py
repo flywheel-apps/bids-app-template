@@ -71,6 +71,27 @@ def install_gear(zip_name):
         print(f"{str(config_json)} does not exist.  Can't set api key.")
 
 
+def search_caplog(caplog, find_me):
+    """Search caplog message for find_me, return message"""
+
+    for msg in caplog.messages:
+        if find_me in msg:
+            return msg
+    return ""
+
+
+def search_caplog_contains(caplog, find_me, contains_me):
+    """Search caplog message for find_me, return true if it contains contains_me"""
+
+    for msg in caplog.messages:
+        if find_me in msg:
+            print(f"Found '{find_me}' in '{msg}'")
+            if contains_me in msg:
+                print(f"Found '{contains_me}' in '{msg}'")
+                return True
+    return False
+
+
 def print_caplog(caplog):
 
     print("\nmessages")
@@ -113,12 +134,14 @@ def test_dry_run_works(caplog):
         print_caplog(caplog)
 
         assert Path("/flywheel/v0/work/bids/.bidsignore").exists()
-        assert "No BIDS errors detected." in caplog.messages[32]
-        assert "Zipping work directory" in caplog.messages[50]
-        assert "file:   ./bids/dataset_description.json" in caplog.messages[53]
-        assert "folder: ./reportlets/somecmd/sub-TOME3024/anat" in caplog.messages[55]
-        assert "Could not find file" in caplog.messages[57]
-        assert "gear-dry-run is set" in caplog.messages[59]
+        assert search_caplog_contains(caplog, "command is", "participant")
+        assert search_caplog_contains(caplog, "command is", "'arg1', 'arg2'")
+        assert search_caplog(caplog, "No BIDS errors detected.")
+        assert search_caplog(caplog, "Zipping work directory")
+        assert search_caplog(caplog, "file:   ./bids/dataset_description.json")
+        assert search_caplog(caplog, "folder: ./reportlets/somecmd/sub-TOME3024/anat")
+        assert search_caplog(caplog, "Could not find file")
+        assert search_caplog(caplog, "Warning: gear-dry-run is set")
         assert status == 0
 
 
@@ -138,6 +161,6 @@ def test_wet_run_works(caplog):
 
         print_caplog(caplog)
 
-        assert "sub-TOME3024_ses-Session2_acq-MPR_T1w.nii.gz" in caplog.messages[30]
-        assert "Not running BIDS validation" in caplog.messages[38]
-        assert "now I generate an error" in caplog.messages[44]
+        assert search_caplog(caplog, "sub-TOME3024_ses-Session2_acq-MPR_T1w.nii.gz")
+        assert search_caplog(caplog, "Not running BIDS validation")
+        assert search_caplog(caplog, "now I generate an error")
