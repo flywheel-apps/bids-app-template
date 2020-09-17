@@ -30,7 +30,7 @@ GEAR = "bids-app-template"
 REPO = "flywheel-apps"
 CONTAINER = f"{REPO}/{GEAR}]"
 
-# The BIDS App command to run
+# The BIDS App command to run, e.g. "mriqc"
 BIDS_APP = "./tests/test.sh"
 
 # What level to run at (positional_argument #3)
