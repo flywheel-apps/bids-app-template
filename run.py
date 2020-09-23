@@ -47,6 +47,12 @@ FREESURFER_LICENSE = "/opt/freesurfer/license.txt"
 
 def main(gtk_context):
 
+    # Setup basic logging and log the configuration for this job
+    if gtk_context.config["gear-log-level"] == "INFO":
+        gtk_context.init_logging("info")
+    else:
+        gtk_context.init_logging("debug")
+    gtk_context.log_config()
     log = gtk_context.log
 
     # Keep a list of errors and warning to print all in one place at end of log
@@ -291,22 +297,11 @@ def main(gtk_context):
             log.info(msg)
             returncode = 1
 
+    log.info("%s Gear is done.  Returning %s", CONTAINER, returncode)
+
     return returncode
 
 
 if __name__ == "__main__":
 
-    gtk_context = flywheel_gear_toolkit.GearToolkitContext()
-
-    # Setup basic logging and log the configuration for this job
-    if gtk_context["gear-log-level"] == "INFO":
-        gtk_context.init_logging("info")
-    else:
-        gtk_context.init_logging("debug")
-    gtk_context.log_config()
-
-    exit_status = main(gtk_context)
-
-    gtk_context.log.info("%s Gear is done.  Returning %s", CONTAINER, exit_status)
-
-    sys.exit(exit_status)
+    sys.exit(main(flywheel_gear_toolkit.GearToolkitContext()))

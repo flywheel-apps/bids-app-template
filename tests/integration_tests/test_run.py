@@ -102,6 +102,36 @@ def print_caplog(caplog):
         print(f"{ii:2d} {rec}")
 
 
+def search_stdout_contains(captured, find_me, contains_me):
+    """Search stdout message for find_me, return true if it contains contains_me"""
+
+    for msg in captured.out.split("/n"):
+        if find_me in msg:
+            print(f"Found '{find_me}' in '{msg}'")
+            if contains_me in msg:
+                print(f"Found '{contains_me}' in '{msg}'")
+                return True
+    return False
+
+
+def search_sysout(captured, find_me):
+    """Search capsys message for find_me, return message"""
+
+    for msg in captured.out.split("/n"):
+        if find_me in msg:
+            return msg
+    return ""
+
+
+def search_syserr(captured, find_me):
+    """Search capsys message for find_me, return message"""
+
+    for msg in captured.err.split("\n"):
+        if find_me in msg:
+            return msg
+    return ""
+
+
 def print_captured(captured):
 
     print("\nout")
@@ -117,13 +147,11 @@ def print_captured(captured):
 #
 
 
-def test_dry_run_works(caplog):
+def test_dry_run_works(capfd):
 
     user_json = Path(Path.home() / ".config/flywheel/user.json")
     if not user_json.exists():
         TestCase.skipTest("", f"No API key available in {str(user_json)}")
-
-    caplog.set_level(logging.DEBUG)
 
     install_gear("dry_run.zip")
 
@@ -131,27 +159,25 @@ def test_dry_run_works(caplog):
 
         status = run.main(gtk_context)
 
-        print_caplog(caplog)
+        captured = capfd.readouterr()
 
-        assert Path("/flywheel/v0/work/bids/.bidsignore").exists()
-        assert search_caplog_contains(caplog, "command is", "participant")
-        assert search_caplog_contains(caplog, "command is", "'arg1', 'arg2'")
-        assert search_caplog(caplog, "No BIDS errors detected.")
-        assert search_caplog(caplog, "Zipping work directory")
-        assert search_caplog(caplog, "file:   ./bids/dataset_description.json")
-        assert search_caplog(caplog, "folder: ./reportlets/somecmd/sub-TOME3024/anat")
-        assert search_caplog(caplog, "Could not find file")
-        assert search_caplog(caplog, "Warning: gear-dry-run is set")
         assert status == 0
+        assert Path("/flywheel/v0/work/bids/.bidsignore").exists()
+        assert search_stdout_contains(captured, "command is", "participant")
+        assert search_stdout_contains(captured, "command is", "'arg1', 'arg2'")
+        assert search_syserr(captured, "No BIDS errors detected.")
+        assert search_sysout(captured, "Zipping work directory")
+        assert search_sysout(captured, "file:   ./bids/dataset_description.json")
+        assert search_sysout(captured, "folder: ./reportlets/somecmd/sub-TOME3024/anat")
+        assert search_syserr(captured, "Could not find file")
+        assert search_sysout(captured, "Warning: gear-dry-run is set")
 
 
-def test_wet_run_works(caplog):
+def test_wet_run_errors(capfd):
 
     user_json = Path(Path.home() / ".config/flywheel/user.json")
     if not user_json.exists():
         TestCase.skipTest("", f"No API key available in {str(user_json)}")
-
-    caplog.set_level(logging.DEBUG)
 
     install_gear("wet_run.zip")
 
@@ -159,8 +185,11 @@ def test_wet_run_works(caplog):
 
         status = run.main(gtk_context)
 
-        print_caplog(caplog)
+        captured = capfd.readouterr()
+        print_captured(captured)
 
-        assert search_caplog(caplog, "sub-TOME3024_ses-Session2_acq-MPR_T1w.nii.gz")
-        assert search_caplog(caplog, "Not running BIDS validation")
-        assert search_caplog(caplog, "now I generate an error")
+        assert status == 1
+        assert search_sysout(captured, "sub-TOME3024_ses-Session2_acq-MPR_T1w.nii.gz")
+        assert search_sysout(captured, "Not running BIDS validation")
+        assert search_sysout(captured, "now I generate an error")
+        assert search_syserr(captured, "Unable to execute command")
