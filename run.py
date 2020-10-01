@@ -329,6 +329,19 @@ def main(gtk_context):
         else:
             log.info("Output directory does not exist so it cannot be removed")
 
+        # editme: optional feature
+        # save .metadata file
+        metadata = {
+            "project": {"info": {"test": "Hello project"}},
+            "session": {
+                "info": {"test": "Hello session"},
+                "subject": {"info": {"test": "Hello subject"}},
+            },
+            "analysis": {"info": {"test": "Hello analysis"}},
+        }
+        with open(f"{gtk_context.output_dir}/.metadata.json", "w") as fff:
+            json.dump(metadata, fff)
+
         # Report errors and warnings at the end of the log so they can be easily seen.
         if len(WARNINGS) > 0:
             msg = "Previous warnings:\n"
