@@ -194,9 +194,8 @@ def main(gtk_context):
 
     # Given the destination container, figure out if running at the project,
     # subject, or session level.
-    hierarchy = get_run_level_and_hierarchy(
-        gtk_context.client, gtk_context.destination["id"]
-    )
+    destination_id = gtk_context.destination["id"]
+    hierarchy = get_run_level_and_hierarchy(gtk_context.client, destination_id)
 
     # This is the label of the project, subject or session and is used
     # as part of the name of the output files.
@@ -205,7 +204,7 @@ def main(gtk_context):
     # Output will be put into a directory named as the destination id.
     # This allows the raw output to be deleted so that a zipped archive
     # can be returned.
-    output_analysis_id_dir = gtk_context.output_dir / gtk_context.destination["id"]
+    output_analysis_id_dir = gtk_context.output_dir / destination_id
 
     # editme: optional feature -- set # threads and max memory to use
     set_performance_config(config, log)
@@ -291,12 +290,11 @@ def main(gtk_context):
         # zip entire output/<analysis_id> folder into
         #  <gear_name>_<project|subject|session label>_<analysis.id>.zip
         zip_file_name = (
-            gtk_context.manifest["name"]
-            + f"_{run_label}_{gtk_context.destination['id']}.zip"
+            gtk_context.manifest["name"] + f"_{run_label}_{destination_id}.zip"
         )
         zip_output(
             str(gtk_context.output_dir),
-            gtk_context.destination["id"],
+            destination_id,
             zip_file_name,
             dry_run=False,
             exclude_files=None,
@@ -332,15 +330,49 @@ def main(gtk_context):
         # editme: optional feature
         # save .metadata file
         metadata = {
-            "project": {"info": {"test": "Hello project"}},
-            "session": {
-                "info": {"test": "Hello session"},
-                "subject": {"info": {"test": "Hello subject"}},
+            "project": {
+                "info": {
+                    "test": "Hello project",
+                    f"{run_label} {destination_id}": "put this here",
+                },
+                "tags": [run_label, destination_id],
             },
-            "analysis": {"info": {"test": "Hello analysis"}},
+            "subject": {
+                "info": {
+                    "test": "Hello subject",
+                    f"{run_label} {destination_id}": "put this here",
+                },
+                "tags": [run_label, destination_id],
+            },
+            "session": {
+                "info": {
+                    "test": "Hello session",
+                    f"{run_label} {destination_id}": "put this here",
+                },
+                "tags": [run_label, destination_id],
+            },
+            "analysis": {
+                "info": {
+                    "test": "Hello analysis",
+                    f"{run_label} {destination_id}": "put this here",
+                },
+                "files": [
+                    {
+                        "name": "bids_tree.html",
+                        "info": {
+                            "value1": "foo",
+                            "value2": "bar",
+                            f"{run_label} {destination_id}": "put this here",
+                        },
+                        "tags": ["ein", "zwei"],
+                    }
+                ],
+                "tags": [run_label, destination_id],
+            },
         }
         with open(f"{gtk_context.output_dir}/.metadata.json", "w") as fff:
             json.dump(metadata, fff)
+            log.info(f"Wrote {gtk_context.output_dir}/.metadata.json")
 
         # Report errors and warnings at the end of the log so they can be easily seen.
         if len(WARNINGS) > 0:
