@@ -140,11 +140,9 @@
     },
     "gear-log-level": {
       "default": "INFO",
-      "description": "Gear Log verbosity level (ERROR|WARNING|INFO|DEBUG)",
+      "description": "Gear Log verbosity level (INFO|DEBUG)",
       "type": "string",
                         "enum": [
-                                "ERROR",
-                                "WARNING",
                                 "INFO",
                                 "DEBUG"
                         ]
