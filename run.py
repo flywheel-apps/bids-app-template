@@ -48,11 +48,6 @@ DOWNLOAD_SOURCE = False
 FREESURFER_LICENSE = "/opt/freesurfer/license.txt"
 ENVIRONMENT_FILE = "/tmp/gear_environ.json"
 
-# Keep a list of errors and warning to print all in one place at end of log
-# Any errors will prevent the command from running and will cause exit(1)
-ERRORS = []
-WARNINGS = []
-
 
 def set_performance_config(config, log):
     """Set run-time performance config params to pass to BIDS App.
@@ -121,7 +116,7 @@ def get_and_log_environment(log):
     return environ
 
 
-def generate_command(config, work_dir, output_analysis_id_dir, log):
+def generate_command(config, work_dir, output_analysis_id_dir, log, errors, warnings):
     """Build the main command line command to run.
 
     Args:
@@ -150,6 +145,7 @@ def generate_command(config, work_dir, output_analysis_id_dir, log):
     command_parameters = {}
     for key, val in config.items():
 
+        # these arguments are passed directly to the command as is
         if key == "bids_app_args":
             bids_app_args = val.split(" ")
             for baa in bids_app_args:
@@ -162,8 +158,12 @@ def generate_command(config, work_dir, output_analysis_id_dir, log):
     # ready to run so errors will appear before launching the actual gear
     # code.  Add descriptions of problems to errors & warnings lists.
     # print("command_parameters:", json.dumps(command_parameters, indent=4))
-    # ERRORS.append("error message")
-    # WARNINGS.append("warning message")
+    if "bad_arg" in cmd:
+        errors.append("A bad argument was found in the config.")
+    if command_parameters["num-things"] > 41:
+        warnings.append(
+            f"The num-things config value should not be > 41.  It is {command_parameters['num-things']}."
+        )
 
     cmd = build_command_list(cmd, command_parameters)
 
@@ -181,6 +181,11 @@ def generate_command(config, work_dir, output_analysis_id_dir, log):
 
 def main(gtk_context):
 
+    # Keep a list of errors and warning to print all in one place at end of log
+    # Any errors will prevent the command from running and will cause exit(1)
+    errors = []
+    warnings = []
+
     # run-time configuration options from the gear's context.json
     config = gtk_context.config
 
@@ -194,9 +199,8 @@ def main(gtk_context):
 
     # Given the destination container, figure out if running at the project,
     # subject, or session level.
-    hierarchy = get_run_level_and_hierarchy(
-        gtk_context.client, gtk_context.destination["id"]
-    )
+    destination_id = gtk_context.destination["id"]
+    hierarchy = get_run_level_and_hierarchy(gtk_context.client, destination_id)
 
     # This is the label of the project, subject or session and is used
     # as part of the name of the output files.
@@ -205,7 +209,7 @@ def main(gtk_context):
     # Output will be put into a directory named as the destination id.
     # This allows the raw output to be deleted so that a zipped archive
     # can be returned.
-    output_analysis_id_dir = gtk_context.output_dir / gtk_context.destination["id"]
+    output_analysis_id_dir = gtk_context.output_dir / destination_id
 
     # editme: optional feature -- set # threads and max memory to use
     set_performance_config(config, log)
@@ -218,14 +222,14 @@ def main(gtk_context):
     install_freesurfer_license(gtk_context, FREESURFER_LICENSE)
 
     command = generate_command(
-        config, gtk_context.work_dir, output_analysis_id_dir, log
+        config, gtk_context.work_dir, output_analysis_id_dir, log, errors, warnings
     )
 
     # This is used as part of the name of output files
     command_name = make_file_name_safe(command[0])
 
     # Download BIDS Formatted data
-    if len(ERRORS) == 0:
+    if len(errors) == 0:
 
         # editme: optional feature
         # Create HTML file that shows BIDS "Tree" like output
@@ -243,23 +247,27 @@ def main(gtk_context):
             do_validate_bids=config.get("gear-run-bids-validation"),
         )
         if error_code > 0 and not config.get("gear-ignore-bids-errors"):
-            ERRORS.append(f"BIDS Error(s) detected.  Did not run {CONTAINER}")
+            errors.append(f"BIDS Error(s) detected.  Did not run {CONTAINER}")
+
+    else:
+        log.info("Did not download BIDS because of previous errors")
+        print(errors)
 
     # Don't run if there were errors or if this is a dry run
     ok_to_run = True
     return_code = 0
 
-    if len(ERRORS) > 0:
+    if len(errors) > 0:
         ok_to_run = False
         return_code = 1
         log.info("Command was NOT run because of previous errors.")
 
-    if config.get("gear-dry-run"):
+    elif config.get("gear-dry-run"):
         ok_to_run = False
         return_code = 0
         e = "gear-dry-run is set: Command was NOT run."
         log.warning(e)
-        WARNINGS.append(e)
+        warnings.append(e)
         pretend_it_ran(gtk_context)
 
     try:
@@ -275,7 +283,7 @@ def main(gtk_context):
 
     except RuntimeError as exc:
         return_code = 1
-        ERRORS.append(exc)
+        errors.append(exc)
         log.critical(exc)
         log.exception("Unable to execute command.")
 
@@ -291,12 +299,11 @@ def main(gtk_context):
         # zip entire output/<analysis_id> folder into
         #  <gear_name>_<project|subject|session label>_<analysis.id>.zip
         zip_file_name = (
-            gtk_context.manifest["name"]
-            + f"_{run_label}_{gtk_context.destination['id']}.zip"
+            gtk_context.manifest["name"] + f"_{run_label}_{destination_id}.zip"
         )
         zip_output(
             str(gtk_context.output_dir),
-            gtk_context.destination["id"],
+            destination_id,
             zip_file_name,
             dry_run=False,
             exclude_files=None,
@@ -329,21 +336,63 @@ def main(gtk_context):
         else:
             log.info("Output directory does not exist so it cannot be removed")
 
+        # editme: optional feature
+        # save .metadata file
+        metadata = {
+            "project": {
+                "info": {
+                    "test": "Hello project",
+                    f"{run_label} {destination_id}": "put this here",
+                },
+                "tags": [run_label, destination_id],
+            },
+            "subject": {
+                "info": {
+                    "test": "Hello subject",
+                    f"{run_label} {destination_id}": "put this here",
+                },
+                "tags": [run_label, destination_id],
+            },
+            "session": {
+                "info": {
+                    "test": "Hello session",
+                    f"{run_label} {destination_id}": "put this here",
+                },
+                "tags": [run_label, destination_id],
+            },
+            "analysis": {
+                "info": {
+                    "test": "Hello analysis",
+                    f"{run_label} {destination_id}": "put this here",
+                },
+                "files": [
+                    {
+                        "name": "bids_tree.html",
+                        "info": {
+                            "value1": "foo",
+                            "value2": "bar",
+                            f"{run_label} {destination_id}": "put this here",
+                        },
+                        "tags": ["ein", "zwei"],
+                    }
+                ],
+                "tags": [run_label, destination_id],
+            },
+        }
+        with open(f"{gtk_context.output_dir}/.metadata.json", "w") as fff:
+            json.dump(metadata, fff)
+            log.info(f"Wrote {gtk_context.output_dir}/.metadata.json")
+
         # Report errors and warnings at the end of the log so they can be easily seen.
-        if len(WARNINGS) > 0:
+        if len(warnings) > 0:
             msg = "Previous warnings:\n"
-            for err in WARNINGS:
-                if str(type(err)).split("'")[1] == "str":
-                    # show string
-                    msg += "  Warning: " + str(err) + "\n"
-                else:  # show type (of warning) and warning message
-                    err_type = str(type(err)).split("'")[1]
-                    msg += f"  {err_type}: {str(err)}\n"
+            for warn in warnings:
+                msg += "  Warning: " + str(warn) + "\n"
             log.info(msg)
 
-        if len(ERRORS) > 0:
+        if len(errors) > 0:
             msg = "Previous errors:\n"
-            for err in ERRORS:
+            for err in errors:
                 if str(type(err)).split("'")[1] == "str":
                     # show string
                     msg += "  Error msg: " + str(err) + "\n"
