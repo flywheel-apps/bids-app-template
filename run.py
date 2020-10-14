@@ -160,7 +160,9 @@ def generate_command(config, work_dir, output_analysis_id_dir, log, errors, warn
     # print("command_parameters:", json.dumps(command_parameters, indent=4))
     if "bad_arg" in cmd:
         errors.append("A bad argument was found in the config.")
-    if command_parameters["num-things"] > 41:
+    num_things = command_parameters.get("num-things")
+    print(f"num_things = {str(num_things)}")
+    if num_things and num_things > 41:
         warnings.append(
             f"The num-things config value should not be > 41.  It is {command_parameters['num-things']}."
         )
