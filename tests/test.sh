@@ -19,26 +19,28 @@ echo "add html files to find in $output_dir"
 cp /flywheel/v0/output/bids_tree.html $output_dir
 cp /flywheel/v0/output/bids_tree.html $output_dir/index.html
 
+echo "ls "
+ls
+
+echo "arguments: $@"
+
+echo "$4 $5 $6"
+
+if [ "$4" == "sleep" ]; then
+    echo "echo-sleep test"
+    for t in $(seq 1 $5) ; do
+        sleep $(( $6 ))
+        echo "$t) slept $(( $6 )) seconds"
+        /bin/date
+        echo "$(/bin/date) this goes to stderr" >&2
+    done
+fi
+
 if [ -f input/make_me_barf ]; then
     echo "input/make_me_barf exists, so now I generate an error"
     cd no_such_directory
 else
     echo "I will not generate an error"
-fi
-
-echo "ls "
-ls
-
-if [ -f input/skip_echo_sleep ]; then
-    echo "Skipping echo-sleep test"
-else
-    # for t in 1 1 1 1 1 1 1 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 ; do
-    for t in 1 1 4 ; do
-        sleep $(( $t ))
-        echo "that was $(( $t )) seconds"
-        /bin/date
-        echo "this goes to stderr" >&2
-    done
 fi
 
 echo "test.sh is done"

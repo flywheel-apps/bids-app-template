@@ -183,7 +183,9 @@ def download_bids_for_runlevel(
                 log.info("Not downloading source data.")
 
             if dry_run:
-                log.info("Dry run is set.  No data will be downloaded.")
+                log.info(
+                    "Dry run is set.  NO DATA WILL BE DOWNLOADED even though it will say it is downloading later in the log.  Believe me now, not later."
+                )
             else:
                 log.info("Dry run is NOT set.  Data WILL be downloaded.")
 

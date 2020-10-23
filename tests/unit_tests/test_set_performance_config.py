@@ -46,7 +46,7 @@ def test_set_performance_config_0_is_max(capfd):
         gtk_context.log_config()
         log = gtk_context.log
 
-        config = {"n_cpus": 0, "mgm_gb": 0}
+        config = {"n_cpus": 0, "mem_gb": 0}
 
         set_performance_config(config, log)
 
@@ -57,7 +57,7 @@ def test_set_performance_config_0_is_max(capfd):
     print_captured(captured)
 
     assert search_stdout_contains(captured, "using n_cpus", "maximum available")
-    assert search_stdout_contains(captured, "using mgm_gb", "maximum available")
+    assert search_stdout_contains(captured, "using mem_gb", "maximum available")
 
 
 def test_set_performance_config_2much_is_2much(capfd):
@@ -67,7 +67,7 @@ def test_set_performance_config_2much_is_2much(capfd):
         gtk_context.log_config()
         log = gtk_context.log
 
-        config = {"n_cpus": 10001, "mgm_gb": 10001}
+        config = {"n_cpus": 10001, "mem_gb": 10001}
 
         set_performance_config(config, log)
 
@@ -78,7 +78,7 @@ def test_set_performance_config_2much_is_2much(capfd):
     print_captured(captured)
 
     assert search_sysout(captured, "n_cpus > number")
-    assert search_sysout(captured, "mgm_gb > number")
+    assert search_sysout(captured, "mem_gb > number")
 
 
 def test_set_performance_config_default_is_max(capfd):
@@ -99,7 +99,7 @@ def test_set_performance_config_default_is_max(capfd):
     print_captured(captured)
 
     assert search_stdout_contains(captured, "using n_cpus", "maximum available")
-    assert search_stdout_contains(captured, "using mgm_gb", "maximum available")
+    assert search_stdout_contains(captured, "using mem_gb", "maximum available")
 
 
 def test_set_performance_config_1_is_1(capfd):
@@ -109,7 +109,7 @@ def test_set_performance_config_1_is_1(capfd):
         gtk_context.log_config()
         log = gtk_context.log
 
-        config = {"n_cpus": 1, "mgm_gb": 1}
+        config = {"n_cpus": 1, "mem_gb": 1}
 
         set_performance_config(config, log)
 
@@ -120,5 +120,5 @@ def test_set_performance_config_1_is_1(capfd):
     print_captured(captured)
 
     assert config["n_cpus"] == 1
-    assert config["mgm_gb"] == 1
+    assert config["mem_gb"] == 1
     assert search_sysout(captured, "from config")

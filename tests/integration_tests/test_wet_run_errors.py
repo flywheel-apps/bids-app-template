@@ -33,4 +33,6 @@ def test_wet_run_errors(
         assert search_sysout(captured, "sub-TOME3024_ses-Session2_acq-MPR_T1w.nii.gz")
         assert search_sysout(captured, "Not running BIDS validation")
         assert search_sysout(captured, "now I generate an error")
+        assert search_sysout(captured, "4) slept 1 seconds")
         assert search_syserr(captured, "Unable to execute command")
+        assert search_syserr(captured, "this goes to stderr")
