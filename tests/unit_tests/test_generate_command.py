@@ -44,6 +44,6 @@ def test_generate_command_missing_config_works(
 
     print_captured(captured)
 
-    assert search_stdout_contains(captured, "num_things =", "None")
+    assert search_stdout_contains(captured, "command is:", "out/##")
 
     # command is: ['./tests/test.sh', '/flywheel/v0/work/bids', '/flywheel/v0/output/5ebbfe82bfda51026d6aa079', 'participant', 'arg1', 'arg2', 'bad_arg', '--num-things=42', '--threshold=3.1415926', '--n_procs=1', '-v', '--n_cpus=11', '--mgm_gb=12']
