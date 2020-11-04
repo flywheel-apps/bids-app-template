@@ -9,10 +9,11 @@ RUN apt-get update && \
     nodejs \
     tree && \
     rm -rf /var/lib/apt/lists/*
-# The last line above is to help keep the docker image smaller
 
-RUN npm install -g bids-validator@1.5.6
+RUN npm install -g bids-validator@1.5.7
 
+# Python 3.8.6 (default, Oct 13 2020, 20:37:26)
+# [GCC 8.3.0] on linux
 COPY requirements.txt /tmp
 RUN pip install -r /tmp/requirements.txt && \
     rm -rf /root/.cache/pip

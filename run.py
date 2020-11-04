@@ -17,7 +17,7 @@ from flywheel_gear_toolkit.licenses.freesurfer import install_freesurfer_license
 from flywheel_gear_toolkit.utils.zip_tools import zip_output
 
 from utils.bids.download_run_level import download_bids_for_runlevel
-from utils.bids.run_level import get_run_level_and_hierarchy
+from utils.bids.run_level import get_analysis_run_level_and_hierarchy
 from utils.dry_run import pretend_it_ran
 from utils.fly.make_file_name_safe import make_file_name_safe
 from utils.results.zip_htmls import zip_htmls
@@ -124,20 +124,24 @@ def generate_command(config, work_dir, output_analysis_id_dir, log, errors, warn
         work_dir (path): scratch directory where non-saved files can be put
         output_analysis_id_dir (path): directory where output will be saved
         log (GearToolkitContext().log): logger set up by Gear Toolkit
+        errors (list of str): error messages
+        warnings (list of str): warning messages
 
     Returns:
         cmd (list of str): command to execute
     """
 
     # start with the command itself:
-    cmd = [BIDS_APP]
+    cmd = [
+        BIDS_APP,
+        str(work_dir / "bids"),
+        str(output_analysis_id_dir),
+        ANALYSIS_LEVEL,
+    ]
 
     # 3 positional args: bids path, output dir, 'participant'
     # This should be done here in case there are nargs='*' arguments
     # These follow the BIDS Apps definition (https://github.com/BIDS-Apps)
-    cmd.append(str(work_dir / "bids"))
-    cmd.append(str(output_analysis_id_dir))
-    cmd.append(ANALYSIS_LEVEL)
     # editme: add any positional arguments that the command needs
 
     # get parameters to pass to the command by skipping gear config parameters
@@ -204,7 +208,7 @@ def main(gtk_context):
     # Given the destination container, figure out if running at the project,
     # subject, or session level.
     destination_id = gtk_context.destination["id"]
-    hierarchy = get_run_level_and_hierarchy(gtk_context.client, destination_id)
+    hierarchy = get_analysis_run_level_and_hierarchy(gtk_context.client, destination_id)
 
     # This is the label of the project, subject or session and is used
     # as part of the name of the output files.
@@ -260,15 +264,13 @@ def main(gtk_context):
     # Don't run if there were errors or if this is a dry run
     return_code = 0
 
-    if len(errors) > 0:
-        return_code = 1
-        log.info("Command was NOT run because of previous errors.")
-
     try:
 
-        if dry_run:
-            ok_to_run = False
-            return_code = 0
+        if len(errors) > 0:
+            return_code = 1
+            log.info("Command was NOT run because of previous errors.")
+
+        elif dry_run:
             e = "gear-dry-run is set: Command was NOT run."
             log.warning(e)
             warnings.append(e)
