@@ -191,6 +191,6 @@
   "maintainer": "Flywheel <support@flywheel.io>",
   "cite": "Dewy, Cheetum, and How; The templatest BIDS app you will ever see; PLOS ONE 12(9):e0184661; doi:10.1371/journal.pone.0184661.",
   "license": "MIT",
-  "source": "https://github.com/flywheel-apps/bids-app-template",
+  "source": "https://github.com/bids-apps/the-algorithm-run-by-the-gear",
   "url": "https://github.com/flywheel-apps/bids-app-template"
 }

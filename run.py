@@ -38,7 +38,7 @@ BIDS_APP = "./tests/test.sh"
 # What level to run at (positional_argument #3)
 ANALYSIS_LEVEL = "participant"  # "group"
 
-# when downloading BIDS Limit download to specific folders? e.g. ['anat','func','fmap']
+# when downloading BIDS Limit download to specific folders? ['anat','func','dwt','fmap']
 DOWNLOAD_MODALITIES = []  # empty list is no limit
 
 # Whether or not to include src data (e.g. dicoms) when downloading BIDS
