@@ -7,11 +7,15 @@ This template has a complete set of features to help convert
 
 To create a new BIDS App gear using this template click on "Use this template" above and
 then edit `run.py`, `manifest.json`, `Dockerfile` and other files as necessary to create
-your gear.  Python modules in `utils/` provide features to help set up the data to run on,
+your gear.  Most of the changes you need to make are at the beginning of `run.py`.  Python modules in `utils/` provide features to help set up the data to run on,
 call the BIDS App command, and then get the results into the output folder.  This template
 was created specifically for gears that run on BIDS formatted data, but it can be a good start
 to any gear.  The file `manifest.json` provides examples of inputs, configuration parameters, and
 references.  This template can be uploaded as is and will run as a gear.
+
+Change the version number in the manifest to be:
+
+    (gear) MAJOR . MINOR . PATCH _ (algorithm) MAJOR . MINOR . PATCH
 
 Run the tests from the top level directory with:
 
