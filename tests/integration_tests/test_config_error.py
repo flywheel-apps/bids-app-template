@@ -1,15 +1,14 @@
+import logging
 from pathlib import Path
 from unittest import TestCase
 
 import flywheel_gear_toolkit
-from flywheel_gear_toolkit.utils.zip_tools import unzip_archive
 
 import run
 
 
-def test_dry_run_works(
-    capfd, install_gear, print_captured, search_sysout,
-):
+def test_config_error_errors(caplog, install_gear, search_caplog):
+    caplog.set_level(logging.DEBUG)
 
     user_json = Path(Path.home() / ".config/flywheel/user.json")
     if not user_json.exists():
@@ -21,9 +20,6 @@ def test_dry_run_works(
 
         status = run.main(gtk_context)
 
-        captured = capfd.readouterr()
-        print_captured(captured)
-
         assert status == 1
-        assert search_sysout(captured, "It is 42")
-        assert search_sysout(captured, "Error msg: A bad argument was found")
+        assert search_caplog(caplog, "It is 42")
+        assert search_caplog(caplog, "Error msg: A bad argument was found")

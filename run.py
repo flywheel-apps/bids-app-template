@@ -2,29 +2,32 @@
 """Run the gear: set up for and call command-line command."""
 
 import json
-import os
+import logging
 import shutil
 import sys
 from pathlib import Path
 
 import flywheel_gear_toolkit
-import psutil
 from flywheel_gear_toolkit.interfaces.command_line import (
     build_command_list,
     exec_command,
 )
-from flywheel_gear_toolkit.licenses.freesurfer import install_freesurfer_license
 from flywheel_gear_toolkit.utils.zip_tools import zip_output
 
 from utils.bids.download_run_level import download_bids_for_runlevel
 from utils.bids.run_level import get_analysis_run_level_and_hierarchy
 from utils.dry_run import pretend_it_ran
+from utils.fly.environment import get_and_log_environment
 from utils.fly.make_file_name_safe import make_file_name_safe
+from utils.fly.set_performance_config import set_mem_gb, set_n_cpus
+from utils.freesurfer import install_freesurfer_license
 from utils.results.zip_htmls import zip_htmls
 from utils.results.zip_intermediate import (
     zip_all_intermediate_output,
     zip_intermediate_selected,
 )
+
+log = logging.getLogger(__name__)
 
 GEAR = "bids-app-template"
 REPO = "flywheel-apps"
@@ -46,84 +49,15 @@ DOWNLOAD_SOURCE = False
 
 # Constants that do not need to be changed
 FREESURFER_LICENSE = "/opt/freesurfer/license.txt"
-ENVIRONMENT_FILE = "/tmp/gear_environ.json"
 
 
-def set_performance_config(config, log):
-    """Set run-time performance config params to pass to BIDS App.
-
-    Set --n_cpus (number of threads) and --mem_gb (maximum memory to use).
-    Use the given number unless it is too big.  Use the max available if zero.
-
-    The user may want to set these number to less than the maximum if using a
-    shared compute resource.
-
-    Args:
-        config (GearToolkitContext.config): run-time options from config.json
-        log (GearToolkitContext().log): logger set up by Gear Toolkit
-
-    Results:
-        sets config["n_cpus"] which will become part of the command line command
-        sets config["mem_gb"] which will become part of the command line command
-    """
-
-    os_cpu_count = os.cpu_count()
-    log.info("os.cpu_count() = %d", os_cpu_count)
-    n_cpus = config.get("n_cpus")
-    if n_cpus:
-        if n_cpus > os_cpu_count:
-            log.warning("n_cpus > number available, using max %d", os_cpu_count)
-            config["n_cpus"] = os_cpu_count
-        else:
-            log.info("n_cpus using %d from config", n_cpus)
-    else:  # Default is to use all cpus available
-        config["n_cpus"] = os_cpu_count  # zoom zoom
-        log.info("using n_cpus = %d (maximum available)", os_cpu_count)
-
-    psutil_mem_gb = int(psutil.virtual_memory().available / (1024 ** 3))
-    log.info("psutil.virtual_memory().available= {:5.2f} GiB".format(psutil_mem_gb))
-    mem_gb = config.get("mem_gb")
-    if mem_gb:
-        if mem_gb > psutil_mem_gb:
-            log.warning("mem_gb > number available, using max %d", psutil_mem_gb)
-            config["mem_gb"] = psutil_mem_gb
-        else:
-            log.info("mem_gb using %d from config", n_cpus)
-    else:  # Default is to use all cpus available
-        config["mem_gb"] = psutil_mem_gb
-        log.info("using mem_gb = %d (maximum available)", psutil_mem_gb)
-
-
-def get_and_log_environment(log):
-    """Grab and log environment for to use when executing command line.
-
-    The shell environment is saved into a file at an appropriate place in the Dockerfile.
-
-    Args:
-        log (GearToolkitContext().log): logger set up by Gear Toolkit
-
-    Returns: (nothing)
-    """
-    with open(ENVIRONMENT_FILE, "r") as f:
-        environ = json.load(f)
-
-        # Add environment to log if debugging
-        kv = ""
-        for k, v in environ.items():
-            kv += k + "=" + v + " "
-        log.debug("Environment: " + kv)
-
-    return environ
-
-
-def generate_command(config, work_dir, output_analysis_id_dir, log, errors, warnings):
+def generate_command(config, work_dir, output_analysis_id_dir, errors, warnings):
     """Build the main command line command to run.
 
     Args:
         config (GearToolkitContext.config): run-time options from config.json
         work_dir (path): scratch directory where non-saved files can be put
         output_analysis_id_dir (path): directory where output will be saved
-        log (GearToolkitContext().log): logger set up by Gear Toolkit
         errors (list of str): error messages
         warnings (list of str): warning messages
 
@@ -192,18 +126,14 @@ def main(gtk_context):
     errors = []
     warnings = []
 
+    output_dir = gtk_context.output_dir
+    work_dir = gtk_context.work_dir
+    gear_name = gtk_context.manifest["name"]
+
     # run-time configuration options from the gear's context.json
     config = gtk_context.config
 
     dry_run = config.get("gear-dry-run")
-
-    # Setup basic logging and log the configuration for this job
-    if config["gear-log-level"] == "INFO":
-        gtk_context.init_logging("info")
-    else:
-        gtk_context.init_logging("debug")
-    gtk_context.log_config()
-    log = gtk_context.log
 
     # Given the destination container, figure out if running at the project,
     # subject, or session level.
@@ -217,20 +147,27 @@ def main(gtk_context):
     # Output will be put into a directory named as the destination id.
     # This allows the raw output to be deleted so that a zipped archive
     # can be returned.
-    output_analysis_id_dir = gtk_context.output_dir / destination_id
+    output_analysis_id_dir = output_dir / destination_id
 
-    # editme: optional feature -- set # threads and max memory to use
-    set_performance_config(config, log)
+    # editme: optional features -- set # threads and max memory to use
+    config["n_cpus"] = set_n_cpus(config.get("n_cpus"))
+    config["mem_gb"] = set_mem_gb(config.get("mem_gb"))
 
-    environ = get_and_log_environment(log)
+    environ = get_and_log_environment()
 
     # editme: if the command needs a freesurfer license keep this
     if Path(FREESURFER_LICENSE).exists():
         log.debug("%s exists.", FREESURFER_LICENSE)
-    install_freesurfer_license(gtk_context, FREESURFER_LICENSE)
+    install_freesurfer_license(
+        gtk_context.get_input_path("freesurfer_license"),
+        config.get("gear-FREESURFER_LICENSE"),
+        gtk_context.client,
+        destination_id,
+        FREESURFER_LICENSE,
+    )
 
     command = generate_command(
-        config, gtk_context.work_dir, output_analysis_id_dir, log, errors, warnings
+        config, work_dir, output_analysis_id_dir, errors, warnings
     )
 
     # This is used as part of the name of output files
@@ -274,7 +211,7 @@ def main(gtk_context):
             e = "gear-dry-run is set: Command was NOT run."
             log.warning(e)
             warnings.append(e)
-            pretend_it_ran(gtk_context)
+            pretend_it_ran(destination_id)
 
         else:
             # Create output directory
@@ -303,11 +240,9 @@ def main(gtk_context):
 
         # zip entire output/<analysis_id> folder into
         #  <gear_name>_<project|subject|session label>_<analysis.id>.zip
-        zip_file_name = (
-            gtk_context.manifest["name"] + f"_{run_label}_{destination_id}.zip"
-        )
+        zip_file_name = gear_name + f"_{run_label}_{destination_id}.zip"
         zip_output(
-            str(gtk_context.output_dir),
+            str(output_dir),
             destination_id,
             zip_file_name,
             dry_run=False,
@@ -316,15 +251,25 @@ def main(gtk_context):
 
         # editme: optional feature
         # zip any .html files in output/<analysis_id>/
-        zip_htmls(gtk_context, output_analysis_id_dir)
+        zip_htmls(output_dir, destination_id, output_analysis_id_dir)
 
         # editme: optional feature
         # possibly save ALL intermediate output
         if config.get("gear-save-intermediate-output"):
-            zip_all_intermediate_output(gtk_context, run_label)
+            zip_all_intermediate_output(
+                destination_id, gear_name, output_dir, work_dir, run_label
+            )
 
         # possibly save intermediate files and folders
-        zip_intermediate_selected(gtk_context, run_label)
+        zip_intermediate_selected(
+            config.get("gear-intermediate-files"),
+            config.get("gear-intermediate-folders"),
+            destination_id,
+            gear_name,
+            output_dir,
+            work_dir,
+            run_label,
+        )
 
         # clean up: remove output that was zipped
         if Path(output_analysis_id_dir).exists():
@@ -384,9 +329,9 @@ def main(gtk_context):
                 "tags": [run_label, destination_id],
             },
         }
-        with open(f"{gtk_context.output_dir}/.metadata.json", "w") as fff:
+        with open(f"{output_dir}/.metadata.json", "w") as fff:
             json.dump(metadata, fff)
-            log.info(f"Wrote {gtk_context.output_dir}/.metadata.json")
+            log.info(f"Wrote {output_dir}/.metadata.json")
 
         # Report errors and warnings at the end of the log so they can be easily seen.
         if len(warnings) > 0:
@@ -414,4 +359,13 @@ def main(gtk_context):
 
 if __name__ == "__main__":
 
-    sys.exit(main(flywheel_gear_toolkit.GearToolkitContext()))
+    gtk_context = flywheel_gear_toolkit.GearToolkitContext()
+
+    # Setup basic logging and log the configuration for this job
+    if gtk_context.config["gear-log-level"] == "INFO":
+        gtk_context.init_logging("info")
+    else:
+        gtk_context.init_logging("debug")
+    gtk_context.log_config()
+
+    sys.exit(main(gtk_context))

@@ -5,6 +5,7 @@ trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
 # echo an error message before exiting
 trap '{ err=$?; if [ $err != 0 ]; then  >&2 echo "ERROR \"${last_command}\" command failed with exit code $err."; fi ; exit $err; } ' EXIT
 
+python --version
 
 # This is a test script that populates the output_directory with touched files
 output_dir=$2

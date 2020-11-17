@@ -9,7 +9,7 @@ import subprocess as sp
 log = logging.getLogger(__name__)
 
 
-def zip_it_zip_it_good(context, name):
+def zip_it_zip_it_good(output_dir, destination_id, name):
     """Compress html file into an appropriately named archive file *.html.zip
     files are automatically shown in another tab in the browser. These are
     saved at the top level of the output folder."""
@@ -17,7 +17,7 @@ def zip_it_zip_it_good(context, name):
     name_no_html = name[:-5]  # remove ".html" from end
 
     dest_zip = os.path.join(
-        context.output_dir, name_no_html + "_" + context.destination["id"] + ".html.zip"
+        output_dir, name_no_html + "_" + destination_id + ".html.zip"
     )
 
     log.info('Creating viewable archive "' + dest_zip + '"')
@@ -26,7 +26,7 @@ def zip_it_zip_it_good(context, name):
     result = sp.run(command, check=True)
 
 
-def zip_htmls(context, path):
+def zip_htmls(output_dir, destination_id, path):
     """Zip all .html files at the given path so they can be displayed
     on the Flywheel platform.
     Each html file must be converted into an archive individually:
@@ -50,7 +50,7 @@ def zip_htmls(context, path):
             save_name = ""
             if os.path.exists("index.html"):
                 log.info("Found index.html")
-                zip_it_zip_it_good(context, "index.html")
+                zip_it_zip_it_good(output_dir, destination_id, "index.html")
 
                 now = datetime.datetime.now()
                 save_name = now.strftime("%Y-%m-%d_%H-%M-%S") + "_index.html"
@@ -60,7 +60,7 @@ def zip_htmls(context, path):
 
             for h_file in html_files:
                 os.rename(h_file, "index.html")
-                zip_it_zip_it_good(context, h_file)
+                zip_it_zip_it_good(output_dir, destination_id, h_file)
                 os.rename("index.html", h_file)
 
             # reestore if necessary

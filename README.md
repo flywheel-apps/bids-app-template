@@ -5,17 +5,26 @@ This template has a complete set of features to help convert
 [BIDS Apps](https://bids-apps.neuroimaging.io/about/) into
 [Flywheel Gears](https://github.com/flywheel-io/gears/tree/master/spec).
 
-To create a new BIDS App gear using this template click on "Use this template" above and
-then edit `run.py`, `manifest.json`, `Dockerfile` and other files as necessary to create
-your gear.  Most of the changes you need to make are at the beginning of `run.py`.  Python modules in `utils/` provide features to help set up the data to run on,
-call the BIDS App command, and then get the results into the output folder.  This template
-was created specifically for gears that run on BIDS formatted data, but it can be a good start
-to any gear.  The file `manifest.json` provides examples of inputs, configuration parameters, and
-references.  This template can be uploaded as is and will run as a gear.
+To create a new BIDS App gear using this template click on "Use
+this template" above and then edit `run.py`, `manifest.json`,
+`Dockerfile` and other files as necessary to create your gear.  Most
+of the changes you need to make are at the beginning of `run.py` and
+`Dockerfile` (search for "editme").  Python modules in `utils/`
+provide features to help set up the data to run on, call the BIDS
+App command, and then get the results into the output folder.  This
+template was created specifically for gears that run on BIDS formatted
+data, but it can be a good start to any gear.  The file `manifest.json`
+provides examples of inputs, configuration parameters, and references.
+After running the tests (which builds the Docker container), this
+template can be uploaded as is with `fw gear upload` and will run
+as a gear.
 
-Change the version number in the manifest to be:
+Change the version number in the manifest (in all three places) to be:
 
-    (gear) MAJOR . MINOR . PATCH _ (algorithm) MAJOR . MINOR . PATCH
+    MAJOR.MINOR.PATCH_MAJOR.MINOR.PATCH
+
+Where the first MAJOR.MINOR.PATCH refers to the _gear_ version and the
+second MAJOR.MINOR.PATCH refers to the _algorithm_ that the gear runs.
 
 Run the tests from the top level directory with:
 
@@ -35,6 +44,12 @@ Once inside the container use this command to run the tests:
 
 The top level directory is mounted at `/src` so you can edit `run.py`, the modules in
 `utils/`, and the tests in `tests/` and then use the above command to make sure it works.
+
+To run a specific test provide `-- -k <testname>`:
+
+```bash
+/src/tests/bin/tests.sh -- -k wet_run_errors
+```
 
 Testing consists of unit tests and integration tests.  The integration tests mimic a gear
 running on a Flywheel instance by providing files and directories that will be unzipped
@@ -57,18 +72,22 @@ inside the running docker container.  Here is the "dry_run" test:
                         └── sub-TOME3024_ses-Session2_acq-MPR_T1w.nii.gz
 ```
 
-If you are logged in to a Flywheel instance,
-these integration tests can make SDK calls on that instance using your api-key.
+If you are logged in to a Flywheel instance, these integration tests
+can make SDK calls on that instance using your api-key.
 
-In the dry_run test shown above, BIDS formatted data is included in the test so it does not need
-to be downloaded.  This gear won't download data if `work/bids/` exists which saves a lot of time
-when developing a BIDS App gear.  The "wet_run" test does download data following a particular
-job id found in `config.json` just as the job running on that platform would.
+In the dry_run test shown above, BIDS formatted data is included
+in the test so it does not need to be downloaded.  This gear won't
+download data if `work/bids/` exists which saves a lot of time when
+developing a BIDS App gear.  The "wet_run" test does download data
+following a particular job id found in `config.json` just as the
+job running on that platform would.
 
-The data for integration tests are stored in zip archives in `tests/data/gear_tests`.  When creating
-or editing these integration tests, the archives need to be unzipped.  When running the tests,
-only the zipped files are used.  "Pack" and "unpack" commands are provided in `tests/bin/` to
-create the zipped test files and to allow editing of their contents.  From inside the `gear_tests`
+The data for integration tests are stored in zip archives in
+`tests/data/gear_tests`.  When creating or editing these integration
+tests, the archives need to be unzipped.  When running the tests,
+only the zipped files are used.  "Pack" and "unpack" commands are
+provided in `tests/bin/` to create the zipped test files and to
+allow editing of their contents.  From inside the `gear_tests`
 directory, they can be run like this:
 
 ```bash
@@ -76,11 +95,12 @@ directory, they can be run like this:
 ../../bin/unpack-gear-tests.py dry_run.zip
 ```
 
-Using the keyword "all", the first command zips all of the *.zip files in that directory and
-the second command above unzips the "dry_run" test.
+Using the keyword "all", the first command zips all of the *.zip
+files in that directory and the second command above unzips the
+"dry_run" test.
 
-It is also important to put the appropriate information in the README.md file.  The following
-is an example of that.
+It is also important to put the appropriate information in the
+README.md file.  The following is an example of that.
 
 # Inputs
 ### bidsignore (optional)
@@ -97,8 +117,6 @@ This can run at the
 [project](https://docs.flywheel.io/hc/en-us/articles/360017808354-EM-6-1-x-Release-Notes),
 [subject](https://docs.flywheel.io/hc/en-us/articles/360038261213-Run-an-analysis-gear-on-a-subject) or
 [session](https://docs.flywheel.io/hc/en-us/articles/360015505453-Analysis-Gears) level.
-
-
 
 # Configuration Options
 Note: arguments that start with "gear-" are not passed to the BIDS App.
