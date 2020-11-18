@@ -194,56 +194,36 @@ def download_bids_for_runlevel(
 
             bids_dir = Path(gtk_context.work_dir) / "bids"
 
-            if run_level == "project":
+            if run_level in ["project", "subject", "session"]:
 
                 log.info(
-                    'Downloading BIDS for project "%s"', hierarchy["project_label"]
+                    'Downloading BIDS for %s "%s"',
+                    hierarchy["run_level"],
+                    hierarchy["run_label"],
                 )
 
                 if Path(bids_dir).exists():  #  This happens during testing
                     bids_path = bids_dir
                     log.info(f"Not actually downloading it because {bids_dir} exists")
                 else:
-                    # don't filter by subject or session, grab all
-                    bids_path = gtk_context.download_project_bids(
-                        src_data=src_data, folders=folders, dry_run=dry_run
-                    )
 
-            elif run_level == "subject":
+                    subjects = [
+                        v
+                        for k, v in hierarchy.items()
+                        if "subject" in k and v is not None
+                    ]
+                    sessions = [
+                        v
+                        for k, v in hierarchy.items()
+                        if "session" in k and v is not None
+                    ]
 
-                log.info(
-                    'Downloading BIDS for subject "%s"', hierarchy["subject_label"]
-                )
-
-                if Path(bids_dir).exists():
-                    bids_path = bids_dir
-                    log.info(f"Not actually downloading it because {bids_dir} exists")
-                else:
-                    # only download this subject
                     bids_path = gtk_context.download_project_bids(
                         src_data=src_data,
                         folders=folders,
                         dry_run=dry_run,
-                        subjects=[hierarchy["subject_label"]],
-                    )
-
-            elif run_level == "session":
-
-                log.info(
-                    'Downloading BIDS for session "%s"', hierarchy["session_label"]
-                )
-
-                if Path(bids_dir).exists():
-                    bids_path = bids_dir
-                    log.info(f"Not actually downloading it because {bids_dir} exists")
-                else:
-                    # only download data for this session AND this subject
-                    bids_path = gtk_context.download_project_bids(
-                        src_data=src_data,
-                        folders=folders,
-                        dry_run=dry_run,
-                        subjects=[hierarchy["subject_label"]],
-                        sessions=[hierarchy["session_label"]],
+                        subjects=subjects,
+                        sessions=sessions,
                     )
 
             elif run_level == "acquisition":

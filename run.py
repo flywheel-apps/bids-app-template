@@ -121,8 +121,11 @@ def generate_command(config, work_dir, output_analysis_id_dir, errors, warnings)
 
 def main(gtk_context):
 
+    gtk_context.log_config()
+
+    # Errors and warnings will be always logged when they are detected.
     # Keep a list of errors and warning to print all in one place at end of log
-    # Any errors will prevent the command from running and will cause exit(1)
+    # Any errors will prevent the BIDS App from running and will cause exit(1)
     errors = []
     warnings = []
 
@@ -155,9 +158,7 @@ def main(gtk_context):
 
     environ = get_and_log_environment()
 
-    # editme: if the command needs a freesurfer license keep this
-    if Path(FREESURFER_LICENSE).exists():
-        log.debug("%s exists.", FREESURFER_LICENSE)
+    # editme: if the command needs a Freesurfer license keep this
     install_freesurfer_license(
         gtk_context.get_input_path("freesurfer_license"),
         config.get("gear-FREESURFER_LICENSE"),
@@ -366,6 +367,5 @@ if __name__ == "__main__":
         gtk_context.init_logging("info")
     else:
         gtk_context.init_logging("debug")
-    gtk_context.log_config()
 
     sys.exit(main(gtk_context))
