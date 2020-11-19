@@ -10,7 +10,7 @@ aliases:
     command: |
       VER=$(cat manifest.json | jq -r '.version')
       MANIFEST_NAME=$(cat manifest.json | jq '.name'  | tr -d '"')
-      DOCKER_IMAGE_NAME="flywheel/${MANIFEST_NAME}:${DOCKER_TAG}"
+      DOCKER_IMAGE_NAME="flywheel/${MANIFEST_NAME}:testing"
       echo 'export VER='${VER}  >> $BASH_ENV
       echo 'export DOCKER_IMAGE_NAME='${DOCKER_IMAGE_NAME} >> $BASH_ENV
       echo 'export DOCKER_CACHE_NAME=cache-'${DOCKER_IMAGE_NAME} >> $BASH_ENV
