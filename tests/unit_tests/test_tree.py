@@ -34,6 +34,7 @@ def test_tree_bids_basic_results_works(caplog, tmp_path):
     assert html[10] == "work/bids/"  # has trailing '/'
     assert html[16] == "2 directories, 3 files"
     assert caplog.records[1].message == 'Wrote "tree_out.html"'
+    chdir("/flywheel/v0/")
 
 
 def test_tree_bids_directory_none_title_extra_work(caplog, tmp_path):
@@ -65,3 +66,4 @@ def test_tree_bids_directory_none_title_extra_work(caplog, tmp_path):
     assert html[11] == "0 directories, 0 files"
     assert html[13] == "huge shoes"
     assert caplog.records[1].message == 'Wrote "tree_out.html"'
+    chdir("/flywheel/v0/")

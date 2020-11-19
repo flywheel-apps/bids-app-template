@@ -22,6 +22,9 @@ def install_gear():
         """
 
         gear_tests = "/src/tests/data/gear_tests/"
+        if not Path(gear_tests).exists():  # fix for running in circleci
+            gear_tests = "/flywheel/v0/tests/data/gear_tests/"
+
         gear = "/flywheel/v0/"
         os.chdir(gear)  # Make sure we're in the right place (gear works in "work/" dir)
 

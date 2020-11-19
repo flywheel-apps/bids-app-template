@@ -1,20 +1,17 @@
-import json
 import logging
-import os
-import shutil
 from pathlib import Path
-from pprint import pprint
 from unittest import TestCase
 
 import flywheel_gear_toolkit
-from flywheel_gear_toolkit.utils.zip_tools import unzip_archive
 
 import run
 
 
 def test_wet_run_errors(
-    capfd, install_gear, print_captured, search_sysout, search_syserr
+    caplog, capfd, install_gear, search_caplog, print_captured, search_sysout
 ):
+
+    caplog.set_level(logging.DEBUG)
 
     user_json = Path(Path.home() / ".config/flywheel/user.json")
     if not user_json.exists():
@@ -30,9 +27,14 @@ def test_wet_run_errors(
         print_captured(captured)
 
         assert status == 1
-        assert search_sysout(captured, "sub-TOME3024_ses-Session2_acq-MPR_T1w.nii.gz")
-        assert search_sysout(captured, "Not running BIDS validation")
+        assert search_sysout(captured, "Python 3.9.0")
+        assert search_caplog(caplog, "sub-TOME3024_ses-Session2_acq-MPR_T1w.nii.gz")
+        assert search_caplog(caplog, "Not running BIDS validation")
         assert search_sysout(captured, "now I generate an error")
         assert search_sysout(captured, "4) slept 1 seconds")
-        assert search_syserr(captured, "Unable to execute command")
-        assert search_syserr(captured, "this goes to stderr")
+        assert search_caplog(caplog, "Unable to execute command")
+        assert search_caplog(caplog, "this goes to stderr")
+        assert search_caplog(
+            caplog,
+            'Creating viewable archive "/flywheel/v0/output/index_5ebbfe82bfda51026d6aa079.html.zip',
+        )
