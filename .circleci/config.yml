@@ -9,7 +9,8 @@ aliases:
     name: Setup docker image name
     command: |
       VER=$(cat manifest.json | jq -r '.version')
-      DOCKER_IMAGE_NAME=$(cat manifest.json | jq '.custom."gear-builder".image')
+      MANIFEST_NAME=$(cat manifest.json | jq '.name'  | tr -d '"')
+      DOCKER_IMAGE_NAME="flywheel/${MANIFEST_NAME}:${DOCKER_TAG}"
       echo 'export VER='${VER}  >> $BASH_ENV
       echo 'export DOCKER_IMAGE_NAME='${DOCKER_IMAGE_NAME} >> $BASH_ENV
       echo 'export DOCKER_CACHE_NAME=cache-'${DOCKER_IMAGE_NAME} >> $BASH_ENV
