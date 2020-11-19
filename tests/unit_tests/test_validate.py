@@ -56,6 +56,7 @@ def test_validate_bids_basic_results_works(caplog, tmp_path, json_file):
                 assert err_code == 0
                 assert len(caplog.records) == 7
                 assert caplog.records[6].message == "No BIDS errors detected."
+    os.chdir("/flywheel/v0/")
 
 
 def test_validate_bids_no_bids_output(caplog, tmp_path, json_file):
@@ -84,6 +85,7 @@ def test_validate_bids_no_bids_output(caplog, tmp_path, json_file):
                 assert err_code == 11
                 assert len(caplog.records) == 5
                 assert caplog.records[4].message == "BIDS validation could not run."
+    os.chdir("/flywheel/v0/")
 
 
 def test_validate_bids_non_zero_exit_reported(caplog, tmp_path, json_file):
@@ -111,6 +113,7 @@ def test_validate_bids_non_zero_exit_reported(caplog, tmp_path, json_file):
         assert err_code == 11
         assert len(caplog.records) == 7
         assert "JSONDecodeError" in caplog.records[3].message
+    os.chdir("/flywheel/v0/")
 
 
 def test_validate_bids_error_results_exception(caplog, tmp_path, json_file):
@@ -150,6 +153,7 @@ def test_validate_bids_error_results_exception(caplog, tmp_path, json_file):
                     caplog.records[7].message
                     == "1 BIDS validation error(s) were detected."
                 )
+    os.chdir("/flywheel/v0/")
 
 
 def test_validate_bids_called_process_error(caplog, tmp_path, json_file):
@@ -176,3 +180,4 @@ def test_validate_bids_called_process_error(caplog, tmp_path, json_file):
     assert err_code == 10
     assert len(caplog.records) == 6
     assert "Quick validation failed" in caplog.records[4].message
+    os.chdir("/flywheel/v0/")
