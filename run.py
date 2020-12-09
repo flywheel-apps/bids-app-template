@@ -114,6 +114,9 @@ def generate_command(config, work_dir, output_analysis_id_dir, errors, warnings)
             # enumerated possibilities like v, vv, or vvv
             # e.g. replace "--verbose=vvv' with '-vvv'
             cmd[ii] = "-" + cc.split("=")[1]
+        elif " " in cc:  # then is is a space-separated list so take out "="
+            # this allows argparse "nargs" to work properly
+            cmd[ii] = cc.replace("=", " ")
 
     log.info("command is: %s", str(cmd))
     return cmd
