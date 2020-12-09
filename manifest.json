@@ -133,6 +133,11 @@
       "description": "threshold eating pie",
       "type": "number"
     },
+    "ignore": {
+      "description": "Ignore selected aspects of the input dataset to disable corresponding parts of the workflow (a space delimited list)  Possible choices: fieldmaps, slicetiming, sbref",
+      "default": "",
+      "type": "string"
+    },
     "gear-ignore-bids-errors": {
       "default": false,
       "description": "By default, the gear will not run if there are any BIDS errors detected.  Set this to run even if BIDS errors are detected",
