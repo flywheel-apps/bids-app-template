@@ -6,7 +6,7 @@ import flywheel_gear_toolkit
 
 import run
 
-LONG_TEXT = 'Creating viewable archive "/flywheel/v0/output/index_5ebbfe82bfda51026d6aa079.html.zip'
+LONG_TEXT = "/flywheel/v0/output/index_5ebbfe82bfda51026d6aa079.html.zip"
 
 
 def test_wet_run_errors(

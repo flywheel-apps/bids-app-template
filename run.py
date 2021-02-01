@@ -6,6 +6,8 @@ import logging
 import shutil
 import sys
 from pathlib import Path
+import os
+import re
 
 import flywheel_gear_toolkit
 from flywheel_gear_toolkit.interfaces.command_line import (
@@ -48,7 +50,7 @@ DOWNLOAD_MODALITIES = []  # empty list is no limit
 DOWNLOAD_SOURCE = False
 
 # Constants that do not need to be changed
-FREESURFER_LICENSE = "/opt/freesurfer/license.txt"
+FREESURFER_LICENSE = "./freesurfer/license.txt"
 
 
 def generate_command(config, work_dir, output_analysis_id_dir, errors, warnings):
@@ -133,7 +135,9 @@ def main(gtk_context):
     warnings = []
 
     output_dir = gtk_context.output_dir
+    log.debug("output_dir is %s", output_dir)
     work_dir = gtk_context.work_dir
+    log.debug("work_dir is %s", work_dir)
     gear_name = gtk_context.manifest["name"]
 
     # run-time configuration options from the gear's context.json
@@ -362,6 +366,8 @@ def main(gtk_context):
 
 
 if __name__ == "__main__":
+
+    check_for_singularity()
 
     gtk_context = flywheel_gear_toolkit.GearToolkitContext()
 

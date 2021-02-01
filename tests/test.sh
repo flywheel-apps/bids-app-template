@@ -5,6 +5,8 @@ trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
 # echo an error message before exiting
 trap '{ err=$?; if [ $err != 0 ]; then  >&2 echo "ERROR \"${last_command}\" command failed with exit code $err."; fi ; exit $err; } ' EXIT
 
+WD=$(pwd)
+
 python --version
 
 # This is a test script that populates the output_directory with touched files
@@ -17,8 +19,8 @@ for dir in $output_dir/Direct1/sub1 $output_dir/Direct2/sub1/sub2 $output_dir/Di
 done
 
 echo "add html files to find in $output_dir"
-cp /flywheel/v0/output/bids_tree.html $output_dir
-cp /flywheel/v0/output/bids_tree.html $output_dir/index.html
+cp $WD/output/bids_tree.html $output_dir
+cp $WD/output/bids_tree.html $output_dir/index.html
 
 echo "ls "
 ls

@@ -9,6 +9,7 @@ LABEL maintainer="support@flywheel.io"
 # Save docker environ here to keep it separate from the Flywheel gear environment
 RUN python -c 'import os, json; f = open("/tmp/gear_environ.json", "w"); json.dump(dict(os.environ), f)'
 
+
 RUN apt-get update && \
     curl -sL https://deb.nodesource.com/setup_10.x | bash - && \
     apt-get install -y \
@@ -39,6 +40,17 @@ RUN pip install -r /tmp/requirements.txt && \
 
 ENV FLYWHEEL /flywheel/v0
 WORKDIR ${FLYWHEEL}
+
+# This is necessary when running in Singularity
+RUN mv /tmp/gear_environ.json ${FLYWHEEL}/gear_environ.json
+
+# Create symbolic link for Freesurfer license but delete the target because
+# the real "freesurfer" directory will be created when the gear runs
+RUN mkdir -p /opt/freesurfer/
+RUN mkdir -p ${FLYWHEEL}/freesurfer
+RUN touch ${FLYWHEEL}/freesurfer/license.txt
+RUN ln -s ${FLYWHEEL}/freesurfer/license.txt /opt/freesurfer/license.txt
+RUN rm -rf ${FLYWHEEL}/freesurfer
 
 ENV PYTHONUNBUFFERED 1
 

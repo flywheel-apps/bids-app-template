@@ -32,7 +32,7 @@ def create_test_files(tmp_path):
     yield source_dir
 
 
-def test_zip_selected_works(create_test_files, caplog, print_caplog, search_caplog):
+def test_zip_selected_works(create_test_files, caplog, search_caplog):
 
     caplog.set_level(logging.DEBUG)
 

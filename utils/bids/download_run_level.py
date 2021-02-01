@@ -293,10 +293,12 @@ def download_bids_for_runlevel(
             fix_dataset_description(bids_path)
 
             # now that work/bids/ exists, copy in the ignore file
-            bidsignore_path = gtk_context.get_input_path("bidsignore")
-            if bidsignore_path:
-                shutil.copy(bidsignore_path, "work/bids/.bidsignore")
-                log.info("Installed .bidsignore in work/bids/")
+            bidsignore_list = list(Path("input/bidsignore").glob("*"))
+            if len(bidsignore_list) > 0:
+                bidsignore_path = str(bidsignore_list[0])
+                if bidsignore_path:
+                    shutil.copy(bidsignore_path, "work/bids/.bidsignore")
+                    log.info("Installed .bidsignore in work/bids/")
 
             try:
                 if do_validate_bids:

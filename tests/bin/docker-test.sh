@@ -16,6 +16,7 @@ Options:
 
 main() {
     BUILD_IMAGE=1
+    CACHE=""
     DOCKERFILE="tests/Dockerfile"
     DOCKER_TAG="testing"
     ENTRY_POINT="--entrypoint=/src/tests/bin/tests.sh"
@@ -27,6 +28,9 @@ main() {
                 ;;
             -B|--no-build)
                 BUILD_IMAGE=
+                ;;
+            -C|--no-cache)
+		CACHE="--no-cache"
                 ;;
             -s|--shell)
                 ENTRY_POINT="--entrypoint=/bin/bash"
@@ -50,7 +54,8 @@ main() {
     TESTING_IMAGE="flywheel/${MANIFEST_NAME}:${DOCKER_TAG}"
     echo "TESTING_IMAGE is $TESTING_IMAGE"
 
-    if [ "${BUILD_IMAGE}" == "1" ]; then
+
+    if [ "${BUILD_IMAGE}" = "1" ]; then
 
         echo docker build -f Dockerfile -t "${DOCKER_IMAGE_NAME}" .
 

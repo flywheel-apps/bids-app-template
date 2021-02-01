@@ -6,6 +6,8 @@ import shutil
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
 
+
+FWV0 = Path().cwd()
 log = logging.getLogger(__name__)
 
 
@@ -30,7 +32,6 @@ def zip_selected(root_dir, dir_name, output_filename, selected_files, selected_d
         selected_dirs (list) dir names or partial paths to dirs
     """
 
-    cwd = Path().cwd()
     os.chdir(root_dir)
 
     if Path(output_filename).exists():
@@ -67,7 +68,7 @@ def zip_selected(root_dir, dir_name, output_filename, selected_files, selected_d
         if sel not in dirs_found:
             log.warning("Looked for %s but could not find it.", sel)
 
-    os.chdir(cwd)  # Get back to where you once belonged
+    os.chdir(FWV0)  # Get back to where you once belonged
 
 
 def zip_intermediate_selected(
@@ -143,3 +144,5 @@ def zip_all_intermediate_output(
     log.info("Zipping " + work_dir + " directory to " + dest_zip + ".")
 
     shutil.make_archive(dest_zip, "zip", work_path, work_dir)
+
+    os.chdir(FWV0)
