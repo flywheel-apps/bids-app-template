@@ -3,11 +3,11 @@
 
 import json
 import logging
+import os
+import re
 import shutil
 import sys
 from pathlib import Path
-import os
-import re
 
 import flywheel_gear_toolkit
 from flywheel_gear_toolkit.interfaces.command_line import (
@@ -22,13 +22,13 @@ from utils.dry_run import pretend_it_ran
 from utils.fly.environment import get_and_log_environment
 from utils.fly.make_file_name_safe import make_file_name_safe
 from utils.fly.set_performance_config import set_mem_gb, set_n_cpus
-from utils.singularity import check_for_singularity
 from utils.freesurfer import install_freesurfer_license
 from utils.results.zip_htmls import zip_htmls
 from utils.results.zip_intermediate import (
     zip_all_intermediate_output,
     zip_intermediate_selected,
 )
+from utils.singularity import check_for_singularity
 
 log = logging.getLogger(__name__)
 

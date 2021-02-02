@@ -2,11 +2,11 @@
 """
 
 import logging
-import shutil
-from pathlib import Path
 import os
 import re
+import shutil
 import tempfile
+from pathlib import Path
 
 log = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ def check_for_singularity():
             shutil.rmtree(prev)
 
         # Create temporary place to run gear
-        WD=tempfile.mkdtemp(prefix="singularity-temp-", dir="/tmp")
+        WD = tempfile.mkdtemp(prefix="singularity-temp-", dir="/tmp")
         log.debug("Working directory is %s", WD)
 
         new_FWV0 = Path(WD + FWV0)
