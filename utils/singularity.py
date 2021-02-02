@@ -18,6 +18,7 @@ def check_for_singularity():
     """If running in Singularity, copy gear to a temp dir and cd to there"""
 
     running_in = ""
+
     if "SINGULARITY_NAME" in os.environ:
         running_in = "Singularity"
         log.debug("SINGULARITY_NAME is %s", os.environ["SINGULARITY_NAME"])
@@ -46,12 +47,14 @@ def check_for_singularity():
         log.debug("cwd is %s", Path().cwd())
 
     else:
-        with open("/proc/self/cgroup") as fp:
-            for line in fp:
-                if re.search("/docker/", line):
-                    running_in = "Docker"
-                    os.chdir(FWV0)  # run in usual directory
-                    break
+        cgroup = Path("/proc/self/cgroup")
+        if cgroup.exists():
+            with open("/proc/self/cgroup") as fp:
+                for line in fp:
+                    if re.search("/docker/", line):
+                        running_in = "Docker"
+                        os.chdir(FWV0)  # run in the usual place (testing changes this)
+                        break
 
     if running_in == "":
         log.debug("NOT running in Docker or Singularity")
