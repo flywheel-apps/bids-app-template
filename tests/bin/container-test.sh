@@ -6,12 +6,14 @@ cd "$( dirname "$0" )/../.."
 USAGE="
 Usage:
     $0 [OPTION...] [[--] TEST_ARGS...]
-Run tests in a docker container.
+Run tests in a docker or singularity container.
 Options:
-    -h, --help      Print this help and exit
-    -B, --no-build  Don't build the docker image (use existing)
-    -s, --shell     Drop into the container with bash instead of normal entry
-    -- TEST_ARGS    Arguments passed to tests.sh
+    -h, --help         Print this help and exit
+    -B, --no-build     Don't build the docker image (use existing)
+    -C, --no-cache     Give Docker the --no-cache argument
+    -s, --shell        Drop into the container with bash instead of normal entry
+    -S, --singularity  Run in Singularity container instead of Docker
+    -- TEST_ARGS       Arguments passed to tests.sh
 "
 
 main() {
@@ -20,6 +22,8 @@ main() {
     DOCKERFILE="tests/Dockerfile"
     DOCKER_TAG="testing"
     ENTRY_POINT="--entrypoint=/src/tests/bin/tests.sh"
+    SINGULARITY_CMD="run"
+    RUN="Docker"
     while [ $# -gt 0 ]; do
         case "$1" in
             -h|--help)
@@ -34,6 +38,10 @@ main() {
                 ;;
             -s|--shell)
                 ENTRY_POINT="--entrypoint=/bin/bash"
+                SINGULARITY_CMD="shell"
+                ;;
+            -S|--singularity)
+                RUN="Singularity"
                 ;;
             --)
                 shift
@@ -58,31 +66,45 @@ main() {
     if [ "${BUILD_IMAGE}" = "1" ]; then
 
         echo docker build -f Dockerfile -t "${DOCKER_IMAGE_NAME}" .
-
         docker build -f Dockerfile -t "${DOCKER_IMAGE_NAME}" .
 
         echo docker build -f "${DOCKERFILE}" \
           --build-arg DOCKER_IMAGE_NAME=${DOCKER_IMAGE_NAME} \
           -t "${TESTING_IMAGE}" .
-
         docker build -f "${DOCKERFILE}" \
           --build-arg DOCKER_IMAGE_NAME=${DOCKER_IMAGE_NAME} \
           -t "${TESTING_IMAGE}" .
+
+        if [ "$RUN" = "Singularity" ]; then
+            if [ -e ${MANIFEST_NAME}.sif ]; then
+                rm ${MANIFEST_NAME}.sif
+            fi
+            echo singularity build ${MANIFEST_NAME}.sif docker-daemon://${TESTING_IMAGE}
+            singularity build ${MANIFEST_NAME}.sif docker-daemon://${TESTING_IMAGE}
+        fi
+
     fi
 
-    echo docker run -it --rm \
-        --volume "$(pwd):/src" \
-        --volume "$HOME/.config/flywheel:/root/.config/flywheel" \
-        "${ENTRY_POINT}" \
-        "${TESTING_IMAGE}" \
-        "$@"
 
-    docker run -it --rm \
-        --volume "$(pwd):/src" \
-        --volume "$HOME/.config/flywheel:/root/.config/flywheel" \
-        "${ENTRY_POINT}" \
-        "${TESTING_IMAGE}" \
-        "$@"
+    echo "Running in a $RUN container"
+    if [ "$RUN" = "Docker" ]; then
+        echo docker run -it --rm \
+            --volume "$(pwd):/src" \
+            --volume "$HOME/.config/flywheel:/root/.config/flywheel" \
+            "${ENTRY_POINT}" \
+            "${TESTING_IMAGE}" \
+            "$@"
+        docker run -it --rm \
+            --volume "$(pwd):/src" \
+            --volume "$HOME/.config/flywheel:/root/.config/flywheel" \
+            "${ENTRY_POINT}" \
+            "${TESTING_IMAGE}" \
+            "$@"
+
+    else
+        echo singularity ${SINGULARITY_CMD} ${MANIFEST_NAME}.sif
+        singularity ${SINGULARITY_CMD} ${MANIFEST_NAME}.sif
+    fi
 
 }
 

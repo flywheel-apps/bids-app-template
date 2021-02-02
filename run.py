@@ -22,6 +22,7 @@ from utils.dry_run import pretend_it_ran
 from utils.fly.environment import get_and_log_environment
 from utils.fly.make_file_name_safe import make_file_name_safe
 from utils.fly.set_performance_config import set_mem_gb, set_n_cpus
+from utils.singularity import check_for_singularity
 from utils.freesurfer import install_freesurfer_license
 from utils.results.zip_htmls import zip_htmls
 from utils.results.zip_intermediate import (

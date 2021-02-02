@@ -5,9 +5,13 @@ import logging
 import shutil
 from pathlib import Path
 import os
+import re
 import tempfile
 
 log = logging.getLogger(__name__)
+
+
+FWV0 = "/flywheel/v0"
 
 
 def check_for_singularity():
@@ -29,16 +33,16 @@ def check_for_singularity():
         WD=tempfile.mkdtemp(prefix="singularity-temp-", dir="/tmp")
         log.debug("Working directory is %s", WD)
 
-        new_FWV0 = Path(WD + "/flywheel/v0/")
+        new_FWV0 = Path(WD + FWV0)
         new_FWV0.mkdir(parents=True)
         abs_path = Path(".").resolve()
-        names = list(Path("/flywheel/v0/").glob("*"))
+        names = list(Path(FWV0).glob("*"))
         for name in names:
             if name.name == "gear_environ.json":  # always use real one, not dev
-                (new_FWV0 / name.name).symlink_to(Path("/flywheel/v0") / name.name)
+                (new_FWV0 / name.name).symlink_to(Path(FWV0) / name.name)
             else:
                 (new_FWV0 / name.name).symlink_to(abs_path / name.name)
-        os.chdir(new_FWV0)
+        os.chdir(new_FWV0)  # run in /tmp/... directory so it is writeable
         log.debug("cwd is %s", Path().cwd())
 
     else:
@@ -46,7 +50,9 @@ def check_for_singularity():
             for line in fp:
                 if re.search("/docker/", line):
                     running_in = "Docker"
+                    os.chdir(FWV0)  # run in usual directory
                     break
+
     if running_in == "":
         log.debug("NOT running in Docker or Singularity")
     else:

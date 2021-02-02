@@ -175,3 +175,6 @@ fabric.properties
 
 # vim
 .*.swp
+
+# singularity
+*.sif

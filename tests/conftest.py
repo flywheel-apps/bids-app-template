@@ -2,8 +2,8 @@ import json
 import os
 import shutil
 from pathlib import Path
-
 import pytest
+
 from flywheel_gear_toolkit.utils.zip_tools import unzip_archive
 from utils.singularity import check_for_singularity
 
