@@ -15,4 +15,4 @@ def test_get_and_log_environment_works(caplog, search_caplog):
     print(environ)
 
     assert "PATH" in environ
-    assert search_caplog(caplog, "Environment: HOSTNAME")
+    assert search_caplog(caplog, "Environment: ")
