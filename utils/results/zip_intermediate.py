@@ -6,8 +6,7 @@ import shutil
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
 
-
-FWV0 = Path().cwd()
+FWV0 = Path.cwd()
 log = logging.getLogger(__name__)
 
 

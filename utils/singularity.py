@@ -64,6 +64,6 @@ def run_in_tmp_dir():
         else:
             (new_FWV0 / name.name).symlink_to(abs_path / name.name)
     os.chdir(new_FWV0)  # run in /tmp/... directory so it is writeable
-    log.debug("cwd is %s", Path().cwd())
+    log.debug("cwd is %s", Path.cwd())
 
     return new_FWV0

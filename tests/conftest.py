@@ -8,7 +8,7 @@ from utils.singularity import run_in_tmp_dir
 
 run_in_tmp_dir()  # run all tests in /tmp/*/flywheel/v0 where * is random
 
-FWV0 = Path().cwd()
+FWV0 = Path.cwd()
 
 
 @pytest.fixture

@@ -11,7 +11,7 @@ import pytest
 
 from utils.bids.validate import validate_bids
 
-FWV0 = Path().cwd()
+FWV0 = Path.cwd()
 DATA_ROOT = Path("tests/data").resolve()
 
 

@@ -6,8 +6,7 @@ from pathlib import Path
 
 from utils.bids.tree import tree_bids
 
-
-FWV0 = Path().cwd()
+FWV0 = Path.cwd()
 
 
 def test_tree_bids_basic_results_works(caplog, tmp_path):

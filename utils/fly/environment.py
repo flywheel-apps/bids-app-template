@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 from pathlib import Path
 
 log = logging.getLogger(__name__)
@@ -12,7 +13,8 @@ def get_and_log_environment():
 
     Returns: environ (dict) the shell environment variables
     """
-    environment_file = Path().cwd() / "gear_environ.json"
+    environment_file = Path.cwd() / "gear_environ.json"
+    log.debug("Grabbing environment from %s", environment_file)
 
     with open(environment_file, "r") as f:
         environ = json.load(f)

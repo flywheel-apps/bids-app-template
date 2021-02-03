@@ -7,8 +7,7 @@ import os
 import subprocess as sp
 from pathlib import Path
 
-
-FWV0 = Path().cwd()
+FWV0 = Path.cwd()
 log = logging.getLogger(__name__)
 
 

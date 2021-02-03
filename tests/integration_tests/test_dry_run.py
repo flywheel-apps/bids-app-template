@@ -6,7 +6,6 @@ import flywheel_gear_toolkit
 
 import run
 
-
 log = logging.getLogger(__name__)
 
 
@@ -18,7 +17,7 @@ def test_dry_run_works(caplog, install_gear, search_caplog_contains, search_capl
     if not user_json.exists():
         TestCase.skipTest("", f"No API key available in {str(user_json)}")
 
-    FWV0 = Path().cwd()
+    FWV0 = Path.cwd()
 
     install_gear("dry_run.zip")
 
