@@ -368,6 +368,7 @@ if __name__ == "__main__":
 
     # always run in a newly created "scratch" directory in /tmp/...
     scratch_dir = run_in_tmp_dir()
+    log.debug("Running gear in %s", scratch_dir)
 
     gtk_context = flywheel_gear_toolkit.GearToolkitContext()
 
@@ -377,7 +378,8 @@ if __name__ == "__main__":
     else:
         gtk_context.init_logging("debug")
 
-    # clean up
+    # clean up (might be necessary when running in a shared computing environment)
     shutil.rmtree(scratch_dir)
+    log.debug("Removed %s", scratch_dir)
 
     sys.exit(main(gtk_context))

@@ -12,12 +12,12 @@ log = logging.getLogger(__name__)
 
 
 FWV0 = "/flywheel/v0"
-SCRATCH_NAME = "gear-temp-dir"
+SCRATCH_NAME = "gear-temp-dir-"
 
 
 def run_in_tmp_dir():
     """Copy gear to a temporary directory and cd to there.
-    
+
     Returns:
         tmp_path (path) The path to the temporary directory so it can be deleted
     """
