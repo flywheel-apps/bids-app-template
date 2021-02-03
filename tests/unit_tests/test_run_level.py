@@ -1,12 +1,9 @@
 """Unit tests for run_level.py"""
 
-import json
 import logging
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import flywheel
-import pytest
 
 from utils.bids.run_level import get_analysis_run_level_and_hierarchy
 
@@ -90,9 +87,9 @@ def test_run_level_project_works(caplog):
     assert "'run_level': 'project'" in caplog.records[0].message
     assert "monkeyshine" in caplog.records[0].message
     assert "TheProjectLabel" in caplog.records[0].message
-    assert hierarchy["subject_label"] == None
-    assert hierarchy["session_label"] == None
-    assert hierarchy["acquisition_label"] == None
+    assert hierarchy["subject_label"] is None
+    assert hierarchy["session_label"] is None
+    assert hierarchy["acquisition_label"] is None
 
 
 def test_run_level_subject_works(caplog):
@@ -114,8 +111,8 @@ def test_run_level_subject_works(caplog):
     assert "monkeyshine" in caplog.records[0].message
     assert "TheProjectLabel" in caplog.records[0].message
     assert hierarchy["subject_label"] == "TheSubjectCode"
-    assert hierarchy["session_label"] == None
-    assert hierarchy["acquisition_label"] == None
+    assert hierarchy["session_label"] is None
+    assert hierarchy["acquisition_label"] is None
 
 
 def test_run_level_session_works(caplog):
@@ -137,7 +134,7 @@ def test_run_level_session_works(caplog):
     assert "TheProjectLabel" in caplog.records[0].message
     assert hierarchy["subject_label"] == "TheSubjectCode"
     assert hierarchy["session_label"] == "TheSessionLabel"
-    assert hierarchy["acquisition_label"] == None
+    assert hierarchy["acquisition_label"] is None
 
 
 def test_run_level_acquisition_works(caplog):

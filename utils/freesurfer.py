@@ -33,9 +33,9 @@ def install_freesurfer_license(
         fs_license_path (str): Path to where the license should be installed,
             $FREESURFER_HOME, usually "/opt/freesurfer/license.txt".
 
-    Examples:
-        >>> from .license.freesurfer import install_freesurfer_license
-        >>> install_freesurfer_license(Null, Null, gtk_context.client, "5f8748421193aed33c35f172" , '/opt/freesurfer/license.txt')
+    Example:
+        >>> from freesurfer import install_freesurfer_license
+        >>> install_freesurfer_license(None, None, gtk_context.client, "5f8748421193aed33c35f172" , '/opt/freesurfer/license.txt')
     """
 
     log.debug("Looking for Freesurfer license")

@@ -21,41 +21,115 @@ After running the tests (which builds the Docker container), this
 template can be uploaded as is with `fw gear upload` and will run
 as a gear.
 
-Change the version number in the manifest (in all three places) to be:
+## Quickstart
 
-    MAJOR.MINOR.PATCH_MAJOR.MINOR.PATCH
+### Docker
 
-Where the first MAJOR.MINOR.PATCH refers to the _gear_ version and the
-second MAJOR.MINOR.PATCH refers to the _algorithm_ that the gear runs.
-
-Run the tests from the top level directory with:
+Build the gear as a local [Docker](https://www.docker.com/) image
+and run tests from the top level directory with:
 
 ```bash
-./tests/bin/docker-test.sh
+./tests/bin/container-test.sh
 ```
 
-That will build the main docker image and a test image and then run
-the tests inside the docker container.  Provide the flag "-B" to
-prevent building the docker images and the "-s" flag to drop into
+By default, that will build the main docker image and a test image and then run
+the tests inside the test docker container.
+
+```pre
+Usage:
+    ./tests/bin/container-test.sh [OPTION...] [[--] TEST_ARGS...]
+Run tests in a docker or singularity container.
+Options:
+    -h, --help         Print this help and exit
+    -B, --no-build     Don't build the docker image (use existing)
+    -C, --no-cache     Give Docker the --no-cache argument
+    -s, --shell        Drop into the container with bash instead of normal entry
+    -S, --singularity  Run in Singularity container instead of Docker
+    -- TEST_ARGS       Arguments passed to tests.sh
+```
+
+After the docker image has been built, a convenient way to develop the gear is to
+edit in one window and run tests inside the container in another window.  Do this
+with:
+
+```bash
+./tests/bin/container-test.sh -B -s
+```
+
+The flag "-B" prevents building the docker images, and the "-s" flag drops into
 a shell inside the docker container instead of running the tests.
-Once inside the container use this command to run the tests:
+Next, use this command to run the tests inside the container:
 
 ```bash
 /src/tests/bin/tests.sh
 ```
 
-The top level directory is mounted at `/src` so you can edit `run.py`, the modules in
-`utils/`, and the tests in `tests/` and then use the above command to make sure it works.
+This command runs docker and *inside the container* mounts `/src`
+at the top level directory of the gear *outside the running container*.
+This command runs tests inside the container while, in another
+window outside the container, you can edit `run.py`, the modules
+in `utils/`, and the tests in `tests/` and then use the above command
+to make sure it works.  Running tests and editing code in this way
+saves a lot of time because you don't have to re-build the docker
+image after every change in the code.
 
-To run a specific test provide `-- -k <testname>`:
+To save even more time, you can run only a specific test by
+adding `-- -k <testname>` to the end of the command, for example:
 
 ```bash
 /src/tests/bin/tests.sh -- -k wet_run_errors
 ```
 
-Testing consists of unit tests and integration tests.  The integration tests mimic a gear
-running on a Flywheel instance by providing files and directories that will be unzipped
-inside the running docker container.  Here is the "dry_run" test:
+### Singularity
+
+This template will build and test a [Singularity](https://sylabs.io/docs/)
+image when you include the `-S` flag:
+
+```bash
+./tests/bin/container-test.sh -S
+```
+
+This builds the main gear's docker image, a test docker image, and then
+builds a singularity test image using the docker test image.  It then runs
+singularity on that test image to run all the tests.  The `-B` and `-s` flags
+work as before to allow you to skip the builds and drop into a shell in the
+running singularity container.
+
+To run the tests from a shell inside the singularity container, use this:
+
+```bash
+./tests/bin/tests.sh
+```
+
+This is different from running the tests from inside the docker container because
+by default, the singularity working directory is the top level directory of the gear.
+
+In singularity, the main gear directory is not writeable so the first thing that
+happens when executing the gear is to test if it is running in singularity and
+to re-create the gear in `/tmp`.  For example:
+
+```pre
+Singularity> ls -lF /tmp/singularity-temp-lnppfbjd/flywheel/v0/
+total 20
+-rw-r--r-- 1 andy scien  613 Feb  2 19:52 config.json
+drwxr-xr-x 2 andy scien 4096 Feb  2 19:52 freesurfer/
+lrwxrwxrwx 1 andy scien   30 Feb  2 19:52 gear_environ.json -> /flywheel/v0/gear_environ.json
+drwxr-xr-x 2 andy scien 4096 Feb  2 19:52 input/
+lrwxrwxrwx 1 andy scien   26 Feb  2 19:52 manifest.json -> /flywheel/v0/manifest.json
+drwxr-xr-x 3 andy scien 4096 Feb  2 19:52 output/
+lrwxrwxrwx 1 andy scien   19 Feb  2 19:52 run.py -> /flywheel/v0/run.py*
+lrwxrwxrwx 1 andy scien   18 Feb  2 19:52 tests -> /flywheel/v0/tests/
+lrwxrwxrwx 1 andy scien   18 Feb  2 19:52 utils -> /flywheel/v0/utils/
+drwxr-xr-x 3 andy scien 4096 Feb  2 19:52 work/
+```
+
+### Mimicking a running gear
+
+Testing consists of unit tests and integration tests.  Unit tests test individual
+functions in the modules in `utils/`.  The integration tests mimic a gear
+running on a Flywheel instance by providing files and directories that are unzipped
+inside the running docker container.  Here is what is added to `/flywheel/v0` for
+the "dry_run" test:
 
 ```bash
     dry_run
@@ -75,7 +149,7 @@ inside the running docker container.  Here is the "dry_run" test:
 ```
 
 If you are logged in to a Flywheel instance on your local machine,
-these integration tests can make SDK calls on that instance using
+the integration tests can make SDK calls on that instance using
 your api-key.
 
 In the dry_run test shown above, BIDS formatted data is included
@@ -83,7 +157,7 @@ in the test so it does not need to be downloaded.  This gear won't
 download data if `work/bids/` exists which saves a lot of time when
 developing a BIDS App gear.  The "wet_run" test does download data
 following a particular job id found in `config.json` just as the
-job running on that platform would.  To make this test work for
+job running on the platform would.  To make this test work for
 you, change the "destination" ID in `config.json` to be the ID of
 a valid Analysis container on your Flywheel instance.  Data will
 be downloaded depending on the level where that analysis container
@@ -101,13 +175,34 @@ directory, they can be run like this:
 ../../bin/pack-gear-tests.py all
 ../../bin/unpack-gear-tests.py dry_run.zip
 ```
-
-Using the keyword "all", the first command zips all of the *.zip
-files in that directory and the second command above unzips the
+Using the keyword "all", the first command zips all the *.zip
+files in that directory and the second command above unzips only the
 "dry_run" test.
 
+### Final editing
+
+To get the gear to work, you edit the Dockerfile and python scripts.
+To add configuration parameters to pass to the algorithm inside
+your gear, you edit the manifest.  It is important to provide good
+descriptions of the gear and in each parameter in the manifest and
+to document the maintainer of the gear (you) and the web links
+because these things show up in the Flywheel interface.  Take a look
+at the entire `manifest.json` file because there are examples of
+all parts of the configuration and most will need to be changed
+to be appropriate for your gear.
+
+You also need to edit the version number of your gear.  The template
+has its own version number but you should completely change that
+to use the following convention.  Change the version number in the
+manifest (in all three places) to be:
+
+    MAJOR.MINOR.PATCH_MAJOR.MINOR.PATCH
+
+Where the first MAJOR.MINOR.PATCH refers to the _gear_ version and the
+second MAJOR.MINOR.PATCH refers to the _algorithm_ that the gear runs.
+
 It is also important to put the appropriate information in the
-README.md file.  The following is an example of that.
+README.md file of your gear.  The following is an example of that.
 
 ## Overview
 This gear can only be run on datasets that have been BIDS curated
@@ -122,7 +217,7 @@ provided to the Gear in 3 ways. See [How to include a Freesurfer
 license file](https://docs.flywheel.io/hc/en-us/articles/360013235453).
 
 This gear can run at the project, subject or session
-level.  Because files are in the BIDS format, all of the proper
+level.  Because files are in the BIDS format, all the proper
 files will be used for the given session, subject, or separately,
 by subject, for the whole project.
 
@@ -145,7 +240,7 @@ all the DICOM header information we extracted in step 1).
 1. Run the [curate-bids gear](https://github.com/flywheel-apps/curate-bids)
 on the project.  More information about BIDS Curation on Flywheel
 can be found
-[here](https://docs.flywheel.io/hc/en-us/articles/360008162154-BIDS-Overview)
+[here](https://docs.flywheel.io/hc/en-us/articles/360008162154-BIDS-Overview),
 and running the BIDS curation gear is described
 [here](https://docs.flywheel.io/hc/en-us/articles/360009218434-BIDS-Curation-Gear).
 If you need to rename sessions or subjects before curation, you may
@@ -234,7 +329,7 @@ easy download.  Choose this option to prevent output deletion after zipping.
 Gear argument: Text from license file generated during FreeSurfer registration.
 Copy the contents of the license file and paste it into this argument.
 
-# Workflow/not passed to the fMRIPrep
+# Workflow
 This gear runs a short bash script that helps test the functionality of this
 bids-app-template.
 
@@ -242,3 +337,10 @@ bids-app-template.
 This gear produces some silly output that is not important just to
 prove that it can.  It also adds some Custom Information to various
 containers depending on the run level.
+
+# Note
+
+This gear was created from the Flywheel [BIDS App Template](https://github.com/flywheel-apps/bids-app-template) (version
+major#_minor#_patch#).  See the
+[bids-app-template/README](https://github.com/flywheel-apps/bids-app-template/blob/master/README.md)
+for information on how to build this gear and run the tests.

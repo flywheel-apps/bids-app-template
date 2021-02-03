@@ -60,7 +60,7 @@ def test_validate_bids_basic_results_works(caplog, tmp_path, json_file):
     chdir(FWV0)
 
 
-def test_validate_bids_no_bids_output(caplog, tmp_path, json_file):
+def test_validate_bids_no_bids_output(caplog, tmp_path):
 
     caplog.set_level(logging.DEBUG)
 
@@ -89,7 +89,7 @@ def test_validate_bids_no_bids_output(caplog, tmp_path, json_file):
     chdir(FWV0)
 
 
-def test_validate_bids_non_zero_exit_reported(caplog, tmp_path, json_file):
+def test_validate_bids_non_zero_exit_reported(caplog, tmp_path):
     """Simulate a failure of running the bids validator such that it
     returns output which breaks the json.load()."""
 
@@ -157,7 +157,7 @@ def test_validate_bids_error_results_exception(caplog, tmp_path, json_file):
     chdir(FWV0)
 
 
-def test_validate_bids_called_process_error(caplog, tmp_path, json_file):
+def test_validate_bids_called_process_error(caplog, tmp_path):
     """This one actually runs bids-validator so skip it if it is not installed"""
 
     caplog.set_level(logging.DEBUG)

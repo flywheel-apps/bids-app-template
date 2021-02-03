@@ -202,7 +202,7 @@ def download_bids_for_runlevel(
                     hierarchy["run_label"],
                 )
 
-                if Path(bids_dir).exists():  #  This happens during testing
+                if Path(bids_dir).exists():  # This happens during testing
                     bids_path = bids_dir
                     log.info(f"Not actually downloading it because {bids_dir} exists")
                 else:

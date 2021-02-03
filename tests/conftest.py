@@ -1,12 +1,10 @@
-import json
-import os
 import shutil
 from pathlib import Path
+
 import pytest
-
 from flywheel_gear_toolkit.utils.zip_tools import unzip_archive
-from utils.singularity import check_for_singularity
 
+from utils.singularity import check_for_singularity
 
 check_for_singularity()  # run all tests in /tmp/singularity-temp-*/flywheel/v0
 
@@ -42,7 +40,7 @@ def install_gear():
                 shutil.rmtree(path)
 
         print(f'\ninstalling new gear, "{zip_name}"...')
-        unzip_archive(gear_tests / zip_name, FWV0)
+        unzip_archive(gear_tests / zip_name, str(FWV0))
 
         # The "freesurfer" direcory needs to have the standard freesurfer
         # "subjects" directory and "license.txt" file.
