@@ -65,22 +65,21 @@ main() {
 
     if [ "${BUILD_IMAGE}" = "1" ]; then
 
-        echo docker build -f Dockerfile -t "${DOCKER_IMAGE_NAME}" .
+	set -x
         docker build -f Dockerfile -t "${DOCKER_IMAGE_NAME}" .
 
-        echo docker build -f "${DOCKERFILE}" \
-          --build-arg DOCKER_IMAGE_NAME=${DOCKER_IMAGE_NAME} \
-          -t "${TESTING_IMAGE}" .
         docker build -f "${DOCKERFILE}" \
           --build-arg DOCKER_IMAGE_NAME=${DOCKER_IMAGE_NAME} \
           -t "${TESTING_IMAGE}" .
+	set +x
 
         if [ "$RUN" = "Singularity" ]; then
             if [ -e ${MANIFEST_NAME}.sif ]; then
                 rm ${MANIFEST_NAME}.sif
             fi
-            echo singularity build ${MANIFEST_NAME}.sif docker-daemon://${TESTING_IMAGE}
+	    set -x
             singularity build ${MANIFEST_NAME}.sif docker-daemon://${TESTING_IMAGE}
+	    set +x
         fi
 
     fi
@@ -88,22 +87,19 @@ main() {
 
     echo "Running in a $RUN container"
     if [ "$RUN" = "Docker" ]; then
-        echo docker run -it --rm \
-            --volume "$(pwd):/src" \
-            --volume "$HOME/.config/flywheel:/root/.config/flywheel" \
-            "${ENTRY_POINT}" \
-            "${TESTING_IMAGE}" \
-            "$@"
+	set -x
         docker run -it --rm \
             --volume "$(pwd):/src" \
             --volume "$HOME/.config/flywheel:/root/.config/flywheel" \
             "${ENTRY_POINT}" \
             "${TESTING_IMAGE}" \
             "$@"
+	set +x
 
     else
-        echo singularity ${SINGULARITY_CMD} ${MANIFEST_NAME}.sif
+	set -x
         singularity ${SINGULARITY_CMD} ${MANIFEST_NAME}.sif
+	set +x
     fi
 
 }

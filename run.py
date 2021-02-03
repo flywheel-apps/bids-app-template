@@ -26,7 +26,7 @@ from utils.results.zip_intermediate import (
     zip_all_intermediate_output,
     zip_intermediate_selected,
 )
-from utils.singularity import check_for_singularity
+from utils.singularity import run_in_tmp_dir
 
 log = logging.getLogger(__name__)
 
@@ -366,7 +366,8 @@ def main(gtk_context):
 
 if __name__ == "__main__":
 
-    check_for_singularity()
+    # always run in a newly created "scratch" directory in /tmp/...
+    scratch_dir = run_in_tmp_dir()
 
     gtk_context = flywheel_gear_toolkit.GearToolkitContext()
 
@@ -375,5 +376,8 @@ if __name__ == "__main__":
         gtk_context.init_logging("info")
     else:
         gtk_context.init_logging("debug")
+
+    # clean up
+    shutil.rmtree(scratch_dir)
 
     sys.exit(main(gtk_context))

@@ -4,12 +4,10 @@ from pathlib import Path
 import pytest
 from flywheel_gear_toolkit.utils.zip_tools import unzip_archive
 
-from utils.singularity import check_for_singularity
+from utils.singularity import run_in_tmp_dir
 
-check_for_singularity()  # run all tests in /tmp/singularity-temp-*/flywheel/v0
+run_in_tmp_dir()  # run all tests in /tmp/*/flywheel/v0 where * is random
 
-# If running in Docker, this will be /flywheel/v0
-# If running in Singularity, this will be /tmp/singularity-temp-*flywheel/v0
 FWV0 = Path().cwd()
 
 
