@@ -4,10 +4,14 @@ FROM python:3.9-buster as base
 # editme: Change this to your email.
 LABEL maintainer="support@flywheel.io"
 
-# Hopefully You won't need to change anything below this.
-
 ENV FLYWHEEL /flywheel/v0
 WORKDIR ${FLYWHEEL}
+
+# If it is not in the base image, install the algorithm you want to run
+# in this gear:
+COPY algorithm-to-gearify.sh ${FLYWHEEL}/algorithm-to-gearify.sh
+
+# Hopefully You won't need to change anything below this.
 
 # Save docker environ here to keep it separate from the Flywheel gear environment
 RUN python -c 'import os, json; f = open("/flywheel/v0/gear_environ.json", "w"); json.dump(dict(os.environ), f)'
