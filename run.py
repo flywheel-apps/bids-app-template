@@ -233,8 +233,11 @@ def main(gtk_context):
             log.info("Creating output directory %s", output_analysis_id_dir)
             Path(output_analysis_id_dir).mkdir()
 
+            if gtk_context.config["gear-log-level"] != "INFO":
+                # show what's in the current working directory just before running
+                os.system("tree -a .")
+
             # This is what it is all about
-            os.system("tree -a .")
             exec_command(
                 command, environ=environ, dry_run=dry_run, shell=True, cont_output=True,
             )

@@ -2,12 +2,12 @@
   "name": "bids-app-template",
   "label": "<Bids-App-Template>: short human-friendly name/description displayed in interface",
   "description": "<editme Name> (<version>) longer description.",
-  "version": "0.0.0_0.13.14",
+  "version": "0.0.0_0.14.0",
   "custom": {
-    "docker-image": "flywheel/bids-app-template:0.0.0_0.13.14",
+    "docker-image": "flywheel/bids-app-template:0.0.0_0.14.0",
     "gear-builder": {
       "category": "analysis",
-      "image": "flywheel/bids-app-template:0.0.0_0.13.14"
+      "image": "flywheel/bids-app-template:0.0.0_0.14.0"
     },
     "flywheel": {
       "suite": "BIDS Apps"
