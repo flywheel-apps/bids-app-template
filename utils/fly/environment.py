@@ -17,6 +17,8 @@ def get_and_log_environment():
     """
     environment_file = FWV0 / "gear_environ.json"
     log.debug("Grabbing environment from %s", environment_file)
+    os.system(f"ls -l {FWV0}")
+    os.system(f"ls -l /flywheel/v0")
 
     with open(environment_file, "r") as f:
         environ = json.load(f)

@@ -3,6 +3,7 @@
 
 import json
 import logging
+import os
 import shutil
 import sys
 from pathlib import Path
@@ -37,7 +38,7 @@ CONTAINER = f"{REPO}/{GEAR}]"
 # editme: The following 4 constants are the main things to edit.  Run-time Parameters
 # passed to the command need to be set up in manifest.json.
 # The BIDS App command to run, e.g. "mriqc"
-BIDS_APP = "./tests/test.sh"
+BIDS_APP = "./algorithm-to-gearify.sh"
 
 # What level to run at (positional_argument #3)
 ANALYSIS_LEVEL = "participant"  # "group"
@@ -233,6 +234,7 @@ def main(gtk_context):
             Path(output_analysis_id_dir).mkdir()
 
             # This is what it is all about
+            os.system("tree -a .")
             exec_command(
                 command, environ=environ, dry_run=dry_run, shell=True, cont_output=True,
             )
