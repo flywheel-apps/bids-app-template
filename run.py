@@ -100,7 +100,6 @@ def generate_command(config, work_dir, output_analysis_id_dir, errors, warnings)
     if "bad_arg" in cmd:
         errors.append("A bad argument was found in the config.")
     num_things = command_parameters.get("num-things")
-    print(f"num_things = {str(num_things)}")
     if num_things and num_things > 41:
         warnings.append(
             f"The num-things config value should not be > 41.  It is {command_parameters['num-things']}."
@@ -303,7 +302,7 @@ def main(gtk_context):
 
         # editme: optional feature
         # save .metadata file
-        metadata = {
+        metadata_works_but_causes_clutter_when_testing_this_template = {
             "project": {
                 "info": {
                     "test": "Hello project",
@@ -325,6 +324,8 @@ def main(gtk_context):
                 },
                 "tags": [run_label, destination_id],
             },
+        }
+        metadata = {
             "analysis": {
                 "info": {
                     "test": "Hello analysis",

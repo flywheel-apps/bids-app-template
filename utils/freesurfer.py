@@ -1,7 +1,9 @@
 """Install Freesurfer license.txt file where algorithm expects it.
 """
 
+import json
 import logging
+import re
 import shutil
 from pathlib import Path
 
@@ -68,7 +70,7 @@ def install_freesurfer_license(
 
     # 2) see if the license info was passed as a string argument
     elif freesurfer_license_string:
-        license_info = "\n".join(freesurfer_license_string)
+        license_info = re.sub(r"(\S){1} ", "\1\n", freesurfer_license_string)
 
         log.info("Using FreeSurfer license in gear argument.")
 
@@ -88,7 +90,7 @@ def install_freesurfer_license(
     # set so save the Freesurfer license as a file in the right place.
     # If the license was an input file, it was copied to the right place
     # above (case 1).
-    if license_info == "copied info file":
+    if license_info == "copied input file":
         pass  # all is well
 
     elif license_info != "":
@@ -101,8 +103,8 @@ def install_freesurfer_license(
 
         with open(fs_license_path, "w") as flp:
             flp.write(license_info)
-            log.debug("Wrote license %s", license_info)
-            log.debug(" to license file %s", fs_license_path)
+            # log.debug("Wrote license %s", license_info)
+            log.debug("Wrote license file %s", fs_license_path)
 
     else:
         msg = "Could not find FreeSurfer license anywhere"
