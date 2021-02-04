@@ -125,6 +125,9 @@ def generate_command(config, work_dir, output_analysis_id_dir, errors, warnings)
 
 def main(gtk_context):
 
+    FWV0 = Path.cwd()
+    log.debug("Running gear in %s", FWV0)
+
     gtk_context.log_config()
 
     # Errors and warnings will be always logged when they are detected.
@@ -165,8 +168,13 @@ def main(gtk_context):
     environ = get_and_log_environment()
 
     # editme: if the command needs a Freesurfer license keep this
+    license_list = list(Path("input/freesurfer_license").glob("*"))
+    if len(license_list) > 0:
+        fs_license_path = license_list[0]
+    else:
+        fs_license_path = ""
     install_freesurfer_license(
-        gtk_context.get_input_path("freesurfer_license"),
+        str(fs_license_path),
         config.get("gear-FREESURFER_LICENSE"),
         gtk_context.client,
         destination_id,
@@ -368,7 +376,6 @@ if __name__ == "__main__":
 
     # always run in a newly created "scratch" directory in /tmp/...
     scratch_dir = run_in_tmp_dir()
-    log.debug("Running gear in %s", scratch_dir)
 
     gtk_context = flywheel_gear_toolkit.GearToolkitContext()
 
@@ -378,8 +385,14 @@ if __name__ == "__main__":
     else:
         gtk_context.init_logging("debug")
 
+    return_code = main(gtk_context)
+
     # clean up (might be necessary when running in a shared computing environment)
+    for thing in scratch_dir.glob("*"):
+        if thing.is_symlink():
+            thing.unlink()  # don't remove anything links point to
+            log.debug("unlinked %s", thing.name)
     shutil.rmtree(scratch_dir)
     log.debug("Removed %s", scratch_dir)
 
-    sys.exit(main(gtk_context))
+    sys.exit(return_code)

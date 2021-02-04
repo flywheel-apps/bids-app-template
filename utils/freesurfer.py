@@ -47,6 +47,7 @@ def install_freesurfer_license(
 
     if input_license_path:  # just copy the file to the right place
 
+        log.info("FreeSurfer license path is %s", input_license_path)
         fs_path_only = Path(fs_license_path).parents[0]
         fs_file = Path(fs_license_path).name
 
@@ -62,7 +63,7 @@ def install_freesurfer_license(
 
         shutil.copy(input_license_path, fs_license_path)
 
-        license_info = "copied info file"
+        license_info = "copied input file"
         log.info("Using FreeSurfer license in input file.")
 
     # 2) see if the license info was passed as a string argument
