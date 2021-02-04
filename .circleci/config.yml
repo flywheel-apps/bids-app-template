@@ -122,8 +122,8 @@ jobs:
               PATH=/home/flywheel/.local/bin:\$PATH && \
               python -m pytest --cov=. --cov-report html --junitxml=test-reports/junit.xml && \
               tree ."
-            docker cp test:/flywheel/v0/htmlcov .
-            docker cp test:/flywheel/v0/test-reports .
+            docker cp test:/tmp/gear-temp-dir-*/flywheel/v0/htmlcov .
+            docker cp test:/tmp/gear-temp-dir-*/flywheel/v0/test-reports .
       - store_test_results:
           path: test-reports
       - store_artifacts:
