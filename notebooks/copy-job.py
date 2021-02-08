@@ -1,13 +1,10 @@
 #! /usr/bin/env python3
-#
-# Run bids-app-template on session "ses-Session2"
-#
+"""Create a python script to re-run a job given the job ID for a gear that was run on Flywheel."""
 
 import argparse
 import os
 import pprint
 import stat
-from datetime import datetime
 
 import flywheel
 
@@ -17,7 +14,7 @@ def main(job_id):
     return_status = 0
 
     fw = flywheel.Client("")
-    fw.get_config().site.api_url
+    print("Flywheel Instance", fw.get_config().site.api_url)
 
     job = fw.get_job(job_id)
     gear = fw.get_gear(job.gear_id)
