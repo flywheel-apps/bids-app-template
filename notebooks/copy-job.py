@@ -16,6 +16,7 @@ def main(job_id):
     fw = flywheel.Client("")
     print("Flywheel Instance", fw.get_config().site.api_url)
 
+    print("Job ID", job_id)
     job = fw.get_job(job_id)
     gear = fw.get_gear(job.gear_id)
     print(f"gear.gear.name is {gear.gear.name}")
@@ -30,15 +31,23 @@ def main(job_id):
     destination = fw.get(analysis.parent["id"])
     print(f"job's destination is {destination.label}")
     script_name = f"{project_label}_{analysis.parent['type']}_{destination.label}.py"
+    script_name = script_name.replace(" ", "_")
     print(f"Creating script: {script_name} ...\n")
 
     input_files = dict()
-    for key, val in job.config["inputs"].items():
-        file_name = val["location"]["name"]
-        input_files[key] = file_name
+    for key, val in job.config.get("inputs").items():
+        input_files[key] = {
+            "hierarchy_id": val["hierarchy"]["id"],
+            "location_name": val["location"]["name"],
+        }
 
     lines = f"""#! /usr/bin/env python3
-'''Run {gear.gear.name} on {analysis.parent['type']} "{destination.label}"'''
+'''Run {gear.gear.name} on {analysis.parent['type']} "{destination.label}"
+
+    This script was created to run Job ID {job_id}
+    In project "{project_label}"
+    On Flywheel Instance {fw.get_config().site.api_url}
+'''
 
 import os
 import argparse
@@ -47,6 +56,8 @@ from datetime import datetime
 
 import flywheel
 
+
+input_files = {pprint.pformat(input_files)}
 
 def main():
 
@@ -64,10 +75,10 @@ def main():
         sfp.write(f"    print(\"destination type is: {analysis.parent['type']}\")\n")
         sfp.write(f"    destination = fw.get(\"{analysis.parent['id']}\")\n")
         sfp.write("\n")
-        sfp.write(f'    project = fw.get_project("{project_id}")\n')
         sfp.write("    inputs = dict()\n")
-        sfp.write(f"    for key, val in {input_files}.items():\n")
-        sfp.write("        inputs[key] = project.get_file(val)\n")
+        sfp.write(f"    for key, val in input_files.items():\n")
+        sfp.write("         container = fw.get(val['hierarchy_id'])\n")
+        sfp.write("         inputs[key] = container.get_file(val['location_name'])\n")
         sfp.write("\n")
         sfp.write(f"    config = {pprint.pformat(job['config']['config'], indent=4)}\n")
         sfp.write("\n")
