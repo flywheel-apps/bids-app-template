@@ -1,11 +1,23 @@
 #! /usr/bin/env python3
-'''Run bids-app-template on session "ses-Session2"'''
+"""Run bids-app-template on session "ses-Session2"
+
+    This script was created to run Job ID 601de5eb0533ee34c0712f42
+    In project "BIDS_multi_session"
+    On Flywheel Instance https://ss.ce.flywheel.io/api
+"""
 
 import argparse
 import os
 from datetime import datetime
 
 import flywheel
+
+input_files = {
+    "freesurfer_license": {
+        "hierarchy_id": "5dc091c169d4f3002d16f32f",
+        "location_name": "license.txt",
+    }
+}
 
 
 def main():
@@ -20,10 +32,10 @@ def main():
     print("destination type is: session")
     destination = fw.get("5dc091f669d4f3002a16ee9d")
 
-    project = fw.get_project("5dc091c169d4f3002d16f32f")
     inputs = dict()
-    for key, val in {"freesurfer_license": "license.txt"}.items():
-        inputs[key] = project.get_file(val)
+    for key, val in input_files.items():
+        container = fw.get(val["hierarchy_id"])
+        inputs[key] = container.get_file(val["location_name"])
 
     config = {
         "bids_app_args": "",

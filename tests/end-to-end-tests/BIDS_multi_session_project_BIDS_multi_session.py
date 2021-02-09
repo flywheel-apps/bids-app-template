@@ -1,12 +1,9 @@
 #! /usr/bin/env python3
-"""Run bids-app-template on session "ses-Session1"
+"""Run bids-app-template on project "BIDS_multi_session"
 
-    This script was created to run Job ID 6021a4640533ee34c0715021
+    This script was created to run Job ID 5dd80e738b0dc70029b59cbf
     In project "BIDS_multi_session"
     On Flywheel Instance https://ss.ce.flywheel.io/api
-
-    This tests two input files.  It only works because it does not validate BIDS
-    (BIDS curation is currently not working).
 """
 
 import argparse
@@ -15,16 +12,7 @@ from datetime import datetime
 
 import flywheel
 
-input_files = {
-    "bidsignore": {
-        "hierarchy_id": "5dc091c169d4f3002d16f32f",
-        "location_name": "bids_config.json",
-    },
-    "freesurfer_license": {
-        "hierarchy_id": "5dc091c169d4f3002d16f32f",
-        "location_name": "license.txt",
-    },
-}
+input_files = {}
 
 
 def main():
@@ -33,11 +21,11 @@ def main():
     print(fw.get_config().site.api_url)
 
     gear = fw.lookup("gears/bids-app-template")
-    print("gear.gear.version for job was = 0.0.0_0.14.0")
+    print("gear.gear.version for job was = 0.0.0_0.1.7")
     print(f"gear.gear.version now = {gear.gear.version}")
-    print("destination_id = 5dc091c269d4f3002d16f336")
-    print("destination type is: session")
-    destination = fw.get("5dc091c269d4f3002d16f336")
+    print("destination_id = 5dc091c169d4f3002d16f32f")
+    print("destination type is: project")
+    destination = fw.get("5dc091c169d4f3002d16f32f")
 
     inputs = dict()
     for key, val in input_files.items():
@@ -45,26 +33,23 @@ def main():
         inputs[key] = container.get_file(val["location_name"])
 
     config = {
-        "bids_app_args": "",
-        "example-bool-param": False,
-        "example-empty-param": "",
-        "example-threshold": 3.1415926,
+        "bool-param": False,
+        "gear-abort-on-bids-error": False,
         "gear-dry-run": False,
-        "gear-ignore-bids-errors": False,
         "gear-intermediate-files": "",
         "gear-intermediate-folders": "",
         "gear-keep-output": False,
         "gear-log-level": "DEBUG",
         "gear-run-bids-validation": False,
         "gear-save-intermediate-output": False,
-        "ignore": "",
+        "threshold": 3.1415926,
         "verbose": "v",
         "write-graph": False,
     }
 
     now = datetime.now()
     analysis_label = (
-        f'{gear.gear.name} {now.strftime("%m-%d-%Y %H:%M:%S")} uses both input files'
+        f'{gear.gear.name} {now.strftime("%m-%d-%Y %H:%M:%S")} Project level'
     )
     print(f"analysis_label = {analysis_label}")
 

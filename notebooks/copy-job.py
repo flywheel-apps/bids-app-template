@@ -11,8 +11,6 @@ import flywheel
 
 def main(job_id):
 
-    return_status = 0
-
     fw = flywheel.Client("")
     print("Flywheel Instance", fw.get_config().site.api_url)
 
@@ -115,8 +113,6 @@ def main():
     st = os.stat(script_name)
     os.chmod(script_name, st.st_mode | stat.S_IEXEC)
 
-    return return_status
-
 
 if __name__ == "__main__":
 
@@ -128,4 +124,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    os.sys.exit(main(args.job_id))
+    main(args.job_id)
+
+    os.sys.exit(0)
