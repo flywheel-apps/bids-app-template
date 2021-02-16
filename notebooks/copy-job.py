@@ -13,6 +13,10 @@ def main(job_id):
 
     fw = flywheel.Client("")
     print("Flywheel Instance", fw.get_config().site.api_url)
+    if args.analysis:
+        analysis = fw.get_analysis(job_id)
+        print(f"Geting job_id from analysis '{analysis.label}'")
+        job_id = analysis.job.id
 
     print("Job ID", job_id)
     job = fw.get_job(job_id)
@@ -120,6 +124,12 @@ if __name__ == "__main__":
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument("job_id", help="Flywheel job ID")
+    parser.add_argument(
+        "-a",
+        "--analysis",
+        action="store_true",
+        help="ID provide is for the analysys (job destination)",
+    )
     parser.add_argument("-v", "--verbose", action="count", default=0)
 
     args = parser.parse_args()
