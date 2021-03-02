@@ -22,29 +22,60 @@ def main(job_id):
     job = fw.get_job(job_id)
     gear = fw.get_gear(job.gear_id)
     print(f"gear.gear.name is {gear.gear.name}")
-    destination_id = job.config["destination"]["id"]
-    print(f"job's analysis destination_id is {destination_id}")
-    analysis = fw.get_analysis(destination_id)
-    print(f"job's analysis's parent's type is {analysis.parent['type']}")
-    project_id = analysis.parents["project"]
-    project = fw.get_project(project_id)
+    destination_id = job.destination.id
+    destination_type = job.destination.type
+    print(f"job's destination_id is {destination_id} type {destination_type}")
+
+    if job.destination.type == "analysis":
+        analysis = fw.get_analysis(destination_id)
+        destination_id = analysis.parent.id
+        destination_type = analysis.parent.type
+        print(f"job's analysis's parent id is {destination_id} type {destination_type}")
+
+    destination = fw.get(destination_id)
+    destination_label = destination.label
+    print(f"new job's destination is {destination_label} type {destination.label}")
+
+    group_id = destination.parents.group
+    print(f"Group id: {group_id}")
+    project = fw.get_project(destination.parents.project)
     project_label = project.label
     print(f"Project label: {project.label}")
-    destination = fw.get(analysis.parent["id"])
-    print(f"job's destination is {destination.label}")
-    script_name = f"{project_label}_{analysis.parent['type']}_{destination.label}.py"
+
+    script_name = f"{project_label}_{destination_type}_{destination.label}.py"
     script_name = script_name.replace(" ", "_")
     print(f"Creating script: {script_name} ...\n")
 
+    if destination_type == "project":
+        container_path = f"{group_id}/{project_label}"
+
+    elif destination_type == "subject":
+        subject = fw.get_subject(analysis.parent["id"])
+        container_path = f"{group_id}/{project_label}/{subject.label}"
+
+    elif destination_type == "session":
+        subject = fw.get_subject(analysis.parents.subject)
+        session = fw.get_session(analysis.parent.id)
+        container_path = f"{group_id}/{project_label}/{subject.label}/{session.label}"
+
+    elif destination_type == "acquisition":
+        subject = fw.get_subject(destination.parents.subject)
+        session = fw.get_session(destination.parents.session)
+        container_path = f"{group_id}/{project_label}/{subject.label}/{session.label}/{destination.label}"
+
+    else:
+        print(f"Error: unknown destination type {destination_type}")
+
     input_files = dict()
     for key, val in job.config.get("inputs").items():
-        input_files[key] = {
-            "hierarchy_id": val["hierarchy"]["id"],
-            "location_name": val["location"]["name"],
-        }
+        if "hierarchy" in val:
+            input_files[key] = {
+                "hierarchy_id": val["hierarchy"]["id"],
+                "location_name": val["location"]["name"],
+            }
 
     lines = f"""#! /usr/bin/env python3
-'''Run {gear.gear.name} on {analysis.parent['type']} "{destination.label}"
+'''Run {gear.gear.name} on {destination_type} "{destination.label}"
 
     This script was created to run Job ID {job_id}
     In project "{project_label}"
@@ -61,56 +92,81 @@ import flywheel
 
 input_files = {pprint.pformat(input_files)}
 
-def main():
-
-    fw = flywheel.Client('')
-    print(fw.get_config().site.api_url)
+def main(fw):
 
     gear = fw.lookup("gears/{gear.gear.name}")
-    print("gear.gear.version for job was = {gear.gear.version}")"""
+    print("gear.gear.version for job was = {gear.gear.version}")
+    print(f"gear.gear.version now = {gear.gear.version}")"""
 
-    with open(script_name, "w") as sfp:
-        for line in lines.split("\n"):
-            sfp.write(line + "\n")
-        sfp.write('    print(f"gear.gear.version now = {gear.gear.version}")\n')
-        sfp.write(f"    print(\"destination_id = {analysis.parent['id']}\")\n")
-        sfp.write(f"    print(\"destination type is: {analysis.parent['type']}\")\n")
-        sfp.write(f"    destination = fw.get(\"{analysis.parent['id']}\")\n")
-        sfp.write("\n")
-        sfp.write("    inputs = dict()\n")
-        sfp.write(f"    for key, val in input_files.items():\n")
-        sfp.write("         container = fw.get(val['hierarchy_id'])\n")
-        sfp.write("         inputs[key] = container.get_file(val['location_name'])\n")
-        sfp.write("\n")
-        sfp.write(f"    config = {pprint.pformat(job['config']['config'], indent=4)}\n")
-        sfp.write("\n")
+    sfp = open(script_name, "w")
+    for line in lines.split("\n"):
+        sfp.write(line + "\n")
+
+    sfp.write(f'    print("destination_id = {destination_id}")\n')
+    sfp.write(f'    print("destination type is: {destination_type}")\n')
+
+    sfp.write(f'    destination = fw.lookup("{container_path}")\n')
+
+    sfp.write("\n")
+    sfp.write("    inputs = dict()\n")
+    sfp.write(f"    for key, val in input_files.items():\n")
+    sfp.write("         container = fw.get(val['hierarchy_id'])\n")
+    sfp.write("         inputs[key] = container.get_file(val['location_name'])\n")
+    sfp.write("\n")
+    sfp.write(f"    config = {pprint.pformat(job['config']['config'], indent=4)}\n")
+    sfp.write("\n")
+
+    if job.destination.type == "analysis":
         sfp.write("    now = datetime.now()\n")
         sfp.write("    analysis_label = (\n")
         sfp.write(
             "        f'{gear.gear.name} {now.strftime(\"%m-%d-%Y %H:%M:%S\")} SDK launched'\n"
         )
         sfp.write("    )\n")
-        sfp.write('    print(f"analysis_label = {analysis_label}")\n')
-        sfp.write("\n")
-        sfp.write("    analysis_id = gear.run(\n")
-        sfp.write("        analysis_label=analysis_label,\n")
-        sfp.write("        config=config,\n")
-        sfp.write("        inputs=inputs,\n")
-        sfp.write("        destination=destination,\n")
-        sfp.write("    )\n")
+        sfp.write("    print(f'analysis_label = {analysis_label}')\n")
+
+        lines = f"""
+    analysis_id = gear.run(
+        analysis_label=analysis_label,
+        config=config,
+        inputs=inputs,
+        destination=destination,
+    )"""
+        for line in lines.split("\n"):
+            sfp.write(line + "\n")
+        sfp.write("    print(f'analysis_id = {analysis_id}')\n")
         sfp.write("    return analysis_id\n")
-        sfp.write("\n")
-        sfp.write("\n")
-        sfp.write("if __name__ == '__main__':\n")
-        sfp.write("\n")
-        sfp.write("    parser = argparse.ArgumentParser(description=__doc__)\n")
-        sfp.write("    args = parser.parse_args()\n")
-        sfp.write("\n")
-        sfp.write("    analysis_id = main()\n")
-        sfp.write("\n")
-        sfp.write('    print(f"analysis_id = {analysis_id}")\n')
-        sfp.write("\n")
-        sfp.write("    os.sys.exit(0)\n")
+
+    else:
+        lines = f"""
+    job_id = gear.run(
+        config=config,
+        inputs=inputs,
+        destination=destination
+    )"""
+        for line in lines.split("\n"):
+            sfp.write(line + "\n")
+        sfp.write("    print(f'job_id = {job_id}')\n")
+        sfp.write("    return job_id\n")
+
+    lines = f"""
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    args = parser.parse_args()
+
+    fw = flywheel.Client('')
+    print(fw.get_config().site.api_url)
+
+    analysis_id = main(fw)"""
+
+    for line in lines.split("\n"):
+        sfp.write(line + "\n")
+
+    sfp.write("\n")
+    sfp.write("    os.sys.exit(0)\n")
+
+    sfp.close()
 
     os.system(f"black {script_name}")
 
