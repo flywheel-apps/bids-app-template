@@ -34,11 +34,15 @@ def main(job_id):
 
     destination = fw.get(destination_id)
     destination_label = destination.label
-    print(f"new job's destination is {destination_label} type {destination.label}")
+    print(f"new job's destination is {destination_label} type {destination_type}")
 
     group_id = destination.parents.group
     print(f"Group id: {group_id}")
-    project = fw.get_project(destination.parents.project)
+
+    if destination_type == "project":
+        project = destination
+    else:
+        project = fw.get_project(destination.parents.project)
     project_label = project.label
     print(f"Project label: {project.label}")
 
@@ -78,7 +82,7 @@ def main(job_id):
 '''Run {gear.gear.name} on {destination_type} "{destination.label}"
 
     This script was created to run Job ID {job_id}
-    In project "{project_label}"
+    In project "{group_id}/{project_label}"
     On Flywheel Instance {fw.get_config().site.api_url}
 '''
 
@@ -95,13 +99,13 @@ input_files = {pprint.pformat(input_files)}
 def main(fw):
 
     gear = fw.lookup("gears/{gear.gear.name}")
-    print("gear.gear.version for job was = {gear.gear.version}")
-    print(f"gear.gear.version now = {gear.gear.version}")"""
+    print("gear.gear.version for job was = {gear.gear.version}")"""
 
     sfp = open(script_name, "w")
     for line in lines.split("\n"):
         sfp.write(line + "\n")
 
+    sfp.write('    print(f"gear.gear.version now = {gear.gear.version}")\n')
     sfp.write(f'    print("destination_id = {destination_id}")\n')
     sfp.write(f'    print("destination type is: {destination_type}")\n')
 
@@ -109,7 +113,7 @@ def main(fw):
 
     sfp.write("\n")
     sfp.write("    inputs = dict()\n")
-    sfp.write(f"    for key, val in input_files.items():\n")
+    sfp.write("    for key, val in input_files.items():\n")
     sfp.write("         container = fw.get(val['hierarchy_id'])\n")
     sfp.write("         inputs[key] = container.get_file(val['location_name'])\n")
     sfp.write("\n")
