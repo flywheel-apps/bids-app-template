@@ -161,11 +161,24 @@ def main(gtk_context):
     # can be returned.
     output_analysis_id_dir = output_dir / destination_id
 
+    environ = get_and_log_environment()
+
     # editme: optional features -- set # threads and max memory to use
     config["n_cpus"] = set_n_cpus(config.get("n_cpus"))
     config["mem_gb"] = set_mem_gb(config.get("mem_gb"))
 
-    environ = get_and_log_environment()
+    # All writeable directories need to be set up in the current working directory
+
+    orig_subject_dir = Path(environ["SUBJECTS_DIR"])
+    subjects_dir = FWV0 / "freesurfer/subjects"
+    environ["SUBJECTS_DIR"] = str(subjects_dir)
+    if not subjects_dir.exists():  # needs to be created unless testing
+        subjects_dir.mkdir(parents=True)
+        (subjects_dir / "fsaverage").symlink_to(orig_subject_dir / "fsaverage")
+        (subjects_dir / "fsaverage5").symlink_to(orig_subject_dir / "fsaverage5")
+        (subjects_dir / "fsaverage6").symlink_to(orig_subject_dir / "fsaverage6")
+
+    environ["FS_LICENSE"] = str(FWV0 / "freesurfer/license.txt")
 
     # editme: if the command needs a Freesurfer license keep this
     license_list = list(Path("input/freesurfer_license").glob("*"))
@@ -233,9 +246,14 @@ def main(gtk_context):
             log.info("Creating output directory %s", output_analysis_id_dir)
             Path(output_analysis_id_dir).mkdir()
 
-            if gtk_context.config["gear-log-level"] != "INFO":
+            if config["gear-log-level"] != "INFO":
                 # show what's in the current working directory just before running
                 os.system("tree -a .")
+
+            # Setting this is useful for stopping long-running algorithms to
+            # test if they get set up properly
+            if "gear-timeout" in config:
+                command = [f"timeout {config['gear-timeout']}"] + command
 
             # This is what it is all about
             exec_command(
@@ -256,6 +274,17 @@ def main(gtk_context):
         # see https://github.com/bids-standard/pybids/tree/master/examples
         # for any necessary work on the bids files inside the gear, perhaps
         # to query results or count stuff to estimate how long things will take.
+
+        # editme: optional feature
+        # Remove all fsaverage* directories
+        if not config.get("gear-keep-fsaverage"):
+            path = output_analysis_id_dir / "freesurfer"
+            fsavg_dirs = path.glob("fsaverage*")
+            for fsavg in fsavg_dirs:
+                log.info("deleting %s", str(fsavg))
+                shutil.rmtree(fsavg)
+        else:
+            log.info("Keeping fsaverage directories")
 
         # zip entire output/<analysis_id> folder into
         #  <gear_name>_<project|subject|session label>_<analysis.id>.zip

@@ -178,3 +178,6 @@ fabric.properties
 
 # singularity
 *.sif
+
+# libreoffice
+.~lock*

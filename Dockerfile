@@ -11,6 +11,11 @@ WORKDIR ${FLYWHEEL}
 # in this gear:
 COPY algorithm-to-gearify.sh ${FLYWHEEL}/algorithm-to-gearify.sh
 
+# This is here to make gear code for Freesurfer to pass tests.
+# You probably don't need it
+ENV FREESURFER_HOME="/opt/freesurfer"
+ENV SUBJECTS_DIR="/opt/freesurfer/subjects"
+
 # Hopefully You won't need to change anything below this.
 
 # Save docker environ here to keep it separate from the Flywheel gear environment
@@ -45,7 +50,7 @@ RUN pip install -r /tmp/requirements.txt && \
     rm -rf /root/.cache/pip
 
 # Create symbolic link for Freesurfer license but delete the target because
-# the real "freesurfer" directory will be created when the gear runs
+# the gear's "freesurfer" directory will be created when the gear runs
 RUN mkdir -p /opt/freesurfer/
 RUN mkdir -p ${FLYWHEEL}/freesurfer
 RUN touch ${FLYWHEEL}/freesurfer/license.txt
