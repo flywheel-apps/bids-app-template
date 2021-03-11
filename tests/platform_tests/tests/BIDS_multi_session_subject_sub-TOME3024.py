@@ -1,9 +1,9 @@
 #! /usr/bin/env python3
 """Run bids-app-template on subject "sub-TOME3024"
 
-    This script was created to run Job ID 6021c81f0533ee34c07166cc
+    This script was created to run Job ID 603fb4f225960896416e8ab6
     In project "BIDS_multi_session"
-    On Flywheel Instance https://ss.ce.flywheel.io/api
+    On Flywheel Instance https://rollout.ce.flywheel.io/api
 """
 
 import argparse
@@ -15,17 +15,14 @@ import flywheel
 input_files = {}
 
 
-def main():
-
-    fw = flywheel.Client("")
-    print(fw.get_config().site.api_url)
+def main(fw):
 
     gear = fw.lookup("gears/bids-app-template")
-    print("gear.gear.version for job was = 0.0.0_0.14.0")
-    print(f"gear.gear.version now = {gear.gear.version}")
-    print("destination_id = 5dc091c269d4f3002d16f334")
+    print("gear.gear.version for job was = 0.0.0_0.15.0")
+    print(f"gear.gear.version now = 0.0.0_0.15.0")
+    print("destination_id = 602ed7bcabe32939b783e906")
     print("destination type is: subject")
-    destination = fw.get("5dc091c269d4f3002d16f334")
+    destination = fw.lookup("bids-apps/BIDS_multi_session/sub-TOME3024")
 
     inputs = dict()
     for key, val in input_files.items():
@@ -34,12 +31,10 @@ def main():
 
     config = {
         "bids_app_args": "",
-        "bool-param": False,
         "example-bool-param": False,
         "example-empty-param": "",
         "example-threshold": 3.1415926,
-        "gear-abort-on-bids-error": False,
-        "gear-dry-run": False,
+        "gear-dry-run": True,
         "gear-ignore-bids-errors": False,
         "gear-intermediate-files": "",
         "gear-intermediate-folders": "",
@@ -48,7 +43,6 @@ def main():
         "gear-run-bids-validation": False,
         "gear-save-intermediate-output": False,
         "ignore": "",
-        "threshold": 3.1415926,
         "verbose": "v",
         "write-graph": False,
     }
@@ -65,6 +59,7 @@ def main():
         inputs=inputs,
         destination=destination,
     )
+    print(f"analysis_id = {analysis_id}")
     return analysis_id
 
 
@@ -73,8 +68,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     args = parser.parse_args()
 
-    analysis_id = main()
+    fw = flywheel.Client("")
+    print(fw.get_config().site.api_url)
 
-    print(f"analysis_id = {analysis_id}")
+    analysis_id = main(fw)
 
     os.sys.exit(0)

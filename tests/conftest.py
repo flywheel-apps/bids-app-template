@@ -68,9 +68,7 @@ def search_stdout_contains():
 
         for msg in captured.out.split("/n"):
             if find_me in msg:
-                print(f"Found '{find_me}' in '{msg}'")
                 if contains_me in msg:
-                    print(f"Found '{contains_me}' in '{msg}'")
                     return True
         return False
 
@@ -138,9 +136,7 @@ def search_caplog_contains():
 
         for msg in caplog.messages:
             if find_me in msg:
-                print(f"Found '{find_me}' in '{msg}'")
                 if contains_me in msg:
-                    print(f"Found '{contains_me}' in '{msg}'")
                     return True
         return False
 
