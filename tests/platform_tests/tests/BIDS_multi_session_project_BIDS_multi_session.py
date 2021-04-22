@@ -2,7 +2,7 @@
 """Run bids-app-template on project "BIDS_multi_session"
 
     This script was created to run Job ID 603fb4ab146a36499c6e8aca
-    In project "BIDS_multi_session"
+    In project "scien/BIDS_multi_session"
     On Flywheel Instance https://rollout.ce.flywheel.io/api
 """
 
@@ -19,10 +19,10 @@ def main(fw):
 
     gear = fw.lookup("gears/bids-app-template")
     print("gear.gear.version for job was = 0.0.0_0.15.0")
-    print(f"gear.gear.version now = 0.0.0_0.15.0")
+    print(f"gear.gear.version now = {gear.gear.version}")
     print("destination_id = 602ed7b21c5936816883e901")
     print("destination type is: project")
-    destination = fw.lookup("bids-apps/BIDS_multi_session")
+    destination = fw.lookup("scien/BIDS_multi_session")
 
     inputs = dict()
     for key, val in input_files.items():
