@@ -13,9 +13,11 @@ def main(job_id):
 
     fw = flywheel.Client("")
     print("Flywheel Instance", fw.get_config().site.api_url)
+
+    analysis = None
     if args.analysis:
         analysis = fw.get_analysis(job_id)
-        print(f"Geting job_id from analysis '{analysis.label}'")
+        print(f"Getting job_id from analysis '{analysis.label}'")
         job_id = analysis.job.id
 
     print("Job ID", job_id)
@@ -50,22 +52,27 @@ def main(job_id):
     script_name = script_name.replace(" ", "_")
     print(f"Creating script: {script_name} ...\n")
 
+    container_path = "Invalid"
+
     if destination_type == "project":
         container_path = f"{group_id}/{project_label}"
 
     elif destination_type == "subject":
-        subject = fw.get_subject(analysis.parent["id"])
-        container_path = f"{group_id}/{project_label}/{subject.label}"
+        container_path = f"{group_id}/{project_label}/{destination.label}"
 
     elif destination_type == "session":
-        subject = fw.get_subject(analysis.parents.subject)
-        session = fw.get_session(analysis.parent.id)
-        container_path = f"{group_id}/{project_label}/{subject.label}/{session.label}"
+        container_path = (
+            f"{group_id}/{project_label}/{destination.subject.label}/"
+            + f"{destination.label}"
+        )
 
     elif destination_type == "acquisition":
         subject = fw.get_subject(destination.parents.subject)
         session = fw.get_session(destination.parents.session)
-        container_path = f"{group_id}/{project_label}/{subject.label}/{session.label}/{destination.label}"
+        container_path = (
+            f"{group_id}/{project_label}/{subject.label}/{session.label}/"
+            + f"{destination.label}"
+        )
 
     else:
         print(f"Error: unknown destination type {destination_type}")
@@ -188,7 +195,7 @@ if __name__ == "__main__":
         "-a",
         "--analysis",
         action="store_true",
-        help="ID provide is for the analysys (job destination)",
+        help="ID provide is for the analysis (job destination)",
     )
     parser.add_argument("-v", "--verbose", action="count", default=0)
 
