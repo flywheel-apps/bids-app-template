@@ -127,8 +127,7 @@ def download_bids_for_runlevel(
 
     run_level = hierarchy["run_level"]
 
-    # Show the complete destination hierarchy in the tree html output for
-    # clarity
+    # Show the complete destination hierarchy in the tree html output for clarity
     extra_tree_text += f"run_level is {run_level}\n"
     for key, val in hierarchy.items():
         extra_tree_text += f"  {key:<18}: {val}\n"

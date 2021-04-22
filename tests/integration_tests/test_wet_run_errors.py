@@ -36,7 +36,7 @@ def test_wet_run_errors(
         print_captured(captured)
 
         assert status == 1
-        assert search_sysout(captured, "Python 3.9.2")
+        assert search_sysout(captured, "Python 3.9.4")
         assert search_caplog(caplog, "sub-TOME3024_ses-Session2_acq-MPRHA_T1w.nii.gz")
         assert search_caplog(caplog, "Not running BIDS validation")
         assert search_sysout(captured, "now I generate an error")

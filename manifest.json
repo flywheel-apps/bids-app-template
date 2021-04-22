@@ -48,9 +48,24 @@
       "description": "A .bidsignore file to provide to the bids-validator that this gear runs before running the main command.",
       "base": "file",
       "optional": true
+    },
+    "go_file": {
+      "description": "Any kind of file that can be used in a Gear Rule to launch this gear when that file appears.  Use with the 'run_level' config option to force running at the project, subject, or session level.  The default is to run at the session level if not otherwise specified.",
+      "base": "file",
+      "optional": true
     }
   },
   "config": {
+    "run_level": {
+      "description": "Force the gear to run a the project, subject, or session level.  This is required if the 'go_file' is being used in a Gear Rule to run the gear but it can be used when running the gear normally as well.",
+      "enum": [
+        "project",
+        "subject",
+        "session"
+      ],
+      "optional": true,
+      "type": "string"
+    },
     "bids_app_args": {
       "description": "[arg1 [arg2 ...]]",
       "default": "",

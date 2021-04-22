@@ -152,6 +152,9 @@ def main(gtk_context):
     destination_id = gtk_context.destination["id"]
     hierarchy = get_analysis_run_level_and_hierarchy(gtk_context.client, destination_id)
 
+    if "run_level" in config:
+        hierarchy["run_level"] = config["run_level"]
+
     # This is the label of the project, subject or session and is used
     # as part of the name of the output files.
     run_label = make_file_name_safe(hierarchy["run_label"])
@@ -168,6 +171,7 @@ def main(gtk_context):
     config["mem_gb"] = set_mem_gb(config.get("mem_gb"))
 
     # All writeable directories need to be set up in the current working directory
+    # for compatibility with Singularity
 
     orig_subject_dir = Path(environ["SUBJECTS_DIR"])
     subjects_dir = FWV0 / "freesurfer/subjects"
@@ -410,6 +414,7 @@ def main(gtk_context):
 if __name__ == "__main__":
 
     # always run in a newly created "scratch" directory in /tmp/...
+    # to be compatible with Singularity
     scratch_dir = run_in_tmp_dir()
 
     gtk_context = flywheel_gear_toolkit.GearToolkitContext()
