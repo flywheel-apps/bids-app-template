@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""Run all tests ./tests/platform_tests/*.py and monitor results.
+"""Run tests in ./tests/platform_tests/tests/*.py and monitor results.
+
+This uses the configuration file "tests/platform_tests/config.tsv".
 
 Example:
     tests/platform_tests/run-platform-tests.py
@@ -10,6 +12,7 @@ import argparse
 import importlib
 import json
 import os
+import subprocess as sp
 import sys
 import tempfile
 import time
@@ -36,8 +39,7 @@ CO = "\x1b[38;5;202m"  # Orange
 CONFIG = Path("tests/platform_tests/config.tsv")
 
 DATA_PATH = (
-    Path().home()
-    / "Flywheel/gitlab/flywheel-io/scientific-solutions/data-registry/data/raw/bids"
+    Path().home() / "Flywheel/gitlab/flywheel-io/scientific-solutions/data-registry"
 )
 
 KEY_FILE = Path.home() / "Flywheel/bin/.keys.json"
@@ -129,35 +131,126 @@ def get_or_create_project(group, project_label):
     return project
 
 
-def import_bids_data_if_empty(fw, group_id, project, data_path):
-    """Upload BIDS data and description if the project has no acquisitions.
+def add_classifier_rule(fw, project):
 
-    Data is stored in a zip archive that has a "bids" directory at
-    the top level.  The zip archive is called f"{project.label}.zip".
+    # TODO: check if the rule is already there!
+
+    print("Installing classifier gear rule")
+    gear = fw.lookup(f"gears/dicom-mr-classifier")
+    new_rule = flywheel.models.rule.Rule(
+        project_id=project.id,
+        **{
+            "all": [{"regex": False, "type": "file.type", "value": "dicom"}],
+            "_not": [],
+            "any": [],
+        },
+        auto_update=True,
+        disabled=False,
+        gear_id=gear.id,
+        name="1. dicom classifier (all dicoms)",
+    )
+    fw.add_project_rule(project.id, new_rule)
+
+
+def add_dcm2niix_rule(fw, project):
+
+    # TODO: check if the rule is already there!
+
+    print("Installing dcm2niix gear rule")
+    gear = fw.lookup(f"gears/dcm2niix")
+    new_rule = flywheel.models.rule.Rule(
+        project_id=project.id,
+        **{
+            "_not": [],
+            "all": [
+                {"regex": None, "type": "file.modality", "value": "MR"},
+                {"regex": None, "type": "file.type", "value": "dicom"},
+            ],
+            "any": [],
+        },
+        auto_update=True,
+        disabled=False,
+        gear_id=gear.id,
+        name="2. DICOM Conversion",
+    )
+    fw.add_project_rule(project.id, new_rule)
+
+
+def upload_data_if_empty(fw, group_id, project, data_path, upload_as, gear_rules):
+    """Upload data and description if the project has no acquisitions.
+
+    For BIDS:
+        Data is stored in a zip archive that has a "bids" directory at
+        the top level.
+
+    For DICOM:
+        Data is stored in a zip archive that has a directories with ".dcm"
+        files in them.
+
+    The zip archive is called f"{project.label}.zip".
+
     The description for the project (if present) is stored in a
     file called f"{project.label}_Description.md".
+
+    If there is also a file called f"{project.label}_Permission.pdf", it
+    will be uploaded to the project as an attachement.
 
     Args:
         fw (flywheel.client.Client): A Flywheel client
         group_id (str): Flywheel Instance Group ID
         project (flywheel.models.project.Project): Project that was just created
         data_path (str): where to find project.label + ".zip" to upload as BIDS
+        upload_as (str): "bids" or "dicom"
+        gear_rules (str): space separated list of gear rules, one of:
+            [classifier, dcm2niix]
     """
+
+    for gr in gear_rules.split(" "):
+        if gr.lower() == "none":
+            pass
+        if gr == "classifier":
+            add_classifier_rule(fw, project)
+        elif gr == "dcm2niix":
+            add_dcm2niix_rule(fw, project)
+        else:
+            print(f"{CR}Wait!  I don't know what {gr} is!  Ahhhhhhhhhh!{C0}")
 
     acquisitions = fw.acquisitions.find(f"project={project.id}")
 
     if len(acquisitions) == 0:
-        print(f"Project has no acquisitions, importing BIDS data for ")
+        print(f"Project has no acquisitions, importing data")
         with tempfile.TemporaryDirectory() as tmpdirname:
             unzip_archive(f"{data_path}/{project.label}.zip", tmpdirname)
-            upload_bids(
-                fw,
-                str(tmpdirname + "/bids"),
-                group_id=group_id,
-                project_label=project.label,
-                hierarchy_type="Flywheel",
-                validate=False,
-            )
+
+            if upload_as == "bids":
+                upload_bids(
+                    fw,
+                    str(tmpdirname + "/bids"),
+                    group_id=group_id,
+                    project_label=project.label,
+                    hierarchy_type="Flywheel",
+                    validate=False,
+                )
+
+            elif upload_as == "dicom":
+                if args.verbose:
+                    cmd = f"tree {tmpdirname}"
+                    command = [w for w in cmd.split()]
+                    result = sp.run(command)
+
+                for item in Path(tmpdirname).glob("*"):
+                    if item.is_dir():
+                        dcm_dir = Path(tmpdirname) / item
+                        if len(list(dcm_dir.glob("*.dcm"))) > 0:
+                            cmd = f"fw ingest dicom {dcm_dir} {group_id} {project.label} -v -y"
+                            print(f"{C0}cmd{C0}")
+                            command = [w for w in cmd.split()]
+                            result = sp.run(command)
+
+            else:
+                print(
+                    f"{CR}Wait!  I don't know how to do {upload_as}!  Ahhhhhhhhhh!{C0}"
+                )
 
         description_file = Path(f"{data_path}/{project.label}_Description.md")
         if description_file.exists():
@@ -167,9 +260,13 @@ def import_bids_data_if_empty(fw, group_id, project, data_path):
         else:
             print(f"Could not find {description_file}")
 
+        permission_file = Path(f"{data_path}/{project.label}_Permission.pdf")
+        if permission_file.exists():
+            print(f"{CR}WARNING: unwritten code, waaaaa!{C0}")
+
     else:
         print(
-            f"Project already has {len(acquisitions)} acquisitions.  Not uploading bids."
+            f"Project already has {len(acquisitions)} acquisitions.  Not uploading data."
         )
 
 
@@ -193,12 +290,11 @@ def main():
         c_group_label = f"{CP}{group_label}{C0}"  # Purple
         project_label = str(row["Project"])
         c_project_label = f"{CM}{project_label}{C0}"  # Magenta
-        if str(row["BIDS?"]).lower() == "yes":
-            is_bids = True
-        else:
-            is_bids = False
+        upload_as = row["Upload_As"].lower()
+        registry_path = row["Registry_Path"]
+        gear_rules = str(row["Gear_Rules"])
         delay = row["Delay"]  # number of seconds
-        if str(row["Run_test?"]).lower() == "yes":
+        if str(row["Run_Test?"]).lower() == "yes":
             run_test = True
         else:
             run_test = False
@@ -224,12 +320,19 @@ def main():
         print(f"Setting up or using Project: {c_project_label}")
         project = get_or_create_project(group, project_label)
 
-        if row["BIDS?"].lower() == "yes":
+        if upload_as == "bids":
             print(f"Setting up or using BIDS Project: {row['Project']}")
-            import_bids_data_if_empty(fw, group_id, project, DATA_PATH)
+            upload_data_if_empty(
+                fw, group_id, project, DATA_PATH / registry_path, "bids", gear_rules
+            )
+        elif upload_as == "dicom":
+            print(f"Setting up or using DICOM data in Project: {row['Project']}")
+            upload_data_if_empty(
+                fw, group_id, project, DATA_PATH / registry_path, "dicom", gear_rules
+            )
         else:
-            print(f"Setting up or using non-BIDS Project: {row['Project']}")
-            print("Wait!  I don't know how to do that!  Ahhhhhhhhhh!")
+            print(f"Setting up or using '{upload_as}' Project: {row['Project']}")
+            print(f"{CR}Wait!  I don't know how to do that!  Ahhhhhhhhhh!{C0}")
 
         # Import the test and launch the job
         if test != "Null":

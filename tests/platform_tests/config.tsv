@@ -1,5 +1,6 @@
-Test	Instance	Group_ID	Group_Label	Project	BIDS?	Delay	Run_test?
-Null	rollout.ce.flywheel.io	bids-apps	BIDS Apps	bids-testing-scratch	yes	10	no
-BIDS_multi_session_project_BIDS_multi_session.py	rollout.ce.flywheel.io	bids-apps	BIDS Apps	BIDS_multi_session	yes	10	yes
-BIDS_multi_session_subject_sub-TOME3024.py	rollout.ce.flywheel.io	bids-apps	BIDS Apps	BIDS_multi_session	yes	10	no
-BIDS_multi_session_session_ses-Session2.py	rollout.ce.flywheel.io	bids-apps	BIDS Apps	BIDS_multi_session	yes	10	no
+Test	Instance	Group_ID	Group_Label	Project	Upload_As	Registry_Path	Gear_Rules	Delay	Run_Test?	Comments
+Null	rollout.ce.flywheel.io	bids-apps	BIDS Apps	bids-testing-scratch	BIDS	data/raw/bids	none	10	no	Just install the data
+BIDS_multi_session_project_BIDS_multi_session.py	rollout.ce.flywheel.io	bids-apps	BIDS Apps	BIDS_multi_session	BIDS	data/raw/bids	none	10	no
+BIDS_multi_session_subject_sub-TOME3024.py	rollout.ce.flywheel.io	bids-apps	BIDS Apps	BIDS_multi_session	BIDS	data/raw/bids	none	10	no
+BIDS_multi_session_session_ses-Session2.py	rollout.ce.flywheel.io	bids-apps	BIDS Apps	BIDS_multi_session	BIDS	data/raw/bids	none	10	no
+Null	ga.ce.flywheel.io	bids-curation-tests	bids-curation-tests	Levitas_Tutorial	DICOM	data/raw/dicom/dcm.zip/MR/BIDS	classifier dcm2niix	10	yes	Just install the data
