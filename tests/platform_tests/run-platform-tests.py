@@ -80,6 +80,8 @@ def get_flywheel_client(instance):
     for key, val in keys["ids"][the_user].items():
         if instance.startswith(key):
             api_key = val
+    if not api_key:
+        print(f"{CR}Could not find instance '{instance}'{C0}")
     return flywheel.Client(api_key=api_key)
 
 
@@ -96,12 +98,15 @@ def get_or_create_group(fw, group_id, group_label):
 
     groups = fw.groups.find(f"label={group_label}")
     if len(groups) > 0:
+        print(f"Found it.")
         group = groups[0]
         print(f"group.label {group.label}")
         print(f"group.id {group.id}")
     else:
         print("Group not found - Creating it.")
         group_id = fw.add_group(flywheel.Group(group_id, group_label))
+        print(f"group.label {group.label}")
+        print(f"group.id {group.id}")
     return group
 
 
@@ -131,52 +136,7 @@ def get_or_create_project(group, project_label):
     return project
 
 
-def add_classifier_rule(fw, project):
-
-    # TODO: check if the rule is already there!
-
-    print("Installing classifier gear rule")
-    gear = fw.lookup(f"gears/dicom-mr-classifier")
-    new_rule = flywheel.models.rule.Rule(
-        project_id=project.id,
-        **{
-            "all": [{"regex": False, "type": "file.type", "value": "dicom"}],
-            "_not": [],
-            "any": [],
-        },
-        auto_update=True,
-        disabled=False,
-        gear_id=gear.id,
-        name="1. dicom classifier (all dicoms)",
-    )
-    fw.add_project_rule(project.id, new_rule)
-
-
-def add_dcm2niix_rule(fw, project):
-
-    # TODO: check if the rule is already there!
-
-    print("Installing dcm2niix gear rule")
-    gear = fw.lookup(f"gears/dcm2niix")
-    new_rule = flywheel.models.rule.Rule(
-        project_id=project.id,
-        **{
-            "_not": [],
-            "all": [
-                {"regex": None, "type": "file.modality", "value": "MR"},
-                {"regex": None, "type": "file.type", "value": "dicom"},
-            ],
-            "any": [],
-        },
-        auto_update=True,
-        disabled=False,
-        gear_id=gear.id,
-        name="2. DICOM Conversion",
-    )
-    fw.add_project_rule(project.id, new_rule)
-
-
-def upload_data_if_empty(fw, group_id, project, data_path, upload_as, gear_rules):
+def upload_data_if_empty(fw, group_id, project, data_path, upload_as):
     """Upload data and description if the project has no acquisitions.
 
     For BIDS:
@@ -192,37 +152,25 @@ def upload_data_if_empty(fw, group_id, project, data_path, upload_as, gear_rules
     The description for the project (if present) is stored in a
     file called f"{project.label}_Description.md".
 
-    If there is also a file called f"{project.label}_Permission.pdf", it
-    will be uploaded to the project as an attachement.
-
     Args:
         fw (flywheel.client.Client): A Flywheel client
         group_id (str): Flywheel Instance Group ID
         project (flywheel.models.project.Project): Project that was just created
         data_path (str): where to find project.label + ".zip" to upload as BIDS
         upload_as (str): "bids" or "dicom"
-        gear_rules (str): space separated list of gear rules, one of:
-            [classifier, dcm2niix]
     """
-
-    for gr in gear_rules.split(" "):
-        if gr.lower() == "none":
-            pass
-        if gr == "classifier":
-            add_classifier_rule(fw, project)
-        elif gr == "dcm2niix":
-            add_dcm2niix_rule(fw, project)
-        else:
-            print(f"{CR}Wait!  I don't know what {gr} is!  Ahhhhhhhhhh!{C0}")
 
     acquisitions = fw.acquisitions.find(f"project={project.id}")
 
     if len(acquisitions) == 0:
-        print(f"Project has no acquisitions, importing data")
+        print(f"Project has no acquisitions, Setting up...")
+
+        print(f"Importing data...")
         with tempfile.TemporaryDirectory() as tmpdirname:
             unzip_archive(f"{data_path}/{project.label}.zip", tmpdirname)
 
             if upload_as == "bids":
+                print("Setting up or using BIDS data")
                 upload_bids(
                     fw,
                     str(tmpdirname + "/bids"),
@@ -233,10 +181,10 @@ def upload_data_if_empty(fw, group_id, project, data_path, upload_as, gear_rules
                 )
 
             elif upload_as == "dicom":
+                print("Setting up or using DICOM data}")
                 if args.verbose:
                     cmd = f"tree {tmpdirname}"
-                    command = [w for w in cmd.split()]
-                    result = sp.run(command)
+                    result = sp.run([w for w in cmd.split()])
 
                 for item in Path(tmpdirname).glob("*"):
                     if item.is_dir():
@@ -257,12 +205,9 @@ def upload_data_if_empty(fw, group_id, project, data_path, upload_as, gear_rules
             with open(description_file, "r") as dfp:
                 description = dfp.read()
             fw.modify_project(project.id, {"description": description})
+            print(f"Added {description_file} to project.")
         else:
             print(f"Could not find {description_file}")
-
-        permission_file = Path(f"{data_path}/{project.label}_Permission.pdf")
-        if permission_file.exists():
-            print(f"{CR}WARNING: unwritten code, waaaaa!{C0}")
 
     else:
         print(
@@ -270,9 +215,148 @@ def upload_data_if_empty(fw, group_id, project, data_path, upload_as, gear_rules
         )
 
 
-def main():
+def install_project_files(fw, project, data_path):
+    """Install files found in {project.label}_project_files.zip.
 
-    exit_code = 0
+    Args:
+        fw (flywheel.client.Client): A Flywheel client
+    """
+    project_zip_name = f"{project.label}_project_files.zip"
+    project_zip_file = Path(f"{data_path}/{project_zip_name}")
+    if project_zip_file.exists():
+        print(f"Found '{project_zip_name}'")
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            unzip_archive(project_zip_file, tmpdirname)
+            if args.verbose:
+                cmd = f"tree {tmpdirname}"
+                result = sp.run([w for w in cmd.split()])
+            project_files_dir = Path(tmpdirname) / "Levitas_Tutorial_project_files"
+            for afile in project_files_dir.glob("*"):
+                found_file = False
+                for project_file in project.files:
+                    if project_file.name == afile.name:
+                        print(f"{afile.name} alredy exists on project")
+                        found_file = True
+                        break
+                if not found_file:
+                    project.upload_file(afile)
+                    print(f"Uploaded {afile.name} to project")
+    else:
+        print(f"No '{project_zip_name}' found")
+
+
+def install_gear(fw, gear_name, gear_version):
+
+    gears = {gear.gear.name: gear.gear.version for gear in fw.gears()}
+    if gear_name in gears:
+        print(f"Gear {gear_name} is already installed")
+        if gears[gear_name] == gear_version:
+            print(f"Gear version is the desired version {gear_version}")
+        else:
+            print(
+                f"Gear version is {gears[gear_name]} but it is not "
+                f"the desired version {gear_version}"
+            )
+            print(f"{CR}Yipes, I don't know how to fix this yet{C0}")
+    else:
+        print(f"Installing gear {gear_name}")
+        print(f"{CR}Yipes, I don't know how to do that yet{C0}")
+
+
+def add_classifier_rule(fw, project):
+
+    name = "1. dicom classifier (all dicoms)"
+    project_rules = [rule.name for rule in fw.get_project_rules(project.id)]
+    if name not in project_rules:
+
+        print("Installing classifier gear rule")
+        gear = fw.lookup(f"gears/dicom-mr-classifier")
+        new_rule = flywheel.models.rule.Rule(
+            project_id=project.id,
+            **{
+                "all": [{"regex": False, "type": "file.type", "value": "dicom"}],
+                "_not": [],
+                "any": [],
+            },
+            auto_update=True,
+            disabled=False,
+            gear_id=gear.id,
+            name=name,
+        )
+        fw.add_project_rule(project.id, new_rule)
+
+    else:
+        print(f"'{name}' gear rule already installed")
+
+
+def add_dcm2niix_rule(fw, project):
+
+    name = "2. DICOM Conversion"
+    project_rules = [rule.name for rule in fw.get_project_rules(project.id)]
+    if name not in project_rules:
+
+        print("Installing dcm2niix gear rule")
+        gear = fw.lookup(f"gears/dcm2niix")
+        new_rule = flywheel.models.rule.Rule(
+            project_id=project.id,
+            **{
+                "_not": [],
+                "all": [
+                    {"regex": None, "type": "file.modality", "value": "MR"},
+                    {"regex": None, "type": "file.type", "value": "dicom"},
+                ],
+                "any": [],
+            },
+            auto_update=True,
+            disabled=False,
+            gear_id=gear.id,
+            name=name,
+        )
+        fw.add_project_rule(project.id, new_rule)
+
+    else:
+        print(f"'{name}' gear rule already installed")
+
+
+def install_gear_rules(fw, gear_rules):
+    """Install gear rules if listed.
+    Args:
+        fw (flywheel.client.Client): A Flywheel client
+        gear_rules (str): space separated list of gear rules, one of:
+            [classifier, dcm2niix]
+    """
+
+    for gr in gear_rules.split(" "):
+        if gr.lower() == "none":
+            pass
+        if gr == "classifier":
+            add_classifier_rule(fw, project)
+        elif gr == "dcm2niix":
+            add_dcm2niix_rule(fw, project)
+        else:
+            print(f"{CR}Wait!  I don't know what {gr} is!  Ahhhhhhhhhh!{C0}")
+
+
+def run_test(test, fw):
+    """Import the test and launch the job
+
+    Args:
+        tests (str): name of python test script
+
+    Returns:
+        analysis_id (str): ID that can be tracked
+    """
+
+    test_path = f"tests.{test}"[:-3]
+    print(test_path)
+    __import__(test_path)
+    test_module = sys.modules[test_path]
+    analysis_id = test_module.main(fw)
+    print(f"analysis_id = {analysis_id}")
+    return analysis_id
+
+
+def main():
 
     tests = pd.read_table(CONFIG, index_col=False)
 
@@ -290,75 +374,77 @@ def main():
         c_group_label = f"{CP}{group_label}{C0}"  # Purple
         project_label = str(row["Project"])
         c_project_label = f"{CM}{project_label}{C0}"  # Magenta
-        upload_as = row["Upload_As"].lower()
+        upload_as = str(row["Upload_As"]).lower()
         registry_path = row["Registry_Path"]
         gear_rules = str(row["Gear_Rules"])
+        gear_name = str(row["Gear_Name"])
+        gear_version = str(row["Gear_Version"])
         delay = row["Delay"]  # number of seconds
-        if str(row["Run_Test?"]).lower() == "yes":
-            run_test = True
-        else:
-            run_test = False
+        if str(row["Skip?"]).lower() in ["yes", "skip"]:
+            continue
+
+        # Say what is about to happen.  The main pupose is to run tests, but
+        # if no tests are going to be run, still set up everything else unless
+        # already set up.
+        print()
+        if test == "Null":  # only create group/project and upload data, no test
+            print(f"\nSetting up {c_project_label} on {c_instance}")
+        else:  # run test and do other set-up if necessary
+            print(f"\nRunning {c_test} on {c_instance}")
 
         if test == "Exit":
             print(f"You want me to Exit, I wasn't finished!  OK Boomer.")
             os.sys.exit()
 
-        if not run_test:
-            continue
-
-        if test == "Null":  # only create group/project and upload data, no test
-            print(f"\nCreating {c_project_label} on on {c_instance}")
-        else:
-            print(f"\nRunning {c_test} on {c_instance}")
-
         # Assume the instance exists.  Someday, create one if not!
         fw = get_flywheel_client(instance)
 
-        print(f"Setting up or using Group: {c_group_label}")
+        print(f"Setting up or using Group: {c_group_id} a.k.a. {c_group_label}")
         group = get_or_create_group(fw, group_id, group_label)
 
         print(f"Setting up or using Project: {c_project_label}")
         project = get_or_create_project(group, project_label)
 
-        if upload_as == "bids":
-            print(f"Setting up or using BIDS Project: {row['Project']}")
-            upload_data_if_empty(
-                fw, group_id, project, DATA_PATH / registry_path, "bids", gear_rules
-            )
-        elif upload_as == "dicom":
-            print(f"Setting up or using DICOM data in Project: {row['Project']}")
-            upload_data_if_empty(
-                fw, group_id, project, DATA_PATH / registry_path, "dicom", gear_rules
-            )
-        else:
-            print(f"Setting up or using '{upload_as}' Project: {row['Project']}")
-            print(f"{CR}Wait!  I don't know how to do that!  Ahhhhhhhhhh!{C0}")
+        print(f"Setting up or using '{upload_as}' Project: {row['Project']}")
+        upload_data_if_empty(
+            fw, group_id, project, DATA_PATH / registry_path, upload_as
+        )
 
-        # Import the test and launch the job
+        print("Installing project files")
+        install_project_files(fw, project, DATA_PATH / registry_path)
+
+        if gear_name:
+            print("Installing gear")
+            install_gear(fw, gear_name, gear_version)
+
+        if gear_rules and gear_rules != "nan":
+            print("Installing gear rules")
+            install_gear_rules(fw, gear_rules)
+
         if test != "Null":
-            print(f"Launching Test: {test}")
-            test_path = f"tests.{test}"[:-3]
-            print(test_path)
-            __import__(test_path)
-            test_module = sys.modules[test_path]
-            analysis_id = test_module.main(fw)
-            print(f"analysis_id = {analysis_id}")
-            analysis_ids.append(analysis_id)
+            print(f"Launching test")
+            analysis_ids.append(run_test(test, fw))
 
-            # TODO make this actually work:
-            if row["Delay"] == float("inf"):
-                # sleep for a while and check if it is done yet, repeat until done
-                print(f"Waiting for job to finish...")
-            elif row["Delay"] > 0:
-                print(f"Sleeping for {row['Delay']} seconds")
-                time.sleep(row["Delay"])
+    # TODO make this actually work:
+    if delay == float("inf"):
+        # sleep for a while and check if it is done yet, repeat until done
+        print(f"Waiting for job to finish...")
+        print(f"{CR}Yipes, this isn't written yet!{C0}")
+    elif delay == "all-jobs-finished":
+        print(f"Waiting for all job to finish...")
+        print(f"{CR}Yipes, this isn't written yet!{C0}")
+    elif delay > 0:
+        print(f"Sleeping for {delay} seconds")
+        time.sleep(delay)
+    else:
+        print(f"{CR}Unknown Delay value: {delay}{C0}")
 
     # TODO use analysis_ids to monitor jobs or
     # launch gear to monitor tests and produce dashboard of results
     # - check result (succeed/fail) and log for specific outcomes
     # based on what is being tested, i.e. "asserts"
 
-    return exit_code
+    return 0
 
 
 if __name__ == "__main__":

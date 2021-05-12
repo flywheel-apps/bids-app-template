@@ -1,6 +1,9 @@
-Test	Instance	Group_ID	Group_Label	Project	Upload_As	Registry_Path	Gear_Rules	Delay	Run_Test?	Comments
-Null	rollout.ce.flywheel.io	bids-apps	BIDS Apps	bids-testing-scratch	BIDS	data/raw/bids	none	10	no	Just install the data
-BIDS_multi_session_project_BIDS_multi_session.py	rollout.ce.flywheel.io	bids-apps	BIDS Apps	BIDS_multi_session	BIDS	data/raw/bids	none	10	no
-BIDS_multi_session_subject_sub-TOME3024.py	rollout.ce.flywheel.io	bids-apps	BIDS Apps	BIDS_multi_session	BIDS	data/raw/bids	none	10	no
-BIDS_multi_session_session_ses-Session2.py	rollout.ce.flywheel.io	bids-apps	BIDS Apps	BIDS_multi_session	BIDS	data/raw/bids	none	10	no
-Null	ga.ce.flywheel.io	bids-curation-tests	bids-curation-tests	Levitas_Tutorial	DICOM	data/raw/dicom/dcm.zip/MR/BIDS	classifier dcm2niix	10	yes	Just install the data
+Test	Instance	Group_ID	Group_Label	Project	Upload_As	Registry_Path	Gear_Rules	Gear_Name	Gear_Version	Delay	Skip?	Comments
+Null	rollout.ce.flywheel.io	bids-apps	BIDS Apps	bids-testing-scratch	BIDS	data/raw/bids				10	skip	Just install the data
+Null	ga.ce.flywheel.io	bids-apps	BIDS Apps	bids-testing-scratch	BIDS	data/raw/bids				10	skip	"This got a time-out error and then a different error!
+"
+BIDS_multi_session_project_BIDS_multi_session.py	rollout.ce.flywheel.io	bids-apps	BIDS Apps	BIDS_multi_session	BIDS	data/raw/bids				10	Skip
+BIDS_multi_session_subject_sub-TOME3024.py	rollout.ce.flywheel.io	bids-apps	BIDS Apps	BIDS_multi_session	BIDS	data/raw/bids				10	yes
+BIDS_multi_session_session_ses-Session2.py	rollout.ce.flywheel.io	bids-apps	BIDS Apps	BIDS_multi_session	BIDS	data/raw/bids				10	Yes
+Levitas_Tutorial_curate-bids.py	ga.ce.flywheel.io	bids-curation-tests	bids-curation-tests	Levitas_Tutorial	DICOM	data/raw/dicom/dcm.zip/MR/BIDS	classifier dcm2niix			300	yes	Install data, run gear rules, wait ‘till done
+Levitas_Tutorial_curate-bids.py	ga.ce.flywheel.io	bids-curation-tests	bids-curation-tests	Levitas_Tutorial	DICOM	data/raw/dicom/dcm.zip/MR/BIDS		curate-bids	1.1.1_0.9.3_rc5	0.01

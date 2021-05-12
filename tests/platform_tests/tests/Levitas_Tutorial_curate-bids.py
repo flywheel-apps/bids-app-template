@@ -1,9 +1,9 @@
 #! /usr/bin/env python3
 """Run curate-bids on session "2020-01-22 14_29_46"
 
-    This script was created to run Job ID 60817898f4a3a2bb836f35ca
+    This script was created to run Job ID 609c558e510043ddf4bb5a1a
     In project "bids-curation-tests/Levitas_Tutorial"
-    On Flywheel Instance https://rollout.ce.flywheel.io/api
+    On Flywheel Instance https://ga.ce.flywheel.io/api
 """
 
 import argparse
@@ -18,9 +18,9 @@ input_files = {}
 def main(fw):
 
     gear = fw.lookup("gears/curate-bids")
-    print("gear.gear.version for job was = 1.1.1_0.9.3_rc4")
+    print("gear.gear.version for job was = 1.1.1_0.9.3_rc5")
     print(f"gear.gear.version now = {gear.gear.version}")
-    print("destination_id = 60798ec5c5a368b6b66f3467")
+    print("destination_id = 609af24b217fd6533bbb5d31")
     print("destination type is: session")
     destination = fw.lookup(
         "bids-curation-tests/Levitas_Tutorial/10462@thwjames_OpenScience/2020-01-22 14_29_46"
@@ -34,8 +34,8 @@ def main(fw):
     config = {
         "entire_project": True,
         "reset": True,
-        "template_type": "Custom",
-        "verbosity": "DEBUG",
+        "template_type": "Default",
+        "verbosity": "INFO",
     }
 
     job_id = gear.run(config=config, inputs=inputs, destination=destination)
