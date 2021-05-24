@@ -15,6 +15,12 @@ def get_and_log_environment():
 
     Returns: environ (dict) the shell environment variables
     """
+
+    # Skip this test in GitHub CI because it works locally and for real runs but not CI
+    user_json = Path(Path.home() / ".config/flywheel/user.json")
+    if not user_json.exists():
+        TestCase.skipTest("", f"No API key available in {str(user_json)}")
+
     environment_file = FWV0 / "gear_environ.json"
     log.debug("Grabbing environment from %s", environment_file)
 
