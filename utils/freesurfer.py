@@ -1,7 +1,9 @@
 """Install Freesurfer license.txt file where algorithm expects it.
 """
 
+import json
 import logging
+import re
 import shutil
 from pathlib import Path
 
@@ -33,9 +35,9 @@ def install_freesurfer_license(
         fs_license_path (str): Path to where the license should be installed,
             $FREESURFER_HOME, usually "/opt/freesurfer/license.txt".
 
-    Examples:
-        >>> from .license.freesurfer import install_freesurfer_license
-        >>> install_freesurfer_license(Null, Null, gtk_context.client, "5f8748421193aed33c35f172" , '/opt/freesurfer/license.txt')
+    Example:
+        >>> from freesurfer import install_freesurfer_license
+        >>> install_freesurfer_license(None, None, gtk_context.client, "5f8748421193aed33c35f172" , '/opt/freesurfer/license.txt')
     """
 
     log.debug("Looking for Freesurfer license")
@@ -47,6 +49,7 @@ def install_freesurfer_license(
 
     if input_license_path:  # just copy the file to the right place
 
+        log.info("FreeSurfer license path is %s", input_license_path)
         fs_path_only = Path(fs_license_path).parents[0]
         fs_file = Path(fs_license_path).name
 
@@ -62,12 +65,12 @@ def install_freesurfer_license(
 
         shutil.copy(input_license_path, fs_license_path)
 
-        license_info = "copied info file"
+        license_info = "copied input file"
         log.info("Using FreeSurfer license in input file.")
 
     # 2) see if the license info was passed as a string argument
     elif freesurfer_license_string:
-        license_info = "\n".join(freesurfer_license_string)
+        license_info = re.sub(r"(\S){1} ", "\1\n", freesurfer_license_string)
 
         log.info("Using FreeSurfer license in gear argument.")
 
@@ -87,7 +90,7 @@ def install_freesurfer_license(
     # set so save the Freesurfer license as a file in the right place.
     # If the license was an input file, it was copied to the right place
     # above (case 1).
-    if license_info == "copied info file":
+    if license_info == "copied input file":
         pass  # all is well
 
     elif license_info != "":
@@ -100,8 +103,8 @@ def install_freesurfer_license(
 
         with open(fs_license_path, "w") as flp:
             flp.write(license_info)
-            log.debug("Wrote license %s", license_info)
-            log.debug(" to license file %s", fs_license_path)
+            # log.debug("Wrote license %s", license_info)
+            log.debug("Wrote license file %s", fs_license_path)
 
     else:
         msg = "Could not find FreeSurfer license anywhere"

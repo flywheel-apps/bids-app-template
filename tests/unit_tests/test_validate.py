@@ -11,6 +11,7 @@ import pytest
 
 from utils.bids.validate import validate_bids
 
+FWV0 = Path.cwd()
 DATA_ROOT = Path("tests/data").resolve()
 
 
@@ -56,10 +57,10 @@ def test_validate_bids_basic_results_works(caplog, tmp_path, json_file):
                 assert err_code == 0
                 assert len(caplog.records) == 7
                 assert caplog.records[6].message == "No BIDS errors detected."
-    chdir("/flywheel/v0/")
+    chdir(FWV0)
 
 
-def test_validate_bids_no_bids_output(caplog, tmp_path, json_file):
+def test_validate_bids_no_bids_output(caplog, tmp_path):
 
     caplog.set_level(logging.DEBUG)
 
@@ -85,10 +86,10 @@ def test_validate_bids_no_bids_output(caplog, tmp_path, json_file):
                 assert err_code == 11
                 assert len(caplog.records) == 5
                 assert caplog.records[4].message == "BIDS validation could not run."
-    chdir("/flywheel/v0/")
+    chdir(FWV0)
 
 
-def test_validate_bids_non_zero_exit_reported(caplog, tmp_path, json_file):
+def test_validate_bids_non_zero_exit_reported(caplog, tmp_path):
     """Simulate a failure of running the bids validator such that it
     returns output which breaks the json.load()."""
 
@@ -113,7 +114,7 @@ def test_validate_bids_non_zero_exit_reported(caplog, tmp_path, json_file):
         assert err_code == 11
         assert len(caplog.records) == 7
         assert "JSONDecodeError" in caplog.records[3].message
-    chdir("/flywheel/v0/")
+    chdir(FWV0)
 
 
 def test_validate_bids_error_results_exception(caplog, tmp_path, json_file):
@@ -153,10 +154,10 @@ def test_validate_bids_error_results_exception(caplog, tmp_path, json_file):
                     caplog.records[7].message
                     == "1 BIDS validation error(s) were detected."
                 )
-    chdir("/flywheel/v0/")
+    chdir(FWV0)
 
 
-def test_validate_bids_called_process_error(caplog, tmp_path, json_file):
+def test_validate_bids_called_process_error(caplog, tmp_path):
     """This one actually runs bids-validator so skip it if it is not installed"""
 
     caplog.set_level(logging.DEBUG)
@@ -180,4 +181,4 @@ def test_validate_bids_called_process_error(caplog, tmp_path, json_file):
     assert err_code == 10
     assert len(caplog.records) == 6
     assert "Quick validation failed" in caplog.records[4].message
-    chdir("/flywheel/v0/")
+    chdir(FWV0)

@@ -127,8 +127,7 @@ def download_bids_for_runlevel(
 
     run_level = hierarchy["run_level"]
 
-    # Show the complete destination hierarchy in the tree html output for
-    # clarity
+    # Show the complete destination hierarchy in the tree html output for clarity
     extra_tree_text += f"run_level is {run_level}\n"
     for key, val in hierarchy.items():
         extra_tree_text += f"  {key:<18}: {val}\n"
@@ -202,7 +201,7 @@ def download_bids_for_runlevel(
                     hierarchy["run_label"],
                 )
 
-                if Path(bids_dir).exists():  #  This happens during testing
+                if Path(bids_dir).exists():  # This happens during testing
                     bids_path = bids_dir
                     log.info(f"Not actually downloading it because {bids_dir} exists")
                 else:
@@ -293,10 +292,12 @@ def download_bids_for_runlevel(
             fix_dataset_description(bids_path)
 
             # now that work/bids/ exists, copy in the ignore file
-            bidsignore_path = gtk_context.get_input_path("bidsignore")
-            if bidsignore_path:
-                shutil.copy(bidsignore_path, "work/bids/.bidsignore")
-                log.info("Installed .bidsignore in work/bids/")
+            bidsignore_list = list(Path("input/bidsignore").glob("*"))
+            if len(bidsignore_list) > 0:
+                bidsignore_path = str(bidsignore_list[0])
+                if bidsignore_path:
+                    shutil.copy(bidsignore_path, "work/bids/.bidsignore")
+                    log.info("Installed .bidsignore in work/bids/")
 
             try:
                 if do_validate_bids:

@@ -6,6 +6,8 @@ import flywheel_gear_toolkit
 
 import run
 
+log = logging.getLogger(__name__)
+
 
 def test_dry_run_works(caplog, install_gear, search_caplog_contains, search_caplog):
 
@@ -15,6 +17,8 @@ def test_dry_run_works(caplog, install_gear, search_caplog_contains, search_capl
     if not user_json.exists():
         TestCase.skipTest("", f"No API key available in {str(user_json)}")
 
+    FWV0 = Path.cwd()
+
     install_gear("dry_run.zip")
 
     with flywheel_gear_toolkit.GearToolkitContext(input_args=[]) as gtk_context:
@@ -22,7 +26,7 @@ def test_dry_run_works(caplog, install_gear, search_caplog_contains, search_capl
         status = run.main(gtk_context)
 
         assert status == 0
-        assert Path("/flywheel/v0/work/bids/.bidsignore").exists()
+        assert (FWV0 / "work/bids/.bidsignore").exists()
         assert search_caplog_contains(caplog, "command is", "participant")
         assert search_caplog_contains(caplog, "command is", "'arg1', 'arg2'")
         assert search_caplog(caplog, "No BIDS errors detected.")
@@ -31,4 +35,4 @@ def test_dry_run_works(caplog, install_gear, search_caplog_contains, search_capl
         assert search_caplog(caplog, "Zipping work/bids/sub-TOME3024/ses-Session2/anat")
         assert search_caplog(caplog, "Looked for anatsub-TOME3024_desc-about_T1w.html")
         assert search_caplog(caplog, "Warning: gear-dry-run is set")
-        assert Path("/flywheel/v0/output/.metadata.json").exists()
+        assert (FWV0 / "output/.metadata.json").exists()

@@ -5,7 +5,9 @@ import glob
 import logging
 import os
 import subprocess as sp
+from pathlib import Path
 
+FWV0 = Path.cwd()
 log = logging.getLogger(__name__)
 
 
@@ -73,3 +75,5 @@ def zip_htmls(output_dir, destination_id, path):
     else:
 
         log.error("Path NOT found: " + str(path))
+
+    os.chdir(FWV0)

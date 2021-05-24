@@ -4,10 +4,22 @@ FROM python:3.9-buster as base
 # editme: Change this to your email.
 LABEL maintainer="support@flywheel.io"
 
+ENV FLYWHEEL /flywheel/v0
+WORKDIR ${FLYWHEEL}
+
+# If it is not in the base image, install the algorithm you want to run
+# in this gear:
+COPY algorithm-to-gearify.sh ${FLYWHEEL}/algorithm-to-gearify.sh
+
+# This is here to make gear code for Freesurfer to pass tests.
+# You probably don't need it
+ENV FREESURFER_HOME="/opt/freesurfer"
+ENV SUBJECTS_DIR="/opt/freesurfer/subjects"
+
 # Hopefully You won't need to change anything below this.
 
 # Save docker environ here to keep it separate from the Flywheel gear environment
-RUN python -c 'import os, json; f = open("/tmp/gear_environ.json", "w"); json.dump(dict(os.environ), f)'
+RUN python -c 'import os, json; f = open("/flywheel/v0/gear_environ.json", "w"); json.dump(dict(os.environ), f)'
 
 RUN apt-get update && \
     curl -sL https://deb.nodesource.com/setup_10.x | bash - && \
@@ -37,8 +49,13 @@ COPY requirements.txt /tmp
 RUN pip install -r /tmp/requirements.txt && \
     rm -rf /root/.cache/pip
 
-ENV FLYWHEEL /flywheel/v0
-WORKDIR ${FLYWHEEL}
+# Create symbolic link for Freesurfer license but delete the target because
+# the gear's "freesurfer" directory will be created when the gear runs
+RUN mkdir -p /opt/freesurfer/
+RUN mkdir -p ${FLYWHEEL}/freesurfer
+RUN touch ${FLYWHEEL}/freesurfer/license.txt
+RUN ln -s ${FLYWHEEL}/freesurfer/license.txt /opt/freesurfer/license.txt
+RUN rm -rf ${FLYWHEEL}/freesurfer
 
 ENV PYTHONUNBUFFERED 1
 

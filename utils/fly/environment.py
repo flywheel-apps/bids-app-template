@@ -1,22 +1,25 @@
 import json
 import logging
+import os
+from pathlib import Path
 
 log = logging.getLogger(__name__)
 
-ENVIRONMENT_FILE = "/tmp/gear_environ.json"
+FWV0 = Path.cwd()
 
 
 def get_and_log_environment():
-    """Grab and log environment for to use when executing command line.
+    """Grab and log environment to use when executing command lines.
 
     The shell environment is saved into a file at an appropriate place in the Dockerfile.
 
-    Args:
-        log (GearToolkitContext().log): logger set up by Gear Toolkit
-
-    Returns: (nothing)
+    Returns: environ (dict) the shell environment variables
     """
-    with open(ENVIRONMENT_FILE, "r") as f:
+
+    environment_file = FWV0 / "gear_environ.json"
+    log.debug("Grabbing environment from %s", environment_file)
+
+    with open(environment_file, "r") as f:
         environ = json.load(f)
 
         # Add environment to log if debugging

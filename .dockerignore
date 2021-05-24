@@ -1,0 +1,13 @@
+.DS_Store
+.circleci
+.coverage
+.git
+.github
+.gitignore
+.idea
+.isort.cfg
+.pre-commit-config.yaml
+.pytest_cache
+htmlcov
+notebooks
+setup.cfg

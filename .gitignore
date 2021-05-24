@@ -175,3 +175,9 @@ fabric.properties
 
 # vim
 .*.swp
+
+# singularity
+*.sif
+
+# libreoffice
+.~lock*

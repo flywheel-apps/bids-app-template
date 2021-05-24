@@ -6,7 +6,8 @@ import flywheel_gear_toolkit
 
 import run
 
-LONG_TEXT = 'Creating viewable archive "/flywheel/v0/output/index_5ebbfe82bfda51026d6aa079.html.zip'
+# TODO this is fragile (detect that actual file exists)
+LONG_TEXT = "flywheel/v0/output/index_603fb0c775f2cd6a236e8ab4.html.zip"
 
 
 def test_wet_run_errors(
@@ -35,8 +36,8 @@ def test_wet_run_errors(
         print_captured(captured)
 
         assert status == 1
-        assert search_sysout(captured, "Python 3.9.1")
-        assert search_caplog(caplog, "sub-TOME3024_ses-Session2_acq-MPR_T1w.nii.gz")
+        assert search_sysout(captured, "Python 3.9")
+        assert search_caplog(caplog, "sub-TOME3024_ses-Session2_acq-MPRHA_T1w.nii.gz")
         assert search_caplog(caplog, "Not running BIDS validation")
         assert search_sysout(captured, "now I generate an error")
         assert search_sysout(captured, "4) slept 1 seconds")

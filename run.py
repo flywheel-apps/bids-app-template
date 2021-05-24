@@ -3,6 +3,7 @@
 
 import json
 import logging
+import os
 import shutil
 import sys
 from pathlib import Path
@@ -26,6 +27,7 @@ from utils.results.zip_intermediate import (
     zip_all_intermediate_output,
     zip_intermediate_selected,
 )
+from utils.singularity import run_in_tmp_dir
 
 log = logging.getLogger(__name__)
 
@@ -36,7 +38,7 @@ CONTAINER = f"{REPO}/{GEAR}]"
 # editme: The following 4 constants are the main things to edit.  Run-time Parameters
 # passed to the command need to be set up in manifest.json.
 # The BIDS App command to run, e.g. "mriqc"
-BIDS_APP = "./tests/test.sh"
+BIDS_APP = "./algorithm-to-gearify.sh"
 
 # What level to run at (positional_argument #3)
 ANALYSIS_LEVEL = "participant"  # "group"
@@ -48,7 +50,7 @@ DOWNLOAD_MODALITIES = []  # empty list is no limit
 DOWNLOAD_SOURCE = False
 
 # Constants that do not need to be changed
-FREESURFER_LICENSE = "/opt/freesurfer/license.txt"
+FREESURFER_LICENSE = "./freesurfer/license.txt"
 
 
 def generate_command(config, work_dir, output_analysis_id_dir, errors, warnings):
@@ -99,7 +101,6 @@ def generate_command(config, work_dir, output_analysis_id_dir, errors, warnings)
     if "bad_arg" in cmd:
         errors.append("A bad argument was found in the config.")
     num_things = command_parameters.get("num-things")
-    print(f"num_things = {str(num_things)}")
     if num_things and num_things > 41:
         warnings.append(
             f"The num-things config value should not be > 41.  It is {command_parameters['num-things']}."
@@ -124,6 +125,9 @@ def generate_command(config, work_dir, output_analysis_id_dir, errors, warnings)
 
 def main(gtk_context):
 
+    FWV0 = Path.cwd()
+    log.debug("Running gear in %s", FWV0)
+
     gtk_context.log_config()
 
     # Errors and warnings will be always logged when they are detected.
@@ -133,7 +137,9 @@ def main(gtk_context):
     warnings = []
 
     output_dir = gtk_context.output_dir
+    log.debug("output_dir is %s", output_dir)
     work_dir = gtk_context.work_dir
+    log.debug("work_dir is %s", work_dir)
     gear_name = gtk_context.manifest["name"]
 
     # run-time configuration options from the gear's context.json
@@ -146,6 +152,9 @@ def main(gtk_context):
     destination_id = gtk_context.destination["id"]
     hierarchy = get_analysis_run_level_and_hierarchy(gtk_context.client, destination_id)
 
+    if "run_level" in config:
+        hierarchy["run_level"] = config["run_level"]
+
     # This is the label of the project, subject or session and is used
     # as part of the name of the output files.
     run_label = make_file_name_safe(hierarchy["run_label"])
@@ -155,15 +164,34 @@ def main(gtk_context):
     # can be returned.
     output_analysis_id_dir = output_dir / destination_id
 
+    environ = get_and_log_environment()
+
     # editme: optional features -- set # threads and max memory to use
     config["n_cpus"] = set_n_cpus(config.get("n_cpus"))
     config["mem_gb"] = set_mem_gb(config.get("mem_gb"))
 
-    environ = get_and_log_environment()
+    # All writeable directories need to be set up in the current working directory
+    # for compatibility with Singularity
+
+    orig_subject_dir = Path(environ["SUBJECTS_DIR"])
+    subjects_dir = FWV0 / "freesurfer/subjects"
+    environ["SUBJECTS_DIR"] = str(subjects_dir)
+    if not subjects_dir.exists():  # needs to be created unless testing
+        subjects_dir.mkdir(parents=True)
+        (subjects_dir / "fsaverage").symlink_to(orig_subject_dir / "fsaverage")
+        (subjects_dir / "fsaverage5").symlink_to(orig_subject_dir / "fsaverage5")
+        (subjects_dir / "fsaverage6").symlink_to(orig_subject_dir / "fsaverage6")
+
+    environ["FS_LICENSE"] = str(FWV0 / "freesurfer/license.txt")
 
     # editme: if the command needs a Freesurfer license keep this
+    license_list = list(Path("input/freesurfer_license").glob("*"))
+    if len(license_list) > 0:
+        fs_license_path = license_list[0]
+    else:
+        fs_license_path = ""
     install_freesurfer_license(
-        gtk_context.get_input_path("freesurfer_license"),
+        str(fs_license_path),
         config.get("gear-FREESURFER_LICENSE"),
         gtk_context.client,
         destination_id,
@@ -222,6 +250,15 @@ def main(gtk_context):
             log.info("Creating output directory %s", output_analysis_id_dir)
             Path(output_analysis_id_dir).mkdir()
 
+            if config["gear-log-level"] != "INFO":
+                # show what's in the current working directory just before running
+                os.system("tree -a .")
+
+            # Setting this is useful for stopping long-running algorithms to
+            # test if they get set up properly
+            if "gear-timeout" in config:
+                command = [f"timeout {config['gear-timeout']}"] + command
+
             # This is what it is all about
             exec_command(
                 command, environ=environ, dry_run=dry_run, shell=True, cont_output=True,
@@ -241,6 +278,17 @@ def main(gtk_context):
         # see https://github.com/bids-standard/pybids/tree/master/examples
         # for any necessary work on the bids files inside the gear, perhaps
         # to query results or count stuff to estimate how long things will take.
+
+        # editme: optional feature
+        # Remove all fsaverage* directories
+        if not config.get("gear-keep-fsaverage"):
+            path = output_analysis_id_dir / "freesurfer"
+            fsavg_dirs = path.glob("fsaverage*")
+            for fsavg in fsavg_dirs:
+                log.info("deleting %s", str(fsavg))
+                shutil.rmtree(fsavg)
+        else:
+            log.info("Keeping fsaverage directories")
 
         # zip entire output/<analysis_id> folder into
         #  <gear_name>_<project|subject|session label>_<analysis.id>.zip
@@ -292,7 +340,7 @@ def main(gtk_context):
 
         # editme: optional feature
         # save .metadata file
-        metadata = {
+        metadata_works_but_causes_clutter_when_testing_this_template = {
             "project": {
                 "info": {
                     "test": "Hello project",
@@ -314,6 +362,8 @@ def main(gtk_context):
                 },
                 "tags": [run_label, destination_id],
             },
+        }
+        metadata = {
             "analysis": {
                 "info": {
                     "test": "Hello analysis",
@@ -363,6 +413,10 @@ def main(gtk_context):
 
 if __name__ == "__main__":
 
+    # always run in a newly created "scratch" directory in /tmp/...
+    # to be compatible with Singularity
+    scratch_dir = run_in_tmp_dir()
+
     gtk_context = flywheel_gear_toolkit.GearToolkitContext()
 
     # Setup basic logging and log the configuration for this job
@@ -371,4 +425,14 @@ if __name__ == "__main__":
     else:
         gtk_context.init_logging("debug")
 
-    sys.exit(main(gtk_context))
+    return_code = main(gtk_context)
+
+    # clean up (might be necessary when running in a shared computing environment)
+    for thing in scratch_dir.glob("*"):
+        if thing.is_symlink():
+            thing.unlink()  # don't remove anything links point to
+            log.debug("unlinked %s", thing.name)
+    shutil.rmtree(scratch_dir)
+    log.debug("Removed %s", scratch_dir)
+
+    sys.exit(return_code)

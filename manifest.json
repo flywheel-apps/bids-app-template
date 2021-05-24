@@ -2,12 +2,12 @@
   "name": "bids-app-template",
   "label": "<Bids-App-Template>: short human-friendly name/description displayed in interface",
   "description": "<editme Name> (<version>) longer description.",
-  "version": "0.0.0_0.4.0",
+  "version": "0.0.0_0.15.0",
   "custom": {
-    "docker-image": "flywheel/bids-app-template:0.0.0_0.4.0",
+    "docker-image": "flywheel/bids-app-template:0.0.0_0.15.0",
     "gear-builder": {
       "category": "analysis",
-      "image": "flywheel/bids-app-template:0.0.0_0.4.0"
+      "image": "flywheel/bids-app-template:0.0.0_0.15.0"
     },
     "flywheel": {
       "suite": "BIDS Apps"
@@ -48,9 +48,24 @@
       "description": "A .bidsignore file to provide to the bids-validator that this gear runs before running the main command.",
       "base": "file",
       "optional": true
+    },
+    "go_file": {
+      "description": "Any kind of file that can be used in a Gear Rule to launch this gear when that file appears.  Use with the 'run_level' config option to force running at the project, subject, or session level.  The default is to run at the session level if not otherwise specified.",
+      "base": "file",
+      "optional": true
     }
   },
   "config": {
+    "run_level": {
+      "description": "Force the gear to run a the project, subject, or session level.  This is required if the 'go_file' is being used in a Gear Rule to run the gear but it can be used when running the gear normally as well.",
+      "enum": [
+        "project",
+        "subject",
+        "session"
+      ],
+      "optional": true,
+      "type": "string"
+    },
     "bids_app_args": {
       "description": "[arg1 [arg2 ...]]",
       "default": "",
