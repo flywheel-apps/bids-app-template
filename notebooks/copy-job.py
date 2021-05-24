@@ -195,7 +195,7 @@ if __name__ == "__main__":
         "-a",
         "--analysis",
         action="store_true",
-        help="ID provide is for the analysis (job destination)",
+        help="ID provided is for the analysis (job destination)",
     )
     parser.add_argument("-v", "--verbose", action="count", default=0)
 

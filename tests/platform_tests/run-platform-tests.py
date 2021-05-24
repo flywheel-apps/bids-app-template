@@ -62,7 +62,7 @@ KEY_FILE = Path.home() / "Flywheel/bin/.keys.json"
 """
 
 
-def get_flywheel_client(instance):
+def get_api_key(instance):
     """Return a Flywheel Client given the instance name.
 
     Get the api_key by looking it up in the KEY_FILE
@@ -74,6 +74,11 @@ def get_flywheel_client(instance):
         fw (flywheel.client.Client): Flywheel client for the named instance
     """
 
+    # TODO make this work with environment variables or else
+    # by getting the api-key from ~/.config/flywheel/user.json
+    # if the KEY_FILE is not present but that doesn't honor the
+    # "instance" argument to this method
+
     with open(KEY_FILE) as json_file:
         keys = json.load(json_file)
     the_user = keys["default"]
@@ -82,7 +87,7 @@ def get_flywheel_client(instance):
             api_key = val
     if not api_key:
         print(f"{CR}Could not find instance '{instance}'{C0}")
-    return flywheel.Client(api_key=api_key)
+    return api_key
 
 
 def get_or_create_group(fw, group_id, group_label):
@@ -105,6 +110,7 @@ def get_or_create_group(fw, group_id, group_label):
     else:
         print("Group not found - Creating it.")
         group_id = fw.add_group(flywheel.Group(group_id, group_label))
+        group = fw.get_group(group_id)
         print(f"group.label {group.label}")
         print(f"group.id {group.id}")
     return group
@@ -191,7 +197,7 @@ def upload_data_if_empty(fw, group_id, project, data_path, upload_as):
                         dcm_dir = Path(tmpdirname) / item
                         if len(list(dcm_dir.glob("*.dcm"))) > 0:
                             cmd = f"fw ingest dicom {dcm_dir} {group_id} {project.label} -v -y"
-                            print(f"{C0}cmd{C0}")
+                            print(f"{CO}{cmd}{C0}")
                             command = [w for w in cmd.split()]
                             result = sp.run(command)
 
@@ -230,7 +236,7 @@ def install_project_files(fw, project, data_path):
             if args.verbose:
                 cmd = f"tree {tmpdirname}"
                 result = sp.run([w for w in cmd.split()])
-            project_files_dir = Path(tmpdirname) / "Levitas_Tutorial_project_files"
+            project_files_dir = Path(tmpdirname) / f"{project.label}_project_files"
             for afile in project_files_dir.glob("*"):
                 found_file = False
                 for project_file in project.files:
@@ -242,7 +248,7 @@ def install_project_files(fw, project, data_path):
                     project.upload_file(afile)
                     print(f"Uploaded {afile.name} to project")
     else:
-        print(f"No '{project_zip_name}' found")
+        print(f"No '{project_zip_name}' found (no files to upload)")
 
 
 def install_gear(fw, gear_name, gear_version):
@@ -302,8 +308,8 @@ def add_dcm2niix_rule(fw, project):
             **{
                 "_not": [],
                 "all": [
-                    {"regex": None, "type": "file.modality", "value": "MR"},
-                    {"regex": None, "type": "file.type", "value": "dicom"},
+                    {"regex": False, "type": "file.modality", "value": "MR"},
+                    {"regex": False, "type": "file.type", "value": "dicom"},
                 ],
                 "any": [],
             },
@@ -318,7 +324,7 @@ def add_dcm2niix_rule(fw, project):
         print(f"'{name}' gear rule already installed")
 
 
-def install_gear_rules(fw, gear_rules):
+def install_gear_rules(fw, project, gear_rules):
     """Install gear rules if listed.
     Args:
         fw (flywheel.client.Client): A Flywheel client
@@ -397,7 +403,9 @@ def main():
             os.sys.exit()
 
         # Assume the instance exists.  Someday, create one if not!
-        fw = get_flywheel_client(instance)
+        api_key = get_api_key(instance)
+
+        fw = flywheel.Client(api_key=api_key)
 
         print(f"Setting up or using Group: {c_group_id} a.k.a. {c_group_label}")
         group = get_or_create_group(fw, group_id, group_label)
@@ -405,21 +413,21 @@ def main():
         print(f"Setting up or using Project: {c_project_label}")
         project = get_or_create_project(group, project_label)
 
+        if gear_rules and gear_rules != "nan":
+            print("Installing gear rules")
+            install_gear_rules(fw, project, gear_rules)
+
+        print("Installing project files")
+        install_project_files(fw, project, DATA_PATH / registry_path)
+
         print(f"Setting up or using '{upload_as}' Project: {row['Project']}")
         upload_data_if_empty(
             fw, group_id, project, DATA_PATH / registry_path, upload_as
         )
 
-        print("Installing project files")
-        install_project_files(fw, project, DATA_PATH / registry_path)
-
-        if gear_name:
+        if gear_name and gear_name != "nan":
             print("Installing gear")
             install_gear(fw, gear_name, gear_version)
-
-        if gear_rules and gear_rules != "nan":
-            print("Installing gear rules")
-            install_gear_rules(fw, gear_rules)
 
         if test != "Null":
             print(f"Launching test")
@@ -433,7 +441,7 @@ def main():
     elif delay == "all-jobs-finished":
         print(f"Waiting for all job to finish...")
         print(f"{CR}Yipes, this isn't written yet!{C0}")
-    elif delay > 0:
+    elif float(delay) > 0.0:
         print(f"Sleeping for {delay} seconds")
         time.sleep(delay)
     else:
