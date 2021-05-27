@@ -116,6 +116,15 @@ def get_or_create_group(fw, group_id, group_label):
     return group
 
 
+def get_data_from_storage(data_file):
+    """Pull data from wherever it is stored.
+
+    Args:
+        data_file (Path): complete path to the large zip data file
+    """
+    print(f"{CR}Yipes, I don't know how to pull data from dvc yet{C0}")
+
+
 def get_or_create_project(group, project_label):
     """Return a project if it exists, if not create it.
 
@@ -172,6 +181,10 @@ def upload_data_if_empty(fw, group_id, project, data_path, upload_as):
         print(f"Project has no acquisitions, Setting up...")
 
         print(f"Importing data...")
+        data_file = "{data_path}/{project.label}.zip"
+        if not data_file.exists():
+            get_data_from_storage(data_file)
+
         with tempfile.TemporaryDirectory() as tmpdirname:
             unzip_archive(f"{data_path}/{project.label}.zip", tmpdirname)
 
