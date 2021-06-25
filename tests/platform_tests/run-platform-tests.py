@@ -38,9 +38,15 @@ CO = "\x1b[38;5;202m"  # Orange
 
 CONFIG = Path("tests/platform_tests/config.tsv")
 
-DATA_PATH = (
-    Path().home() / "Flywheel/gitlab/flywheel-io/scientific-solutions/data-registry"
-)
+DATA_PATH = Path().home() / "Flywheel/gitlab/flywheel-io/qa/data-registry"
+
+ORIG_LOGIN = ""
+USER_JSON = Path(Path.home() / ".config/flywheel/user.json")
+if USER_JSON.exists():
+    with open(USER_JSON) as json_file:
+        contents = json.load(json_file)
+        if "key" in contents:
+            ORIG_LOGIN = contents["key"]
 
 KEY_FILE = Path.home() / "Flywheel/bin/.keys.json"
 """KEY_FILE be like:
@@ -60,6 +66,13 @@ KEY_FILE = Path.home() / "Flywheel/bin/.keys.json"
     }
 }
 """
+
+if not DATA_PATH.exists():
+    print()
+    print(f"{CR}Ahhhhhhhh!{C0} I can't go on like this.")
+    print(f"{DATA_PATH} does not exist.")
+    print()
+    exit(1)
 
 
 def get_api_key(instance):
@@ -103,7 +116,7 @@ def get_or_create_group(fw, group_id, group_label):
 
     groups = fw.groups.find(f"label={group_label}")
     if len(groups) > 0:
-        print(f"Found it.")
+        print(f"Found group.")
         group = groups[0]
         print(f"group.label {group.label}")
         print(f"group.id {group.id}")
@@ -175,13 +188,16 @@ def upload_data_if_empty(fw, group_id, project, data_path, upload_as):
         upload_as (str): "bids" or "dicom"
     """
 
+    global api_key, current_login, log_back_in_to_orig
+
     acquisitions = fw.acquisitions.find(f"project={project.id}")
 
     if len(acquisitions) == 0:
         print(f"Project has no acquisitions, Setting up...")
 
-        print(f"Importing data...")
-        data_file = "{data_path}/{project.label}.zip"
+        print("Importing data...")
+        data_file = data_path / (project.label + ".zip")
+        print(f"Looking for {str(data_file)}")
         if not data_file.exists():
             get_data_from_storage(data_file)
 
@@ -200,7 +216,7 @@ def upload_data_if_empty(fw, group_id, project, data_path, upload_as):
                 )
 
             elif upload_as == "dicom":
-                print("Setting up or using DICOM data}")
+                print("Setting up or using DICOM data")
                 if args.verbose:
                     cmd = f"tree {tmpdirname}"
                     result = sp.run([w for w in cmd.split()])
@@ -209,6 +225,15 @@ def upload_data_if_empty(fw, group_id, project, data_path, upload_as):
                     if item.is_dir():
                         dcm_dir = Path(tmpdirname) / item
                         if len(list(dcm_dir.glob("*.dcm"))) > 0:
+
+                            if api_key != current_login:
+                                log_back_in_to_orig = True
+                                cmd = f"fw login {api_key}"
+                                print(f"{CO}fw login {api_key.split(':')[0]}{C0}")
+                                command = [w for w in cmd.split()]
+                                result = sp.run(command)
+                                current_login = api_key
+
                             cmd = f"fw ingest dicom {dcm_dir} {group_id} {project.label} -v -y"
                             print(f"{CO}{cmd}{C0}")
                             command = [w for w in cmd.split()]
@@ -377,11 +402,15 @@ def run_test(test, fw):
 
 def main():
 
+    global api_key
+
     tests = pd.read_table(CONFIG, index_col=False)
 
     analysis_ids = []
+    line_num = 1  # skip header line
 
     for index, row in tests.iterrows():
+        line_num += 1
 
         test = str(row["Test"])
         c_test = f"{CG}{test}{C0}"  # Green
@@ -406,10 +435,11 @@ def main():
         # if no tests are going to be run, still set up everything else unless
         # already set up.
         print()
+        print(f"Running config.tsv line {line_num}")
         if test == "Null":  # only create group/project and upload data, no test
-            print(f"\nSetting up {c_project_label} on {c_instance}")
+            print(f"Setting up {c_project_label} on {c_instance}")
         else:  # run test and do other set-up if necessary
-            print(f"\nRunning {c_test} on {c_instance}")
+            print(f"Running {c_test} on {c_instance}")
 
         if test == "Exit":
             print(f"You want me to Exit, I wasn't finished!  OK Boomer.")
@@ -427,7 +457,7 @@ def main():
         project = get_or_create_project(group, project_label)
 
         if gear_rules and gear_rules != "nan":
-            print("Installing gear rules")
+            print("Installing gear rules:")
             install_gear_rules(fw, project, gear_rules)
 
         print("Installing project files")
@@ -446,19 +476,19 @@ def main():
             print(f"Launching test")
             analysis_ids.append(run_test(test, fw))
 
-    # TODO make this actually work:
-    if delay == float("inf"):
-        # sleep for a while and check if it is done yet, repeat until done
-        print(f"Waiting for job to finish...")
-        print(f"{CR}Yipes, this isn't written yet!{C0}")
-    elif delay == "all-jobs-finished":
-        print(f"Waiting for all job to finish...")
-        print(f"{CR}Yipes, this isn't written yet!{C0}")
-    elif float(delay) > 0.0:
-        print(f"Sleeping for {delay} seconds")
-        time.sleep(delay)
-    else:
-        print(f"{CR}Unknown Delay value: {delay}{C0}")
+        # TODO make this actually work:
+        if delay == float("inf"):
+            # sleep for a while and check if it is done yet, repeat until done
+            print(f"Waiting for job to finish...")
+            print(f"{CR}Yipes, this isn't written yet!{C0}")
+        elif delay == "all-jobs-finished":
+            print(f"Waiting for all job to finish...")
+            print(f"{CR}Yipes, this isn't written yet!{C0}")
+        elif float(delay) > 0.0:
+            print(f"Sleeping for {delay} seconds")
+            time.sleep(delay)
+        else:
+            print(f"{CR}Unknown Delay value: {delay}{C0}")
 
     # TODO use analysis_ids to monitor jobs or
     # launch gear to monitor tests and produce dashboard of results
@@ -484,4 +514,20 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    os.sys.exit(main())
+    api_key = ""
+    current_login = ORIG_LOGIN
+    log_back_in_to_orig = False
+
+    ret_val = main()
+
+    if log_back_in_to_orig:
+        if ORIG_LOGIN:
+            cmd = f"fw login {ORIG_LOGIN}"
+            print(f"{CO}fw login {ORIG_LOGIN.split(':')[0]}{C0}")
+        else:
+            cmd = f"fw logout"
+            print(f"{CO}fw loout{C0}")
+        command = [w for w in cmd.split()]
+        result = sp.run(command)
+
+    os.sys.exit(ret_val)

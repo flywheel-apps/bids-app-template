@@ -6,7 +6,7 @@
     On Flywheel Instance https://ga.ce.flywheel.io/api
 
     This script was modified to run save_bids_curation.py after the gear
-    finishes.
+    finishes.  No it wasn't.  Instead, that gets run next by platform_tests/confit.tsv
 """
 
 import argparse
