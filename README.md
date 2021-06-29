@@ -1,5 +1,7 @@
 [![CircleCI](https://circleci.com/gh/flywheel-apps/bids-app-template.svg?style=shield)](https://app.circleci.com/pipelines/github/flywheel-apps/bids-app-template)
 
+## **Migrated to [GitLab](https://gitlab.com/flywheel-io/flywheel-apps/templates/bids-app-template)**
+
 # bids-app-template
 A Template for Gears running on BIDS formatted data.
 
